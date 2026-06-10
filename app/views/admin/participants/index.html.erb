@@ -3,7 +3,7 @@
   <div class="flex items-center gap-3 mb-6">
     <%= link_to "← #{@pool.name}", admin_pool_path(@pool), class: "text-sm text-gray-500 hover:text-indigo-600" %>
     <h1 class="text-2xl font-bold">Participantes</h1>
-    <span class="text-sm text-gray-500">(<%= @participants.total_count %> total)</span>
+    <span class="text-sm text-gray-500">(<%= @pagy.count %> total)</span>
   </div>
 
   <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">

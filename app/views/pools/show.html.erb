@@ -11,7 +11,7 @@
                 '<span class="badge-active text-xs">Torneio</span>'.html_safe :
                 '<span class="badge-pending text-xs">Jogo único</span>'.html_safe %>
           <%= content_tag :span, @pool.status.to_s.humanize,
-                class: "badge #{@pool.status_active? ? 'badge-active' : 'badge-finished'}" %>
+                class: "badge #{@pool.status_open? ? 'badge-active' : 'badge-finished'}" %>
         </div>
         <h1 class="font-display font-bold text-2xl sm:text-3xl text-pitch-900 dark:text-white leading-tight">
           <%= @pool.name %>

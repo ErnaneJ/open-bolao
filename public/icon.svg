@@ -1,3 +1,21 @@
-<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="256" cy="256" r="256" fill="red"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="#070e22"/>
+  <!-- White ball -->
+  <circle cx="256" cy="256" r="176" fill="white"/>
+  <!-- Classic football black patches -->
+  <!-- Center pentagon -->
+  <polygon points="256,152 312,190 292,252 220,252 200,190" fill="#111827"/>
+  <!-- Upper-left pentagon -->
+  <polygon points="144,176 200,190 220,252 160,280 120,228" fill="#111827"/>
+  <!-- Upper-right pentagon -->
+  <polygon points="368,176 312,190 292,252 352,280 392,228" fill="#111827"/>
+  <!-- Lower-left pentagon -->
+  <polygon points="160,280 220,252 236,312 184,352 136,324" fill="#111827"/>
+  <!-- Lower-right pentagon -->
+  <polygon points="352,280 292,252 276,312 328,352 376,324" fill="#111827"/>
+  <!-- Bottom pentagon -->
+  <polygon points="236,312 276,312 256,372" fill="#111827"/>
+  <!-- Neon accent dot -->
+  <circle cx="416" cy="96" r="48" fill="#b8ff3c"/>
 </svg>

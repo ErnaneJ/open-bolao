@@ -4,12 +4,28 @@
     <title><%= content_for(:title).presence || t("app.name") %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="description" content="<%= content_for(:meta_description).presence || 'Bolão de futebol online — faça seus palpites, convide amigos e dispute o ranking da Copa do Mundo 2026.' %>">
+    <meta name="theme-color" content="#070e22" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    <%# Open Graph %>
+    <meta property="og:type"        content="website">
+    <meta property="og:site_name"   content="<%= t('app.name') %>">
+    <meta property="og:title"       content="<%= content_for(:title).presence || t('app.name') %>">
+    <meta property="og:description" content="<%= content_for(:meta_description).presence || 'Bolão de futebol online — faça seus palpites, convide amigos e dispute o ranking da Copa do Mundo 2026.' %>">
+    <meta property="og:image"       content="<%= image_url('icon.svg') %>">
+    <%# Twitter / X %>
+    <meta name="twitter:card"        content="summary">
+    <meta name="twitter:title"       content="<%= content_for(:title).presence || t('app.name') %>">
+    <meta name="twitter:description" content="<%= content_for(:meta_description).presence || 'Bolão de futebol online — Copa do Mundo 2026.' %>">
+    <meta name="twitter:image"       content="<%= image_url('icon.svg') %>">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="apple-touch-icon" href="/icon.png">
     <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>

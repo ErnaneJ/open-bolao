@@ -6,7 +6,7 @@
     <h3 class="font-display font-bold text-sm text-pitch-900 dark:text-white leading-tight truncate group-hover:text-neon-600 dark:group-hover:text-neon-300 transition-colors">
       <%= participation.pool.name %>
     </h3>
-    <span class="<%= participation.pool.status_active? ? 'badge-active' : 'badge-finished' %> shrink-0">
+    <span class="<%= participation.pool.status_open? ? 'badge-active' : 'badge-finished' %> shrink-0">
       <%= I18n.t("activerecord.attributes.pool.statuses.#{participation.pool.status}", default: participation.pool.status) %>
     </span>
   </div>

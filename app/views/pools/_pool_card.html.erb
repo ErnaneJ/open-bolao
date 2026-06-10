@@ -3,7 +3,7 @@
   <%= link_to pool_path(pool), class: "block p-5" do %>
     <div class="flex items-start justify-between gap-2 mb-3">
       <h3 class="font-display font-bold text-sm text-pitch-900 dark:text-white truncate leading-tight"><%= pool.name %></h3>
-      <span class="<%= pool.status_active? ? 'badge-active' : 'badge-finished' %> shrink-0 text-[10px]">
+      <span class="<%= pool.status_open? ? 'badge-active' : 'badge-finished' %> shrink-0 text-[10px]">
         <%= I18n.t("activerecord.attributes.pool.statuses.#{pool.status}", default: pool.status) %>
       </span>
     </div>
