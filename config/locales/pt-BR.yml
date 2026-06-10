@@ -49,6 +49,7 @@ pt-BR:
     joined: "Você entrou no bolão!"
     already_joined: "Você já participa deste bolão."
     left: "Você saiu do bolão."
+    invalid_invite_code: "Código de convite inválido ou expirado."
     go_to_special_bets: "Ir para palpites especiais →"
     no_special_bets_single_match: "Palpites especiais não estão disponíveis em bolões de jogo único."
     index:

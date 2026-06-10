@@ -7,6 +7,9 @@ Rails.application.routes.draw do
 
   get "dashboard", to: "dashboard#index", as: :dashboard
 
+  get  "join/:invite_code", to: "pools#join_by_code", as: :join_pool_by_code
+  post "join/:invite_code", to: "pools#accept_invite", as: :accept_pool_invite
+
   resources :pools, only: [:index, :show] do
     member do
       post :join

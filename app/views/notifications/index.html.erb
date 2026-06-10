@@ -1,40 +1,51 @@
-<% content_for :title, t("notifications.title") %>
+<% content_for :title, "Notificações" %>
+<%= turbo_stream_from "notifications_user_#{current_user.id}" %>
 
-<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-2xl mx-auto px-4 sm:px-6 py-8">
   <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold"><%= t("notifications.title") %></h1>
-    <span class="text-sm text-gray-500 dark:text-gray-400">
-      <%= @notifications.count { |n| !n.read? } %> <%= t("notifications.unread") %>
-    </span>
+    <div>
+      <h1 class="font-display font-bold text-2xl text-pitch-900 dark:text-white">Notificações</h1>
+      <% unread = @notifications.count { |n| !n.read? } %>
+      <% if unread > 0 %>
+        <p class="text-sm text-pitch-400 mt-0.5"><%= unread %> não lida<%= unread > 1 ? "s" : "" %></p>
+      <% end %>
+    </div>
   </div>
 
   <% if @notifications.any? %>
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700 overflow-hidden">
+    <div class="card overflow-hidden divide-y divide-pitch-100 dark:divide-pitch-700/50">
       <% @notifications.each do |notification| %>
         <%= turbo_frame_tag "notification_#{notification.id}" do %>
-          <div class="px-4 py-4 flex items-start gap-3 <%= notification.read? ? 'opacity-60' : 'bg-indigo-50/50 dark:bg-indigo-900/10' %>">
-            <div class="w-2 h-2 rounded-full mt-2 shrink-0 <%= notification.read? ? 'bg-gray-300' : 'bg-indigo-500' %>"></div>
+          <div class="px-5 py-4 flex items-start gap-4 transition-colors
+               <%= notification.read? ? 'opacity-60' : '' %>">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-lg bg-pitch-100 dark:bg-pitch-700">
+              <%= notification.kind_goal? ? "⚽" : notification.kind_match_starting? ? "🏁" : notification.kind_match_finished? ? "🔔" : notification.kind_pool_finished? ? "🏆" : notification.kind_pool_invite? ? "✉️" : "📬" %>
+            </div>
             <div class="flex-1 min-w-0">
-              <p class="font-medium text-sm text-gray-900 dark:text-white"><%= notification.title %></p>
+              <p class="font-semibold text-sm text-pitch-900 dark:text-white leading-snug"><%= notification.title %></p>
               <% if notification.body.present? %>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5"><%= notification.body %></p>
+                <p class="text-xs text-pitch-500 dark:text-pitch-300 mt-0.5"><%= notification.body %></p>
               <% end %>
-              <p class="text-xs text-gray-400 mt-1"><%= time_ago_in_words(notification.created_at) %></p>
+              <p class="text-[11px] text-pitch-400 mt-1.5"><%= time_ago_in_words(notification.created_at) %> atrás</p>
             </div>
             <% unless notification.read? %>
-              <%= button_to notification_path(notification), method: :patch, params: { notification: { read_at: Time.current } },
-                  class: "text-xs text-gray-400 hover:text-indigo-600 shrink-0" do %>
-                ✓
-              <% end %>
+              <div class="flex items-center gap-2 shrink-0">
+                <div class="w-2 h-2 rounded-full bg-neon-400 shrink-0"></div>
+                <%= button_to notification_path(notification), method: :patch,
+                      params: { notification: { read_at: Time.current } },
+                      class: "btn btn-ghost btn-sm text-pitch-400" do %>✓<% end %>
+              </div>
             <% end %>
           </div>
         <% end %>
       <% end %>
     </div>
-    <%= render "shared/pagy", pagy: @pagy %>
+    <div class="mt-4"><%= render "shared/pagy", pagy: @pagy %></div>
   <% else %>
-    <div class="text-center py-16 text-gray-500 dark:text-gray-400">
-      <p><%= t("notifications.empty") %></p>
+    <div class="card p-16 text-center">
+      <div class="text-5xl mb-4">🔔</div>
+      <p class="font-display font-bold text-lg text-pitch-900 dark:text-white mb-1">Tudo em dia</p>
+      <p class="text-sm text-pitch-400">Você não tem notificações ainda.</p>
     </div>
   <% end %>
 </div>

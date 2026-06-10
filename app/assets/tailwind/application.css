@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Enable class-based dark mode (toggled by JS via .dark on <html>) */
+@variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-neon-50:  #f5ffe0;
   --color-neon-100: #e8ffb8;

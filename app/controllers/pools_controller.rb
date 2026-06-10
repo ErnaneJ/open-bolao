@@ -4,7 +4,7 @@ class PoolsController < ApplicationController
   def index
     skip_policy_scope
     @pagy, @pools = pagy(
-      policy_scope(Pool).includes(:admin, :tournament).open_pools.order(created_at: :desc)
+      policy_scope(Pool).includes(:admin, :tournament).order(created_at: :desc)
     )
   end
 
@@ -35,6 +35,29 @@ class PoolsController < ApplicationController
     participant = @pool.pool_participants.find_by!(user_id: current_user.id)
     participant.destroy!
     redirect_to pools_path, notice: t("pools.left")
+  end
+
+  # GET /join/:invite_code — preview page before accepting
+  def join_by_code
+    @pool = Pool.find_by(invite_code: params[:invite_code].upcase)
+    if @pool.nil?
+      redirect_to pools_path, alert: t("pools.invalid_invite_code")
+    elsif @pool.pool_participants.active.exists?(user_id: current_user.id)
+      redirect_to pool_path(@pool), notice: t("pools.already_joined")
+    end
+  end
+
+  # POST /join/:invite_code — accept and join
+  def accept_invite
+    @pool = Pool.find_by!(invite_code: params[:invite_code].upcase)
+    participant = @pool.pool_participants.find_or_initialize_by(user_id: current_user.id)
+    if participant.new_record?
+      participant.status = :active
+      participant.save!
+      redirect_to pool_path(@pool), notice: t("pools.joined")
+    else
+      redirect_to pool_path(@pool), alert: t("pools.already_joined")
+    end
   end
 
   private

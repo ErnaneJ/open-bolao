@@ -1,38 +1,37 @@
 <% content_for :title, "Convite — #{@pool.name}" %>
-<div class="p-6 max-w-lg">
+<div class="max-w-lg">
   <div class="flex items-center gap-3 mb-6">
-    <%= link_to "← #{@pool.name}", admin_pool_path(@pool), class: "text-sm text-gray-500 hover:text-indigo-600" %>
-    <h1 class="text-2xl font-bold">Convite</h1>
+    <%= link_to "← #{@pool.name}", admin_pool_path(@pool), class: "text-sm text-pitch-500 hover:text-pitch-700 dark:hover:text-pitch-200" %>
   </div>
 
-  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 text-center">
-    <p class="text-sm text-gray-500 mb-2">Código de convite</p>
-    <div class="text-4xl font-bold font-mono tracking-widest text-indigo-600 dark:text-indigo-400 mb-4">
+  <div class="card p-6 text-center">
+    <p class="stat-label mb-3">Código de convite</p>
+    <div class="font-mono font-bold text-4xl tracking-[0.3em] text-neon-600 dark:text-neon-300 mb-6">
       <%= @pool.invite_code %>
     </div>
 
-    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
-      <p class="text-xs text-gray-400 mb-2">Link de convite</p>
+    <div class="bg-pitch-50 dark:bg-pitch-700/50 rounded-xl p-4 mb-6 text-left">
+      <p class="form-label mb-2">Link de convite</p>
       <div class="flex items-center gap-2">
-        <code class="flex-1 text-xs text-gray-600 dark:text-gray-300 break-all"><%= @invite_url %></code>
+        <code class="flex-1 text-xs text-pitch-600 dark:text-pitch-300 break-all font-mono"><%= @invite_url %></code>
         <button data-controller="clipboard" data-clipboard-text-value="<%= @invite_url %>"
                 data-action="click->clipboard#copy"
-                class="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-100 shrink-0">
+                class="btn btn-ghost btn-sm shrink-0">
           Copiar
         </button>
       </div>
     </div>
 
-    <div class="mb-6">
-      <%# QR Code SVG %>
-      <% qr_svg = @qr.as_svg(offset: 0, color: "000", shape_rendering: "crispEdges", module_size: 4, standalone: true) %>
-      <div class="inline-block p-3 bg-white rounded-xl border border-gray-200">
-        <%= qr_svg.html_safe %>
+    <% if defined?(@qr) && @qr %>
+      <div class="mb-6">
+        <div class="inline-block p-4 bg-white rounded-2xl border border-pitch-100">
+          <%= @qr.as_svg(offset: 0, color: "000", shape_rendering: "crispEdges", module_size: 4, standalone: true).html_safe %>
+        </div>
       </div>
-    </div>
+    <% end %>
 
     <%= button_to "Gerar novo código", admin_pool_invite_path(@pool), method: :patch,
-        data: { turbo_confirm: "Isso vai invalidar o código atual. Continuar?" },
-        class: "px-4 py-2 border border-red-300 text-red-600 rounded-lg text-sm hover:bg-red-50" %>
+          data: { turbo_confirm: "Isso vai invalidar o código atual. Continuar?" },
+          class: "btn btn-danger btn-sm" %>
   </div>
 </div>

@@ -1,6 +1,6 @@
 class User < ApplicationRecord
   devise :database_authenticatable, :registerable, :recoverable, :rememberable,
-         :validatable, :confirmable
+         :validatable
 
   enum :role, { user: 0, admin: 1, super_admin: 2 }, prefix: true
   enum :locale, { pt_br: 0, en: 1 }

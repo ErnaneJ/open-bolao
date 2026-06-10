@@ -19,6 +19,17 @@
         <% if @pool.description.present? %>
           <p class="text-sm text-pitch-500 dark:text-pitch-300 mt-1.5"><%= @pool.description %></p>
         <% end %>
+        <% if current_user == @pool.admin || current_user.role_super_admin? %>
+          <div class="flex items-center gap-2 mt-3">
+            <code class="text-xs font-mono text-pitch-400 bg-pitch-50 dark:bg-pitch-700/60 px-2.5 py-1 rounded-lg truncate max-w-xs">
+              <%= join_pool_by_code_url(invite_code: @pool.invite_code) %>
+            </code>
+            <button data-controller="clipboard"
+                    data-clipboard-text-value="<%= join_pool_by_code_url(invite_code: @pool.invite_code) %>"
+                    data-action="click->clipboard#copy"
+                    class="btn btn-ghost btn-sm shrink-0">Copiar link</button>
+          </div>
+        <% end %>
       </div>
 
       <div class="flex items-center gap-2 shrink-0">

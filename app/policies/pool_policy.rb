@@ -1,6 +1,6 @@
 class PoolPolicy < ApplicationPolicy
   def index?  = true
-  def show?   = user.present? && (record.public_pool? || participant? || admin_owner? || super_admin?)
+  def show?   = user.present? && (participant? || admin_owner? || super_admin?)
   def create? = admin? || super_admin?
   def update? = admin_owner? || super_admin?
   def destroy? = admin_owner? || super_admin?
@@ -11,14 +11,14 @@ class PoolPolicy < ApplicationPolicy
 
   class Scope < ApplicationPolicy::Scope
     def resolve
-      if user.role_super_admin?
+      if super_admin?
         scope.all
-      elsif user.role_admin?
-        scope.where(admin_id: user.id).or(scope.where(visibility: :public_pool))
+      elsif admin?
+        scope.where(admin_id: user.id)
+             .or(scope.joins(:pool_participants).where(pool_participants: { user_id: user.id, status: :active }))
       else
         scope.joins(:pool_participants)
              .where(pool_participants: { user_id: user.id, status: :active })
-             .or(scope.where(visibility: :public_pool))
       end
     end
   end
