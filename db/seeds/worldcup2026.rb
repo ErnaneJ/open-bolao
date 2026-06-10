@@ -95,7 +95,9 @@ begin
       away_score:  md.away_score,
       stage:       stage,
       tournament:  tournament,
-      stream_url:  md.stream_url.presence || "https://www.youtube.com/@CazeTV/streams"
+      stream_url:  md.stream_url.presence || "https://www.youtube.com/@CazeTV/streams",
+      venue:       md.stadium_name,
+      thumb_url:   md.thumb_url
     )
     match.save! if match.new_record? || match.changed?
   end
