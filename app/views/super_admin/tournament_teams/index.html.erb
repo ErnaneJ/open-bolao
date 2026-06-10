@@ -1,0 +1,29 @@
+<% content_for :title, "Times — #{@tournament.name}" %>
+<div class="p-6">
+  <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+    <%= link_to "← #{@tournament.name}", super_admin_tournament_path(@tournament), class: "text-sm text-gray-500 hover:text-indigo-600" %>
+    <h1 class="text-xl font-bold flex-1">Times no Torneio</h1>
+    <%= link_to "Adicionar Time", new_super_admin_tournament_team_path(@tournament), class: "px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700" %>
+  </div>
+  <% teams_by_group = @tournament_teams.group_by(&:group_name) %>
+  <% teams_by_group.each do |group, teams| %>
+    <div class="mb-6">
+      <% if group.present? %>
+        <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2"><%= group %></h3>
+      <% end %>
+      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700 overflow-hidden">
+        <% teams.each do |tt| %>
+          <div class="px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="w-8 text-xs font-mono font-bold text-gray-500 uppercase"><%= tt.team.short_name || tt.team.name.first(3) %></span>
+              <span class="font-medium text-sm"><%= tt.team.name %></span>
+            </div>
+            <%= button_to "Remover", super_admin_tournament_team_path(@tournament, tt), method: :delete,
+                data: { turbo_confirm: "Remover #{tt.team.name} do torneio?" },
+                class: "text-xs text-red-600 hover:underline" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

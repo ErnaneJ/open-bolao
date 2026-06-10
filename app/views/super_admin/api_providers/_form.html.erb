@@ -1,0 +1,18 @@
+<div class="space-y-4">
+  <div>
+    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nome</label>
+    <%= f.text_field :name, class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+  </div>
+  <div>
+    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo</label>
+    <%= f.select :provider_type, ApiProvider.provider_types.keys.map { |t| [t.humanize, t] }, {}, class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+  </div>
+  <div>
+    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Base URL</label>
+    <%= f.url_field :base_url, placeholder: "https://api.example.com", class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+  </div>
+  <div class="flex items-center justify-between">
+    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Ativo</label>
+    <%= f.check_box :active, class: "rounded border-gray-300 text-indigo-600" %>
+  </div>
+</div>

@@ -1,0 +1,41 @@
+<% content_for :title, "Torneios" %>
+<div class="p-6">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold">Torneios</h1>
+    <%= link_to "Novo Torneio", new_super_admin_tournament_path, class: "px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700" %>
+  </div>
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 dark:bg-gray-700/50">
+        <tr>
+          <th class="px-4 py-3 text-left font-medium text-gray-500">Torneio</th>
+          <th class="px-4 py-3 text-left font-medium text-gray-500">Temporada</th>
+          <th class="px-4 py-3 text-center font-medium text-gray-500">Status</th>
+          <th class="px-4 py-3 text-right font-medium text-gray-500">Times</th>
+          <th class="px-4 py-3 text-right font-medium text-gray-500">Jogos</th>
+          <th class="px-4 py-3 text-right font-medium text-gray-500">Ações</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+        <% @tournaments.each do |tournament| %>
+          <tr>
+            <td class="px-4 py-3 font-medium">
+              <%= link_to tournament.name, super_admin_tournament_path(tournament), class: "hover:text-indigo-600" %>
+            </td>
+            <td class="px-4 py-3 text-gray-500"><%= tournament.season %></td>
+            <td class="px-4 py-3 text-center"><%= status_badge(tournament.status) %></td>
+            <td class="px-4 py-3 text-right text-gray-500"><%= tournament.tournament_teams.count %></td>
+            <td class="px-4 py-3 text-right text-gray-500"><%= tournament.matches.count %></td>
+            <td class="px-4 py-3 text-right">
+              <div class="flex items-center justify-end gap-2">
+                <%= link_to "Editar", edit_super_admin_tournament_path(tournament), class: "text-xs text-indigo-600 hover:underline" %>
+                <%= button_to "Seed API", seed_from_api_super_admin_tournament_path(tournament), method: :post, class: "text-xs text-green-600 hover:underline" %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <%= render "shared/pagy", pagy: @pagy %>
+</div>

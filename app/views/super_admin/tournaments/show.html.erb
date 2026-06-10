@@ -1,0 +1,37 @@
+<% content_for :title, @tournament.name %>
+<div class="p-6">
+  <div class="flex items-center gap-3 mb-6 flex-wrap">
+    <%= link_to "← Torneios", super_admin_tournaments_path, class: "text-sm text-gray-500 hover:text-indigo-600" %>
+    <h1 class="text-2xl font-bold flex-1"><%= @tournament.name %> <span class="text-gray-400 text-lg font-normal"><%= @tournament.season %></span></h1>
+    <%= status_badge(@tournament.status) %>
+  </div>
+
+  <div class="flex flex-wrap gap-2 mb-6">
+    <%= link_to "Editar", edit_super_admin_tournament_path(@tournament), class: "px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700" %>
+    <%= link_to "Times", super_admin_tournament_teams_path(@tournament), class: "px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700" %>
+    <%= link_to "Jogos", super_admin_tournament_matches_path(@tournament), class: "px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700" %>
+    <%= link_to "Fases", super_admin_tournament_stages_path(@tournament), class: "px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700" %>
+    <%= link_to "Sync", super_admin_tournament_sync_schedule_path(@tournament), class: "px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700" %>
+    <%= button_to "Seed via API", seed_from_api_super_admin_tournament_path(@tournament), method: :post, class: "px-3 py-1.5 bg-green-100 text-green-800 rounded-lg text-sm hover:bg-green-200" %>
+    <%= button_to "Sync agora", sync_super_admin_tournament_path(@tournament), method: :post, class: "px-3 py-1.5 bg-indigo-100 text-indigo-800 rounded-lg text-sm hover:bg-indigo-200" %>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center">
+      <div class="text-3xl font-bold text-indigo-600"><%= @tournament.teams.count %></div>
+      <div class="text-xs text-gray-500 mt-1">Times</div>
+    </div>
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center">
+      <div class="text-3xl font-bold text-indigo-600"><%= @tournament.matches.count %></div>
+      <div class="text-xs text-gray-500 mt-1">Jogos</div>
+    </div>
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center">
+      <div class="text-3xl font-bold text-indigo-600"><%= @tournament.pools.count %></div>
+      <div class="text-xs text-gray-500 mt-1">Bolões</div>
+    </div>
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center">
+      <div class="text-3xl font-bold text-indigo-600"><%= @tournament.matches.finished.count %></div>
+      <div class="text-xs text-gray-500 mt-1">Jogos encerrados</div>
+    </div>
+  </div>
+</div>

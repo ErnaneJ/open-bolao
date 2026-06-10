@@ -1,0 +1,45 @@
+<div class="space-y-4">
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mandante</label>
+      <%= f.collection_select :home_team_id, @teams, :id, :name, { include_blank: "Selecionar time" }, class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Visitante</label>
+      <%= f.collection_select :away_team_id, @teams, :id, :name, { include_blank: "Selecionar time" }, class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+    </div>
+  </div>
+  <div>
+    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fase</label>
+    <%= f.collection_select :stage_id, @stages, :id, :name, { include_blank: "Sem fase" }, class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+  </div>
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Data/hora</label>
+      <%= f.datetime_local_field :scheduled_at, class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Local</label>
+      <%= f.text_field :venue, placeholder: "Estádio", class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+    </div>
+  </div>
+  <div class="grid grid-cols-3 gap-4 items-end">
+    <div>
+      <label class="block text-xs text-gray-500 mb-1">Placar mandante</label>
+      <%= f.number_field :home_score, min: 0, max: 99, class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm text-center font-bold" %>
+    </div>
+    <div class="text-center text-xl text-gray-300">×</div>
+    <div>
+      <label class="block text-xs text-gray-500 mb-1">Placar visitante</label>
+      <%= f.number_field :away_score, min: 0, max: 99, class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm text-center font-bold" %>
+    </div>
+  </div>
+  <div>
+    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+    <%= f.select :status, Match.statuses.keys.map { |s| [s.humanize, s] }, {}, class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+  </div>
+  <div>
+    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ID externo</label>
+    <%= f.text_field :external_id, class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+  </div>
+</div>

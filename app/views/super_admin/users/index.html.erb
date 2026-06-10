@@ -1,0 +1,46 @@
+<% content_for :title, "Usuários" %>
+<div class="p-6">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold">Usuários (<%= @users.total_count %>)</h1>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 dark:bg-gray-700/50">
+        <tr>
+          <th class="px-4 py-3 text-left font-medium text-gray-500">Usuário</th>
+          <th class="px-4 py-3 text-left font-medium text-gray-500">Role</th>
+          <th class="px-4 py-3 text-right font-medium text-gray-500">Bolões</th>
+          <th class="px-4 py-3 text-right font-medium text-gray-500">Ações</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+        <% @users.each do |user| %>
+          <tr>
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                  <%= user.display_name.first.upcase %>
+                </div>
+                <div>
+                  <p class="font-medium text-gray-900 dark:text-white"><%= user.display_name %></p>
+                  <p class="text-xs text-gray-400"><%= user.email %></p>
+                </div>
+              </div>
+            </td>
+            <td class="px-4 py-3"><%= role_badge(user.role) %></td>
+            <td class="px-4 py-3 text-right text-gray-500"><%= user.pool_participants.count %></td>
+            <td class="px-4 py-3 text-right">
+              <div class="flex items-center justify-end gap-2">
+                <%= link_to "Ver", super_admin_user_path(user), class: "text-xs text-indigo-600 hover:underline" %>
+                <%= button_to "Impersonar", impersonate_super_admin_user_path(user), method: :post,
+                    class: "text-xs text-yellow-600 hover:underline" %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <%= render "shared/pagy", pagy: @pagy %>
+</div>

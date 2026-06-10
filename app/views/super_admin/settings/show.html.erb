@@ -1,0 +1,25 @@
+<% content_for :title, "Configurações do Sistema" %>
+<div class="p-6 max-w-2xl">
+  <h1 class="text-2xl font-bold mb-6">Configurações do Sistema</h1>
+
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 space-y-4 mb-6">
+    <h3 class="font-semibold">Informações</h3>
+    <% @settings.each do |key, value| %>
+      <div class="flex justify-between items-center border-b border-gray-100 dark:border-gray-700 pb-3 last:border-0 last:pb-0">
+        <span class="text-sm text-gray-500"><%= key.to_s.humanize %></span>
+        <% if value.to_s.start_with?("/") %>
+          <%= link_to value, value, target: "_blank", class: "text-sm text-indigo-600 hover:underline" %>
+        <% else %>
+          <span class="text-sm font-medium"><%= value %></span>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="grid grid-cols-2 gap-4">
+    <%= link_to "Ir para Blazer →", super_admin_blazer_path, target: "_blank",
+        class: "flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-xl text-sm font-medium hover:bg-purple-700" %>
+    <%= link_to "Ir para Sidekiq →", super_admin_sidekiq_path, target: "_blank",
+        class: "flex items-center justify-center gap-2 px-4 py-3 bg-orange-600 text-white rounded-xl text-sm font-medium hover:bg-orange-700" %>
+  </div>
+</div>

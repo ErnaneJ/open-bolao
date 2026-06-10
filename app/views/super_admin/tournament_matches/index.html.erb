@@ -1,0 +1,47 @@
+<% content_for :title, "Jogos — #{@tournament.name}" %>
+<div class="p-6">
+  <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+    <%= link_to "← #{@tournament.name}", super_admin_tournament_path(@tournament), class: "text-sm text-gray-500 hover:text-indigo-600" %>
+    <h1 class="text-xl font-bold flex-1">Jogos</h1>
+    <%= link_to "Novo Jogo", new_super_admin_tournament_match_path(@tournament), class: "px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700" %>
+  </div>
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 dark:bg-gray-700/50">
+        <tr>
+          <th class="px-4 py-3 text-left font-medium text-gray-500">Jogo</th>
+          <th class="px-4 py-3 text-left font-medium text-gray-500">Fase</th>
+          <th class="px-4 py-3 text-left font-medium text-gray-500">Data</th>
+          <th class="px-4 py-3 text-center font-medium text-gray-500">Placar</th>
+          <th class="px-4 py-3 text-center font-medium text-gray-500">Status</th>
+          <th class="px-4 py-3 text-right font-medium text-gray-500">Ações</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+        <% @matches.each do |match| %>
+          <tr>
+            <td class="px-4 py-3 font-medium text-sm">
+              <%= match.home_team.name %> × <%= match.away_team.name %>
+            </td>
+            <td class="px-4 py-3 text-xs text-gray-500"><%= match.stage&.name %></td>
+            <td class="px-4 py-3 text-xs text-gray-500"><%= match.scheduled_at ? l(match.scheduled_at, format: :short) : "—" %></td>
+            <td class="px-4 py-3 text-center font-bold text-sm">
+              <% if match.status_finished? || match.status_live? %>
+                <%= match.home_score %> – <%= match.away_score %>
+              <% else %>–<% end %>
+            </td>
+            <td class="px-4 py-3 text-center"><%= status_badge(match.status) %></td>
+            <td class="px-4 py-3 text-right">
+              <div class="flex items-center justify-end gap-2">
+                <%= link_to "Editar", edit_super_admin_tournament_match_path(@tournament, match), class: "text-xs text-indigo-600 hover:underline" %>
+                <%= button_to "Excluir", super_admin_tournament_match_path(@tournament, match), method: :delete,
+                    data: { turbo_confirm: "Excluir este jogo?" }, class: "text-xs text-red-600 hover:underline" %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <%= render "shared/pagy", pagy: @pagy %>
+</div>

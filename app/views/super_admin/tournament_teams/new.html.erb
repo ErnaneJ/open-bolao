@@ -1,0 +1,25 @@
+<% content_for :title, "Adicionar Time — #{@tournament.name}" %>
+<div class="p-6 max-w-lg">
+  <div class="flex items-center gap-3 mb-6">
+    <%= link_to "← Times", super_admin_tournament_teams_path(@tournament), class: "text-sm text-gray-500 hover:text-indigo-600" %>
+    <h1 class="text-xl font-bold">Adicionar Time ao Torneio</h1>
+  </div>
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+    <%= form_with model: [:super_admin, @tournament, @tournament_team] do |f| %>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Time</label>
+          <%= f.collection_select :team_id, @teams, :id, :name, { include_blank: "Selecionar time" }, class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Grupo (opcional)</label>
+          <%= f.text_field :group_name, placeholder: "Ex: Grupo A", class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+        </div>
+      </div>
+      <div class="flex justify-end gap-3 mt-6">
+        <%= link_to "Cancelar", super_admin_tournament_teams_path(@tournament), class: "px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm" %>
+        <%= f.submit "Adicionar", class: "px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm cursor-pointer hover:bg-indigo-700" %>
+      </div>
+    <% end %>
+  </div>
+</div>

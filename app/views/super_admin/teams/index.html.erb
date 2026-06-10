@@ -1,0 +1,42 @@
+<% content_for :title, "Times" %>
+<div class="p-6">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold">Times (<%= @teams.total_count %>)</h1>
+    <%= link_to "Novo Time", new_super_admin_team_path, class: "px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700" %>
+  </div>
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 dark:bg-gray-700/50">
+        <tr>
+          <th class="px-4 py-3 text-left font-medium text-gray-500">Time</th>
+          <th class="px-4 py-3 text-left font-medium text-gray-500">País</th>
+          <th class="px-4 py-3 text-right font-medium text-gray-500">Torneios</th>
+          <th class="px-4 py-3 text-right font-medium text-gray-500">Ações</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+        <% @teams.each do |team| %>
+          <tr>
+            <td class="px-4 py-3 font-medium">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-6 rounded text-xs font-bold bg-gray-100 dark:bg-gray-700 flex items-center justify-center uppercase text-gray-600 dark:text-gray-300 font-mono">
+                  <%= team.short_name || team.name.first(3) %>
+                </span>
+                <%= team.name %>
+              </div>
+            </td>
+            <td class="px-4 py-3 text-gray-500 uppercase text-xs font-mono"><%= team.country_code %></td>
+            <td class="px-4 py-3 text-right text-gray-500"><%= team.tournament_teams.count %></td>
+            <td class="px-4 py-3 text-right">
+              <div class="flex items-center justify-end gap-2">
+                <%= link_to "Editar", edit_super_admin_team_path(team), class: "text-xs text-indigo-600 hover:underline" %>
+                <%= button_to "Excluir", super_admin_team_path(team), method: :delete, data: { turbo_confirm: "Excluir #{team.name}?" }, class: "text-xs text-red-600 hover:underline" %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <%= render "shared/pagy", pagy: @pagy %>
+</div>

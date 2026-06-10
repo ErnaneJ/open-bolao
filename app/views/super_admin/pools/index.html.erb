@@ -1,0 +1,37 @@
+<% content_for :title, "Todos os Bolões" %>
+<div class="p-6">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold">Todos os Bolões (<%= @pools.total_count %>)</h1>
+  </div>
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 dark:bg-gray-700/50">
+        <tr>
+          <th class="px-4 py-3 text-left font-medium text-gray-500">Bolão</th>
+          <th class="px-4 py-3 text-left font-medium text-gray-500">Admin</th>
+          <th class="px-4 py-3 text-center font-medium text-gray-500">Status</th>
+          <th class="px-4 py-3 text-right font-medium text-gray-500">Participantes</th>
+          <th class="px-4 py-3 text-right font-medium text-gray-500">Ações</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+        <% @pools.each do |pool| %>
+          <tr>
+            <td class="px-4 py-3">
+              <p class="font-medium"><%= pool.name %></p>
+              <p class="text-xs text-gray-400"><%= pool.pool_scope %></p>
+            </td>
+            <td class="px-4 py-3 text-gray-500 text-xs"><%= pool.admin.email %></td>
+            <td class="px-4 py-3 text-center"><%= status_badge(pool.status) %></td>
+            <td class="px-4 py-3 text-right text-gray-500"><%= pool.pool_participants.active.count %></td>
+            <td class="px-4 py-3 text-right">
+              <%= button_to "Excluir", super_admin_pool_path(pool), method: :delete,
+                  data: { turbo_confirm: "Excluir bolão #{pool.name}?" }, class: "text-xs text-red-600 hover:underline" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <%= render "shared/pagy", pagy: @pagy %>
+</div>

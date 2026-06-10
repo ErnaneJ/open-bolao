@@ -1,4 +1,5 @@
 class SuperAdmin::BaseController < ApplicationController
+  layout "super_admin"
   before_action :require_super_admin!
 
   private
