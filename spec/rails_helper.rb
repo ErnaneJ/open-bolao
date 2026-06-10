@@ -18,6 +18,10 @@ RSpec.configure do |config|
   config.infer_spec_type_from_file_location!
   config.filter_rails_from_backtrace!
 
+  # Use test adapter for ActiveJob so have_enqueued_job matchers work
+  config.before(:each, type: :job) { ActiveJob::Base.queue_adapter = :test }
+  config.before(:each) { ActiveJob::Base.queue_adapter = :test }
+
   config.include FactoryBot::Syntax::Methods
   config.include Devise::Test::ControllerHelpers, type: :controller
   config.include Devise::Test::IntegrationHelpers, type: :request

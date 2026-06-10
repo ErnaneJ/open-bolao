@@ -3,9 +3,9 @@ require "rails_helper"
 RSpec.describe Sync::FetchResultsJob do
   subject(:job) { described_class.new }
 
-  let(:api_provider) { create(:api_provider) }
-  let(:tournament) { create(:tournament) }
-  let(:schedule) { create(:sync_schedule, schedulable: tournament, api_provider: api_provider) }
+  let!(:api_provider) { create(:api_provider) }
+  let!(:tournament) { create(:tournament) }
+  let!(:schedule) { create(:sync_schedule, schedulable: tournament, api_provider: api_provider) }
   let(:home_team) { create(:team) }
   let(:away_team) { create(:team) }
   let(:match) do
