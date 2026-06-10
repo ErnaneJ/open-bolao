@@ -1,0 +1,7 @@
+:concurrency: 5
+:queues:
+  - [scheduler, 10]
+  - [sync, 8]
+  - [webhooks, 6]
+  - [default, 4]
+  - [mailers, 2]

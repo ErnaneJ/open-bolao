@@ -1,0 +1,17 @@
+sync_scheduler:
+  cron: "* * * * *"
+  class: "Sync::SchedulerJob"
+  queue: scheduler
+  description: "Master scheduler that decides which sync jobs to enqueue"
+
+lock_tips:
+  cron: "* * * * *"
+  class: "Pools::LockTipsJob"
+  queue: scheduler
+  description: "Locks tips for matches starting soon"
+
+purge_sync_logs:
+  cron: "0 3 * * 0"
+  class: "Sync::PurgeLogsJob"
+  queue: default
+  description: "Weekly cleanup of old sync logs"
