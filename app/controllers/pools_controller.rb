@@ -3,15 +3,19 @@ class PoolsController < ApplicationController
 
   def index
     skip_policy_scope
-    @pools = policy_scope(Pool).includes(:admin, :tournament).open_pools.order(created_at: :desc)
-    @pools = Pagy::Backend.instance_method(:pagy).bind(self).call(@pools)
+    @pagy, @pools = pagy(
+      policy_scope(Pool).includes(:admin, :tournament).open_pools.order(created_at: :desc)
+    )
   end
 
   def show
     authorize @pool
     @participant = @pool.pool_participants.find_by(user_id: current_user.id)
-    @ranking = @pool.pool_participants.active.ranked.includes(:user).limit(20)
+    @pagy_ranking, @ranking = pagy(
+      @pool.pool_participants.active.ranked.includes(:user), items: 50
+    )
     @matches = pool_matches
+    @tips_map = current_user.tips.where(pool: @pool).index_by(&:match_id)
   end
 
   def join
@@ -43,7 +47,7 @@ class PoolsController < ApplicationController
     if @pool.tournament_pool?
       @pool.tournament.matches.includes(:home_team, :away_team, :stage).order(:scheduled_at)
     else
-      [@pool.match]
+      Match.where(id: @pool.match_id).includes(:home_team, :away_team)
     end
   end
 end

@@ -3,6 +3,7 @@ class ApplicationController < ActionController::Base
   stale_when_importmap_changes
 
   include Pundit::Authorization
+  include Pagy::Backend
 
   before_action :authenticate_user!
   before_action :set_locale
