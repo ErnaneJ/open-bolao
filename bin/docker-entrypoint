@@ -1,8 +1,18 @@
 #!/bin/bash -e
 
-# If running the rails server then create or migrate existing database
-if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
-  ./bin/rails db:prepare
+# Wait for database to be ready (extra safety for Docker compose ordering)
+if [ -n "$DATABASE_URL" ]; then
+  echo "Waiting for database..."
+  until bundle exec rails runner "ActiveRecord::Base.connection.execute('SELECT 1')" 2>/dev/null; do
+    sleep 1
+  done
+  echo "Database ready."
+fi
+
+# Run migrations and seeds on the app container (not sidekiq)
+if [[ "$1" == "bundle" && "$2" == "exec" && "$3" == "puma" ]]; then
+  bundle exec rails db:prepare
+  bundle exec rails db:seed
 fi
 
 exec "${@}"
