@@ -4,7 +4,7 @@ class Tournament < ApplicationRecord
 
   enum :sport, { football: 0 }
   enum :status, { draft: 0, active: 1, finished: 2 }, prefix: true
-  enum :external_provider, { none: 0, worldcup2026_api: 1, api_football: 2, custom: 3 }
+  enum :external_provider, { no_provider: 0, worldcup2026_api: 1, api_football: 2, custom: 3 }, prefix: :provider
 
   belongs_to :created_by, class_name: "User"
   has_many :tournament_teams, dependent: :destroy
