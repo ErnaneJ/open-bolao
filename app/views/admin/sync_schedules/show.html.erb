@@ -1,0 +1,71 @@
+<% content_for :title, "Sincronização — #{@pool.name}" %>
+<div class="p-6 max-w-3xl">
+  <div class="flex items-center gap-3 mb-6">
+    <%= link_to "← #{@pool.name}", admin_pool_path(@pool), class: "text-sm text-gray-500 hover:text-indigo-600" %>
+    <h1 class="text-2xl font-bold">Sincronização</h1>
+  </div>
+
+  <%# Status card (polling via Turbo Frame) %>
+  <%= turbo_frame_tag "sync_status", src: admin_pool_sync_schedule_path(@pool), refresh: :morph, data: { turbo_action: "replace" } do %>
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 mb-6">
+      <div class="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h3 class="font-semibold mb-2">Status atual</h3>
+          <% if @schedule.paused? %>
+            <span class="text-yellow-600 font-medium text-sm">Pausado até <%= l(@schedule.paused_until, format: :short) %></span>
+          <% elsif @schedule.enabled? %>
+            <span class="text-green-600 font-medium text-sm">Ativo</span>
+          <% else %>
+            <span class="text-gray-400 text-sm">Desabilitado</span>
+          <% end %>
+        </div>
+        <div class="text-right text-xs text-gray-500 space-y-1">
+          <p>Último check: <%= @schedule.last_run_at ? time_ago_in_words(@schedule.last_run_at) + " atrás" : "Nunca" %></p>
+          <p>Último sucesso: <%= @schedule.last_success_at ? time_ago_in_words(@schedule.last_success_at) + " atrás" : "Nunca" %></p>
+          <p>Falhas consecutivas:
+            <span class="font-bold <%= @schedule.consecutive_failures >= 3 ? 'text-red-600' : @schedule.consecutive_failures > 0 ? 'text-yellow-600' : 'text-green-600' %>">
+              <%= @schedule.consecutive_failures %>
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <%# Actions %>
+  <div class="flex gap-3 mb-6">
+    <%= link_to "Configurar", edit_admin_pool_sync_schedule_path(@pool), class: "px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700" %>
+    <%= button_to "Forçar sync agora", force_run_admin_pool_sync_schedule_path(@pool), method: :post,
+        class: "px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700" %>
+  </div>
+
+  <%# Logs table %>
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+      <h3 class="font-semibold text-sm">Histórico de sincronizações</h3>
+    </div>
+    <table class="w-full text-xs">
+      <thead class="bg-gray-50 dark:bg-gray-700/50">
+        <tr>
+          <th class="px-4 py-2 text-left text-gray-500">Data/hora</th>
+          <th class="px-4 py-2 text-center text-gray-500">Status</th>
+          <th class="px-4 py-2 text-right text-gray-500">Jogos</th>
+          <th class="px-4 py-2 text-right text-gray-500">Gols</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+        <% @logs.each do |log| %>
+          <tr>
+            <td class="px-4 py-2 text-gray-600 dark:text-gray-400">
+              <%= log.started_at ? l(log.started_at, format: :default) : "—" %>
+            </td>
+            <td class="px-4 py-2 text-center"><%= status_badge(log.status) %></td>
+            <td class="px-4 py-2 text-right"><%= log.matches_updated %> / <%= log.matches_checked %></td>
+            <td class="px-4 py-2 text-right"><%= log.goals_detected %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <%= render "shared/pagy", pagy: @pagy %>
+</div>

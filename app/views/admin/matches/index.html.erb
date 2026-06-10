@@ -1,0 +1,44 @@
+<% content_for :title, "Jogos — #{@pool.name}" %>
+<div class="p-6">
+  <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+    <%= link_to "← #{@pool.name}", admin_pool_path(@pool), class: "text-sm text-gray-500 hover:text-indigo-600" %>
+    <h1 class="text-2xl font-bold flex-1">Jogos e Resultados</h1>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 dark:bg-gray-700/50">
+        <tr>
+          <th class="px-4 py-3 text-left font-medium text-gray-500">Jogo</th>
+          <th class="px-4 py-3 text-left font-medium text-gray-500">Data</th>
+          <th class="px-4 py-3 text-center font-medium text-gray-500">Placar</th>
+          <th class="px-4 py-3 text-center font-medium text-gray-500">Status</th>
+          <th class="px-4 py-3 text-right font-medium text-gray-500">Ação</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+        <% @matches.each do |match| %>
+          <tr>
+            <td class="px-4 py-3 font-medium">
+              <%= match.home_team.name %> × <%= match.away_team.name %>
+            </td>
+            <td class="px-4 py-3 text-gray-500 text-xs">
+              <%= match.scheduled_at ? l(match.scheduled_at, format: :default) : "—" %>
+            </td>
+            <td class="px-4 py-3 text-center font-bold">
+              <% if match.status_finished? || match.status_live? %>
+                <%= match.home_score %> – <%= match.away_score %>
+              <% else %>
+                <span class="text-gray-300 dark:text-gray-600">–</span>
+              <% end %>
+            </td>
+            <td class="px-4 py-3 text-center"><%= status_badge(match.status) %></td>
+            <td class="px-4 py-3 text-right">
+              <%= link_to "Inserir resultado", edit_admin_pool_match_path(@pool, match), class: "text-xs text-indigo-600 hover:underline" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

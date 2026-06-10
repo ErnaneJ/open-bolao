@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="<%= I18n.locale %>" class="<%= cookies[:dark_mode] == 'true' ? 'dark' : '' %>">
+  <head>
+    <title><%= content_for(:title) || "Admin — #{t('app.name')}" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+  <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
+    <%= render "layouts/navbar" %>
+    <div class="pt-16 flex">
+      <%# Sidebar %>
+      <aside class="w-56 hidden lg:block fixed left-0 top-16 bottom-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto">
+        <nav class="p-4 space-y-1">
+          <%= link_to "Meus Bolões", admin_pools_path, class: "flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700 #{request.path.start_with?('/admin/pools') ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600' : 'text-gray-700 dark:text-gray-300'}" %>
+          <% if current_user.role_super_admin? %>
+            <%= link_to "Super Admin", super_admin_users_path, class: "flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700" %>
+          <% end %>
+        </nav>
+      </aside>
+      <main class="flex-1 lg:ml-56 min-w-0">
+        <% if notice %>
+          <div class="m-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-300 px-4 py-3 rounded-lg text-sm">
+            <%= notice %>
+          </div>
+        <% end %>
+        <% if alert %>
+          <div class="m-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300 px-4 py-3 rounded-lg text-sm">
+            <%= alert %>
+          </div>
+        <% end %>
+        <%= yield %>
+      </main>
+    </div>
+  </body>
+</html>

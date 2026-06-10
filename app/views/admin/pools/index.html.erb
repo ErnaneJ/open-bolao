@@ -1,0 +1,50 @@
+<% content_for :title, "Admin — Bolões" %>
+
+<div class="p-6">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold">Meus Bolões</h1>
+    <%= link_to "Novo Bolão", new_admin_pool_path, class: "px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700" %>
+  </div>
+
+  <% if @pools.any? %>
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 dark:bg-gray-700/50">
+          <tr>
+            <th class="px-4 py-3 text-left font-medium text-gray-500">Nome</th>
+            <th class="px-4 py-3 text-left font-medium text-gray-500">Escopo</th>
+            <th class="px-4 py-3 text-left font-medium text-gray-500">Status</th>
+            <th class="px-4 py-3 text-right font-medium text-gray-500">Participantes</th>
+            <th class="px-4 py-3 text-right font-medium text-gray-500">Ações</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+          <% @pools.each do |pool| %>
+            <tr>
+              <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">
+                <%= link_to pool.name, admin_pool_path(pool), class: "hover:text-indigo-600" %>
+              </td>
+              <td class="px-4 py-3 text-gray-500"><%= pool.pool_scope.humanize %></td>
+              <td class="px-4 py-3"><%= status_badge(pool.status) %></td>
+              <td class="px-4 py-3 text-right text-gray-500"><%= pool.pool_participants.active.count %></td>
+              <td class="px-4 py-3 text-right">
+                <div class="flex items-center justify-end gap-2">
+                  <%= link_to "Editar", edit_admin_pool_path(pool), class: "text-xs text-indigo-600 hover:underline" %>
+                  <%= button_to "Excluir", admin_pool_path(pool), method: :delete,
+                      data: { turbo_confirm: "Tem certeza?" },
+                      class: "text-xs text-red-600 hover:underline" %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <%= render "shared/pagy", pagy: @pagy %>
+  <% else %>
+    <div class="text-center py-16 text-gray-500">
+      <p class="mb-4">Você ainda não tem nenhum bolão.</p>
+      <%= link_to "Criar primeiro bolão", new_admin_pool_path, class: "text-indigo-600 hover:underline" %>
+    </div>
+  <% end %>
+</div>

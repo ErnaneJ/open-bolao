@@ -1,0 +1,52 @@
+<% content_for :title, "Participantes — #{@pool.name}" %>
+<div class="p-6">
+  <div class="flex items-center gap-3 mb-6">
+    <%= link_to "← #{@pool.name}", admin_pool_path(@pool), class: "text-sm text-gray-500 hover:text-indigo-600" %>
+    <h1 class="text-2xl font-bold">Participantes</h1>
+    <span class="text-sm text-gray-500">(<%= @participants.total_count %> total)</span>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 dark:bg-gray-700/50">
+        <tr>
+          <th class="px-4 py-3 text-left font-medium text-gray-500">#</th>
+          <th class="px-4 py-3 text-left font-medium text-gray-500">Participante</th>
+          <th class="px-4 py-3 text-right font-medium text-gray-500">Pontos</th>
+          <th class="px-4 py-3 text-center font-medium text-gray-500">Status</th>
+          <th class="px-4 py-3 text-right font-medium text-gray-500">Ações</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+        <% @participants.each do |pp| %>
+          <tr>
+            <td class="px-4 py-3 text-gray-500"><%= pp.rank || "—" %></td>
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs font-bold">
+                  <%= pp.user.display_name.first.upcase %>
+                </div>
+                <span class="font-medium"><%= pp.user.display_name %></span>
+                <span class="text-xs text-gray-400"><%= pp.user.email %></span>
+              </div>
+            </td>
+            <td class="px-4 py-3 text-right font-bold"><%= pp.total_points %></td>
+            <td class="px-4 py-3 text-center"><%= status_badge(pp.status) %></td>
+            <td class="px-4 py-3 text-right">
+              <div class="flex items-center justify-end gap-2">
+                <% if pp.status_pending? %>
+                  <%= button_to "Aprovar", admin_pool_participant_path(@pool, pp), method: :patch,
+                      params: { participant: { status: "active" } }, class: "text-xs text-green-600 hover:underline" %>
+                <% end %>
+                <%= button_to "Remover", admin_pool_participant_path(@pool, pp), method: :delete,
+                    data: { turbo_confirm: "Remover #{pp.user.display_name}?" },
+                    class: "text-xs text-red-600 hover:underline" %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <%= render "shared/pagy", pagy: @pagy %>
+</div>
