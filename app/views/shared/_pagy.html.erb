@@ -1,0 +1,19 @@
+<% if pagy.pages > 1 %>
+  <nav class="flex items-center justify-center gap-1 mt-6" aria-label="Pagination">
+    <% if pagy.prev %>
+      <%= link_to "←", url_for(page: pagy.prev), class: "px-3 py-1 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm" %>
+    <% end %>
+    <% pagy_series(pagy).each do |item| %>
+      <% if item == :gap %>
+        <span class="px-2 text-gray-400">…</span>
+      <% elsif item == pagy.page %>
+        <span class="px-3 py-1 rounded bg-indigo-600 text-white text-sm font-medium"><%= item %></span>
+      <% else %>
+        <%= link_to item, url_for(page: item), class: "px-3 py-1 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm" %>
+      <% end %>
+    <% end %>
+    <% if pagy.next %>
+      <%= link_to "→", url_for(page: pagy.next), class: "px-3 py-1 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm" %>
+    <% end %>
+  </nav>
+<% end %>

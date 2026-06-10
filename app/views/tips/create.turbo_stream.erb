@@ -1,0 +1,3 @@
+<%= turbo_stream.replace "tip_#{@tip.match_id}" do %>
+  <%= render "tips/tip", match: @tip.match, tip: @tip, pool: @pool %>
+<% end %>

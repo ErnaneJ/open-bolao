@@ -1,0 +1,40 @@
+<% content_for :title, t("notifications.title") %>
+
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold"><%= t("notifications.title") %></h1>
+    <span class="text-sm text-gray-500 dark:text-gray-400">
+      <%= @notifications.count { |n| !n.read? } %> <%= t("notifications.unread") %>
+    </span>
+  </div>
+
+  <% if @notifications.any? %>
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700 overflow-hidden">
+      <% @notifications.each do |notification| %>
+        <%= turbo_frame_tag "notification_#{notification.id}" do %>
+          <div class="px-4 py-4 flex items-start gap-3 <%= notification.read? ? 'opacity-60' : 'bg-indigo-50/50 dark:bg-indigo-900/10' %>">
+            <div class="w-2 h-2 rounded-full mt-2 shrink-0 <%= notification.read? ? 'bg-gray-300' : 'bg-indigo-500' %>"></div>
+            <div class="flex-1 min-w-0">
+              <p class="font-medium text-sm text-gray-900 dark:text-white"><%= notification.title %></p>
+              <% if notification.body.present? %>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5"><%= notification.body %></p>
+              <% end %>
+              <p class="text-xs text-gray-400 mt-1"><%= time_ago_in_words(notification.created_at) %></p>
+            </div>
+            <% unless notification.read? %>
+              <%= button_to notification_path(notification), method: :patch, params: { notification: { read_at: Time.current } },
+                  class: "text-xs text-gray-400 hover:text-indigo-600 shrink-0" do %>
+                ✓
+              <% end %>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+    <%= render "shared/pagy", pagy: @pagy %>
+  <% else %>
+    <div class="text-center py-16 text-gray-500 dark:text-gray-400">
+      <p><%= t("notifications.empty") %></p>
+    </div>
+  <% end %>
+</div>

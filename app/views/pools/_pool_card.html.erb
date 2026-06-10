@@ -1,0 +1,23 @@
+<div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-500 transition overflow-hidden">
+  <%= link_to pool_path(pool), class: "block p-5" do %>
+    <div class="flex items-start justify-between mb-3">
+      <h3 class="font-semibold text-gray-900 dark:text-white truncate mr-2"><%= pool.name %></h3>
+      <%= status_badge(pool.status) %>
+    </div>
+    <% if pool.description.present? %>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mb-3 line-clamp-2"><%= pool.description %></p>
+    <% end %>
+    <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+      <span>👤 <%= pool.pool_participants.active.count %> participantes</span>
+      <% if pool.tournament_pool? && pool.tournament %>
+        <span>🏆 <%= pool.tournament.name %></span>
+      <% end %>
+    </div>
+  <% end %>
+  <div class="border-t border-gray-100 dark:border-gray-700 px-5 py-3 flex items-center justify-between">
+    <span class="text-xs text-gray-400">por <%= pool.admin.display_name %></span>
+    <%= form_with url: join_pool_path(pool), method: :post, local: false do |f| %>
+      <%= f.submit t("pools.join"), class: "text-xs px-3 py-1 bg-indigo-600 text-white rounded-lg cursor-pointer hover:bg-indigo-700" %>
+    <% end %>
+  </div>
+</div>

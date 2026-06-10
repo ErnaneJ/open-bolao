@@ -1,0 +1,36 @@
+<% content_for :title, t("profile.title") %>
+
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <h1 class="text-2xl font-bold mb-6"><%= t("profile.title") %></h1>
+
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 mb-6">
+    <div class="flex items-center gap-4 mb-4">
+      <div class="w-16 h-16 rounded-full bg-indigo-500 flex items-center justify-center text-white text-2xl font-bold">
+        <%= @user.display_name.first.upcase %>
+      </div>
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white"><%= @user.display_name %></h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400"><%= @user.email %></p>
+        <%= role_badge(@user.role) %>
+      </div>
+    </div>
+    <%= link_to t("profile.edit"), edit_profile_path, class: "text-sm text-indigo-600 hover:underline" %>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+    <h3 class="font-semibold mb-4"><%= t("profile.my_pools") %></h3>
+    <% pools = @user.pool_participants.active.includes(pool: :tournament).order(created_at: :desc) %>
+    <% if pools.any? %>
+      <div class="space-y-2">
+        <% pools.each do |pp| %>
+          <%= link_to pool_path(pp.pool), class: "flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition" do %>
+            <span class="text-sm font-medium"><%= pp.pool.name %></span>
+            <span class="text-xs text-gray-400"><%= pp.total_points %> pts</span>
+          <% end %>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("profile.no_pools") %></p>
+    <% end %>
+  </div>
+</div>

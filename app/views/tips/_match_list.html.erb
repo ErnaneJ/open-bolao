@@ -1,0 +1,18 @@
+<% matches_by_stage = matches.group_by(&:stage) %>
+<% matches_by_stage.each do |stage, stage_matches| %>
+  <div class="mb-6">
+    <% if stage %>
+      <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+        <%= stage.name %>
+      </h3>
+    <% end %>
+    <div class="space-y-3">
+      <% stage_matches.each do |match| %>
+        <% tip = tips_map[match.id] %>
+        <%= turbo_frame_tag "tip_#{match.id}" do %>
+          <%= render "tips/tip", match: match, tip: tip, pool: pool %>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+<% end %>

@@ -1,0 +1,39 @@
+<div id="ranking-table">
+  <% if ranking.any? %>
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 dark:bg-gray-700/50">
+          <tr>
+            <th class="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400 w-12">#</th>
+            <th class="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400"><%= t("ranking.player") %></th>
+            <th class="px-4 py-3 text-right font-medium text-gray-500 dark:text-gray-400"><%= t("ranking.points") %></th>
+            <th class="px-4 py-3 text-center font-medium text-gray-500 dark:text-gray-400 w-10"><%= t("ranking.trend") %></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+          <% ranking.each do |participant| %>
+            <tr class="<%= 'bg-indigo-50 dark:bg-indigo-900/20' if participant.user_id == current_user.id %>">
+              <td class="px-4 py-3 font-bold text-gray-700 dark:text-gray-300"><%= participant.rank %></td>
+              <td class="px-4 py-3">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                    <%= participant.user.display_name.first.upcase %>
+                  </div>
+                  <span class="font-medium text-gray-900 dark:text-white"><%= participant.user.display_name %></span>
+                  <% if participant.user_id == current_user.id %>
+                    <span class="text-xs text-indigo-600 dark:text-indigo-400">(você)</span>
+                  <% end %>
+                </div>
+              </td>
+              <td class="px-4 py-3 text-right font-bold text-gray-900 dark:text-white"><%= participant.total_points %></td>
+              <td class="px-4 py-3 text-center"><%= rank_trend_icon(participant.rank_trend) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <%= render "shared/pagy", pagy: pagy %>
+  <% else %>
+    <p class="text-center text-gray-500 dark:text-gray-400 py-8"><%= t("ranking.empty") %></p>
+  <% end %>
+</div>

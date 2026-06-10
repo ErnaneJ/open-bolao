@@ -1,0 +1,41 @@
+<% content_for :title, t("profile.edit_title") %>
+
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="flex items-center gap-3 mb-6">
+    <%= link_to "← #{t('profile.title')}", profile_path, class: "text-sm text-gray-500 hover:text-indigo-600" %>
+    <h1 class="text-2xl font-bold"><%= t("profile.edit_title") %></h1>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+    <%= render "shared/error_messages", object: @user %>
+
+    <%= form_with model: @user, url: profile_path, method: :patch do |f| %>
+      <div class="space-y-4">
+        <div>
+          <%= f.label :name, t("profile.fields.name"), class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= f.text_field :name, class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+        </div>
+        <div>
+          <%= f.label :locale, t("profile.fields.language"), class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= f.select :locale, [["Português (BR)", "pt_br"], ["English", "en"]],
+              { selected: @user.locale },
+              class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+        </div>
+        <hr class="border-gray-200 dark:border-gray-700">
+        <p class="text-sm font-medium text-gray-600 dark:text-gray-400"><%= t("profile.change_password") %></p>
+        <div>
+          <%= f.label :current_password, t("profile.fields.current_password"), class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= f.password_field :current_password, autocomplete: "current-password", class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+        </div>
+        <div>
+          <%= f.label :password, t("profile.fields.new_password"), class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= f.password_field :password, autocomplete: "new-password", class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+        </div>
+      </div>
+      <div class="flex justify-end gap-3 mt-6">
+        <%= link_to t("actions.cancel"), profile_path, class: "px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm hover:bg-gray-50" %>
+        <%= f.submit t("actions.save"), class: "px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 cursor-pointer" %>
+      </div>
+    <% end %>
+  </div>
+</div>

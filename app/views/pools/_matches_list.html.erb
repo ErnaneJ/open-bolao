@@ -1,0 +1,28 @@
+<% matches_by_date = matches.group_by { |m| m.scheduled_at&.to_date } %>
+<% matches_by_date.each do |date, day_matches| %>
+  <div class="mb-4">
+    <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+      <%= date ? l(date, format: :long) : t("matches.no_date") %>
+    </h3>
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700 overflow-hidden">
+      <% day_matches.each do |match| %>
+        <div class="px-4 py-3 flex items-center gap-4">
+          <div class="flex-1 flex items-center justify-between gap-2 min-w-0">
+            <span class="font-medium text-sm truncate"><%= match.home_team.name %></span>
+            <% if match.status_finished? %>
+              <span class="font-bold text-gray-900 dark:text-white whitespace-nowrap"><%= match.home_score %> – <%= match.away_score %></span>
+            <% elsif match.status_live? %>
+              <span class="font-bold text-red-600 whitespace-nowrap animate-pulse">AO VIVO</span>
+            <% else %>
+              <span class="text-xs text-gray-400 whitespace-nowrap">
+                <%= match.scheduled_at ? l(match.scheduled_at, format: :short) : "—" %>
+              </span>
+            <% end %>
+            <span class="font-medium text-sm truncate text-right"><%= match.away_team.name %></span>
+          </div>
+          <%= status_badge(match.status) %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>
