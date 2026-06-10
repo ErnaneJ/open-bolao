@@ -1,23 +1,28 @@
-<div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-500 transition overflow-hidden">
+<div class="card hover:border-neon-400/40 dark:hover:border-neon-400/30 transition-all duration-200 overflow-hidden animate-enter"
+     style="<%= defined?(index) ? "animation-delay: #{(index * 0.06).round(2)}s" : "" %>">
   <%= link_to pool_path(pool), class: "block p-5" do %>
-    <div class="flex items-start justify-between mb-3">
-      <h3 class="font-semibold text-gray-900 dark:text-white truncate mr-2"><%= pool.name %></h3>
-      <%= status_badge(pool.status) %>
+    <div class="flex items-start justify-between gap-2 mb-3">
+      <h3 class="font-display font-bold text-sm text-pitch-900 dark:text-white truncate leading-tight"><%= pool.name %></h3>
+      <span class="<%= pool.status_active? ? 'badge-active' : 'badge-finished' %> shrink-0 text-[10px]">
+        <%= I18n.t("activerecord.attributes.pool.statuses.#{pool.status}", default: pool.status) %>
+      </span>
     </div>
     <% if pool.description.present? %>
-      <p class="text-xs text-gray-500 dark:text-gray-400 mb-3 line-clamp-2"><%= pool.description %></p>
+      <p class="text-xs text-pitch-500 dark:text-pitch-300 mb-3 line-clamp-2"><%= pool.description %></p>
     <% end %>
-    <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-      <span>👤 <%= pool.pool_participants.active.count %> participantes</span>
-      <% if pool.tournament_pool? && pool.tournament %>
-        <span>🏆 <%= pool.tournament.name %></span>
+    <div class="flex items-center gap-4 text-xs text-pitch-400 dark:text-pitch-500">
+      <span class="flex items-center gap-1">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <%= pool.pool_participants.active.count %>
+      </span>
+      <% if pool.pool_scope_tournament? && pool.tournament %>
+        <span class="truncate"><%= pool.tournament.name %></span>
       <% end %>
     </div>
   <% end %>
-  <div class="border-t border-gray-100 dark:border-gray-700 px-5 py-3 flex items-center justify-between">
-    <span class="text-xs text-gray-400">por <%= pool.admin.display_name %></span>
-    <%= form_with url: join_pool_path(pool), method: :post, local: false do |f| %>
-      <%= f.submit t("pools.join"), class: "text-xs px-3 py-1 bg-indigo-600 text-white rounded-lg cursor-pointer hover:bg-indigo-700" %>
-    <% end %>
+  <div class="divider px-5 py-3 flex items-center justify-between">
+    <span class="text-xs text-pitch-400">por <span class="font-medium"><%= pool.admin.display_name %></span></span>
+    <%= button_to join_pool_path(pool), method: :post,
+          class: "btn btn-neon btn-sm" do %>Participar<% end %>
   </div>
 </div>

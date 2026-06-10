@@ -4,7 +4,6 @@ export default class extends Controller {
   static targets = ["tab", "panel"]
 
   connect() {
-    // Show first panel by default
     this.showTab(this.tabTargets[0]?.dataset.tab)
   }
 
@@ -17,10 +16,8 @@ export default class extends Controller {
 
     this.tabTargets.forEach(tab => {
       const active = tab.dataset.tab === tabId
-      tab.classList.toggle("border-indigo-600", active)
-      tab.classList.toggle("text-indigo-600", active)
-      tab.classList.toggle("border-transparent", !active)
-      tab.classList.toggle("text-gray-500", !active)
+      tab.classList.toggle("tab-btn-active", active)
+      tab.classList.toggle("tab-btn", true)
     })
 
     document.querySelectorAll("[id^='tab-']").forEach(panel => {

@@ -1,68 +1,94 @@
-<div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4
-            <%= tip&.locked? ? 'opacity-75' : '' %>
-            <%= tip&.scored? ? 'border-l-4 border-l-indigo-500' : '' %>">
-  <div class="flex items-center justify-between gap-4 flex-wrap">
-    <%# Match info %>
-    <div class="flex items-center gap-3 min-w-0">
-      <div class="text-center min-w-0">
-        <p class="font-medium text-sm truncate"><%= match.home_team.name %></p>
-      </div>
-      <div class="text-center shrink-0">
-        <% if match.status_finished? %>
-          <span class="font-bold text-gray-900 dark:text-white"><%= match.home_score %> – <%= match.away_score %></span>
-        <% elsif match.status_live? %>
-          <span class="text-red-600 font-bold text-xs animate-pulse">AO VIVO</span>
-        <% else %>
-          <span class="text-xs text-gray-400"><%= match.scheduled_at ? l(match.scheduled_at, format: :short) : "—" %></span>
-        <% end %>
-      </div>
-      <div class="text-center min-w-0">
-        <p class="font-medium text-sm truncate"><%= match.away_team.name %></p>
-      </div>
-    </div>
+<div class="card p-4
+  <%= tip&.locked? ? 'opacity-70' : '' %>
+  <%= tip&.scored? && tip.points_earned.to_i > 0 ? 'border-neon-400/40 dark:border-neon-400/30' : '' %>">
 
-    <%# Tip input or result %>
-    <div class="flex items-center gap-3 shrink-0">
-      <% if tip&.locked? || match.status_finished? || match.status_live? || match.status_cancelled? %>
-        <%# Show saved tip or empty %>
-        <div class="flex items-center gap-1 text-sm">
-          <% if tip&.home_score_tip.present? %>
-            <span class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded font-mono font-bold"><%= tip.home_score_tip %></span>
-            <span class="text-gray-400">×</span>
-            <span class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded font-mono font-bold"><%= tip.away_score_tip %></span>
+  <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+
+    <%# Match info %>
+    <div class="flex-1 min-w-0">
+      <%# Teams row %>
+      <div class="flex items-center gap-2">
+        <% if match.home_team.flag_url.present? %>
+          <img src="<%= match.home_team.flag_url %>" class="w-6 h-4 object-cover rounded-sm shrink-0" alt="">
+        <% end %>
+        <span class="text-sm font-semibold text-pitch-900 dark:text-white truncate"><%= match.home_team.name %></span>
+
+        <%# Live score or scheduled time %>
+        <div class="shrink-0 mx-1 text-center">
+          <% if match.status_finished? %>
+            <span class="font-mono font-bold text-base text-pitch-900 dark:text-white" style="font-family: var(--font-mono)">
+              <%= match.home_score %><span class="text-pitch-400 mx-0.5">–</span><%= match.away_score %>
+            </span>
+          <% elsif match.status_live? %>
+            <span class="badge-live text-[10px]">● AO VIVO</span>
           <% else %>
-            <span class="text-xs text-gray-400 italic"><%= t("tips.no_tip") %></span>
-          <% end %>
-          <% if tip&.scored? %>
-            <span class="ml-2 px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 text-xs font-bold rounded-full">
-              +<%= tip.points_earned %>pts
+            <span class="text-[11px] text-pitch-400 font-mono">
+              <%= match.scheduled_at ? l(match.scheduled_at, format: :short) : "?" %>
             </span>
           <% end %>
         </div>
+
+        <span class="text-sm font-semibold text-pitch-900 dark:text-white truncate"><%= match.away_team.name %></span>
+        <% if match.away_team.flag_url.present? %>
+          <img src="<%= match.away_team.flag_url %>" class="w-6 h-4 object-cover rounded-sm shrink-0" alt="">
+        <% end %>
+      </div>
+
+      <%# Stage / group %>
+      <% if match.stage %>
+        <p class="text-[10px] text-pitch-400 dark:text-pitch-500 mt-1 uppercase tracking-wide"><%= match.stage.name %></p>
+      <% end %>
+    </div>
+
+    <%# Tip input / result %>
+    <div class="shrink-0">
+      <% if tip&.locked? || match.status_finished? || match.status_live? || match.status_cancelled? %>
+        <div class="flex items-center gap-2">
+          <% if tip&.home_score_tip.present? %>
+            <div class="flex items-center gap-1.5 bg-pitch-50 dark:bg-pitch-700/60 rounded-xl px-3 py-2">
+              <span class="font-mono font-bold text-lg text-pitch-900 dark:text-white" style="font-family: var(--font-mono)"><%= tip.home_score_tip %></span>
+              <span class="text-pitch-400 font-bold">×</span>
+              <span class="font-mono font-bold text-lg text-pitch-900 dark:text-white" style="font-family: var(--font-mono)"><%= tip.away_score_tip %></span>
+            </div>
+            <% if tip.scored? && tip.points_earned.to_i > 0 %>
+              <span class="badge bg-neon-400/15 text-neon-600 dark:text-neon-300 font-display font-bold text-sm">
+                +<%= tip.points_earned %><span class="text-[10px] font-normal ml-0.5">pts</span>
+              </span>
+            <% elsif tip.scored? %>
+              <span class="badge bg-pitch-100 dark:bg-pitch-700 text-pitch-400 font-semibold">0 pts</span>
+            <% end %>
+          <% else %>
+            <span class="text-xs text-pitch-300 dark:text-pitch-500 italic px-3 py-2"><%= t("tips.no_tip") %></span>
+          <% end %>
+          <% if tip&.locked? && !match.status_finished? %>
+            <span class="text-pitch-400 text-xs">🔒</span>
+          <% end %>
+        </div>
       <% else %>
-        <%# Editable tip form %>
+        <%# Editable form %>
         <%= form_with url: tip ? pool_tip_path(pool, tip.match_id) : pool_tips_path(pool),
                       method: tip ? :patch : :post,
-                      data: { controller: "tip", tip_target: "form" } do |f| %>
+                      data: { controller: "tip", tip_target: "form" },
+                      class: "flex items-center gap-2" do |f| %>
           <%= f.hidden_field :match_id, value: match.id %>
-          <div class="flex items-center gap-1">
+          <div class="flex items-center gap-1.5 bg-pitch-50 dark:bg-pitch-800/80 rounded-xl px-3 py-2 border-2 border-pitch-200 dark:border-pitch-600 focus-within:border-neon-400 dark:focus-within:border-neon-400 transition-colors">
             <%= f.number_field :home_score_tip,
-                value: tip&.home_score_tip,
-                min: 0, max: 99, step: 1,
-                placeholder: "0",
-                class: "w-12 text-center px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg font-mono font-bold text-sm bg-white dark:bg-gray-700",
-                data: { action: "change->tip#autoSubmit" } %>
-            <span class="text-gray-400 font-bold">×</span>
+                  value: tip&.home_score_tip,
+                  min: 0, max: 99, step: 1,
+                  placeholder: "0",
+                  class: "score-input w-11 bg-transparent border-0 p-0 focus:ring-0",
+                  data: { action: "change->tip#autoSubmit", tip_target: "home" } %>
+            <span class="text-pitch-400 font-bold font-mono select-none">×</span>
             <%= f.number_field :away_score_tip,
-                value: tip&.away_score_tip,
-                min: 0, max: 99, step: 1,
-                placeholder: "0",
-                class: "w-12 text-center px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg font-mono font-bold text-sm bg-white dark:bg-gray-700",
-                data: { action: "change->tip#autoSubmit" } %>
-            <%= f.submit tip ? t("tips.update") : t("tips.save"),
-                class: "px-3 py-1 bg-indigo-600 text-white rounded-lg text-xs font-medium hover:bg-indigo-700 cursor-pointer",
-                data: { tip_target: "submitBtn" } %>
+                  value: tip&.away_score_tip,
+                  min: 0, max: 99, step: 1,
+                  placeholder: "0",
+                  class: "score-input w-11 bg-transparent border-0 p-0 focus:ring-0",
+                  data: { action: "change->tip#autoSubmit", tip_target: "away" } %>
           </div>
+          <%= f.submit tip ? "✓" : "Salvar",
+                class: "btn btn-neon btn-sm",
+                data: { tip_target: "submitBtn" } %>
         <% end %>
       <% end %>
     </div>

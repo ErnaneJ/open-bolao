@@ -23,6 +23,12 @@ class User < ApplicationRecord
   scope :super_admins, -> { where(role: :super_admin) }
   scope :by_name, -> { order(:name) }
 
+  LOCALE_MAP = { "pt_br" => :"pt-BR", "en" => :en }.freeze
+
+  def i18n_locale
+    LOCALE_MAP[locale] || I18n.default_locale
+  end
+
   def display_name
     name.presence || email.split("@").first
   end

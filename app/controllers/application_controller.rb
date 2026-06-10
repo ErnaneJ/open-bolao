@@ -14,7 +14,7 @@ class ApplicationController < ActionController::Base
   private
 
   def set_locale
-    I18n.locale = current_user&.locale || I18n.default_locale
+    I18n.locale = current_user&.i18n_locale || I18n.default_locale
   end
 
   def user_not_authorized

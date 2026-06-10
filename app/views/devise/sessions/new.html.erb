@@ -1,37 +1,45 @@
-<div class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
-  <div class="w-full max-w-sm">
+<div class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
+  <div class="w-full max-w-sm animate-enter">
+
     <div class="text-center mb-8">
-      <h1 class="text-3xl font-bold text-indigo-600 dark:text-indigo-400"><%= t("app.name") %></h1>
-      <p class="text-gray-500 dark:text-gray-400 mt-1">Entre na sua conta</p>
+      <div class="inline-flex w-12 h-12 rounded-xl bg-pitch-900 dark:bg-neon-400 items-center justify-center mb-4">
+        <span class="font-display font-bold text-xl text-white dark:text-pitch-900">B</span>
+      </div>
+      <h1 class="font-display font-bold text-2xl text-pitch-900 dark:text-white">Entrar</h1>
+      <p class="text-sm text-pitch-400 dark:text-pitch-400 mt-1">Bem-vindo de volta ao bolão</p>
     </div>
 
-    <div class="card p-6">
+    <div class="card p-6 shadow-sm">
       <%= render "devise/shared/error_messages", resource: resource %>
       <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
         <div class="space-y-4">
           <div>
             <%= f.label :email, "E-mail", class: "form-label" %>
-            <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-input" %>
+            <%= f.email_field :email, autofocus: true, autocomplete: "email",
+                  class: "form-input", placeholder: "seu@email.com" %>
           </div>
           <div>
             <%= f.label :password, "Senha", class: "form-label" %>
-            <%= f.password_field :password, autocomplete: "current-password", class: "form-input" %>
+            <%= f.password_field :password, autocomplete: "current-password",
+                  class: "form-input", placeholder: "••••••••" %>
           </div>
           <div class="flex items-center justify-between">
-            <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
-              <%= f.check_box :remember_me, class: "rounded border-gray-300 text-indigo-600" %>
-              Lembrar de mim
+            <label class="flex items-center gap-2 text-sm text-pitch-600 dark:text-pitch-300 cursor-pointer select-none">
+              <%= f.check_box :remember_me, class: "rounded border-pitch-300 text-neon-500 focus:ring-neon-400" %>
+              Lembrar
             </label>
-            <%= link_to "Esqueceu a senha?", new_user_password_path, class: "text-sm text-indigo-600 hover:underline" %>
+            <%= link_to "Esqueceu a senha?", new_user_password_path,
+                  class: "text-sm text-neon-600 dark:text-neon-300 hover:underline" %>
           </div>
-          <%= f.submit "Entrar", class: "w-full btn btn-primary" %>
+          <%= f.submit "Entrar", class: "w-full btn btn-primary mt-2 justify-center" %>
         </div>
       <% end %>
     </div>
 
-    <div class="text-center mt-4 text-sm text-gray-500 dark:text-gray-400">
+    <p class="text-center mt-5 text-sm text-pitch-500 dark:text-pitch-400">
       Não tem conta?
-      <%= link_to "Criar conta", new_user_registration_path, class: "text-indigo-600 hover:underline ml-1" %>
-    </div>
+      <%= link_to "Criar conta grátis", new_user_registration_path,
+            class: "text-neon-600 dark:text-neon-300 font-semibold hover:underline ml-1" %>
+    </p>
   </div>
 </div>

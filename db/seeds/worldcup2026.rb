@@ -1,6 +1,3 @@
-require "net/http"
-require "json"
-
 puts "Seeding Copa do Mundo 2026..."
 
 super_admin = User.find_by(role: :super_admin)
@@ -19,46 +16,82 @@ puts "Tournament: #{tournament.name}"
 adapter = ApiProviders::Worldcup2026Adapter.new
 
 begin
+  # --- Teams ---
   teams_data = adapter.fetch_teams
   puts "Fetched #{teams_data.size} teams from API"
 
-  teams_data.each do |team_data|
-    team = Team.find_or_initialize_by(name: team_data.name)
-    team.save! if team.new_record?
+  # external_id → Team record map for match seeding
+  team_by_external_id = {}
+
+  teams_data.each do |td|
+    team = Team.find_or_initialize_by(name: td.name)
+    team.assign_attributes(
+      country_code: td.country_code,
+      flag_url:     td.flag_url
+    ) if team.respond_to?(:country_code)
+    team.save! if team.new_record? || team.changed?
 
     TournamentTeam.find_or_create_by!(tournament: tournament, team: team) do |tt|
-      tt.group_name = team_data.group_name
+      tt.group_name   = td.group_name
+      tt.external_id  = td.external_id
     end
+
+    team_by_external_id[td.external_id] = team
   end
 
   puts "Teams seeded: #{tournament.teams.count}"
 
+  # --- Stage helpers ---
+  stage_for = lambda do |match_data|
+    if match_data.match_type == "group"
+      label = match_data.group_name ? "Grupo #{match_data.group_name}" : "Fase de Grupos"
+      tournament.stages.find_or_create_by!(name: label) do |s|
+        s.stage_type     = :group
+        s.order_position = tournament.stages.count
+      end
+    else
+      type_map = {
+        "round_of_32"  => [:round_of_32,  "Rodada de 32"],
+        "round_of_16"  => [:round_of_16,  "Oitavas de Final"],
+        "quarter_final"=> [:quarterfinal, "Quartas de Final"],
+        "semi_final"   => [:semifinal,    "Semifinais"],
+        "third_place"  => [:third_place,  "Terceiro Lugar"],
+        "final"        => [:final,        "Final"]
+      }
+      stype, sname = type_map[match_data.match_type] || [:round_of_16, match_data.match_type.to_s.humanize]
+      tournament.stages.find_or_create_by!(name: sname) do |s|
+        s.stage_type     = stype
+        s.order_position = tournament.stages.count
+      end
+    end
+  end
+
+  # --- Matches ---
   matches_data = adapter.fetch_matches
   puts "Fetched #{matches_data.size} matches from API"
 
-  matches_data.each do |match_data|
-    home_team = Team.find_by("name ILIKE ?", match_data.home_team_name)
-    away_team = Team.find_by("name ILIKE ?", match_data.away_team_name)
+  matches_data.each do |md|
+    home_team = team_by_external_id[md.home_team_external_id] ||
+                Team.find_by("name ILIKE ?", md.home_team_name)
+    away_team = team_by_external_id[md.away_team_external_id] ||
+                Team.find_by("name ILIKE ?", md.away_team_name)
     next unless home_team && away_team
 
-    stage = tournament.stages.find_or_create_by!(name: match_data.group_name || "Fase de Grupos") do |s|
-      s.stage_type = match_data.group_name ? :group : :round_of_16
-      s.order_position = tournament.stages.count
-    end
+    stage = stage_for.call(md)
 
-    Match.find_or_initialize_by(external_id: match_data.external_id, tournament: tournament).tap do |m|
-      m.home_team = home_team
-      m.away_team = away_team
-      m.scheduled_at = match_data.scheduled_at
-      m.status = match_data.status || :scheduled
-      m.home_score = match_data.home_score
-      m.away_score = match_data.away_score
-      m.stage = stage
+    Match.find_or_initialize_by(external_id: md.external_id, tournament: tournament).tap do |m|
+      m.home_team   = home_team
+      m.away_team   = away_team
+      m.scheduled_at = md.scheduled_at
+      m.status      = md.status || :scheduled
+      m.home_score  = md.home_score
+      m.away_score  = md.away_score
+      m.stage       = stage
       m.save!
     end
   end
 
   puts "Matches seeded: #{tournament.matches.count}"
 rescue => e
-  puts "API unavailable (#{e.message}), skipping live seed. Use demo data instead."
+  puts "API unavailable (#{e.message}), skipping live seed."
 end

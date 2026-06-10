@@ -1,38 +1,84 @@
 <% content_for :title, t("dashboard.title") %>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  <h1 class="text-2xl font-bold mb-6"><%= t("dashboard.title") %></h1>
+<div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
 
-  <%# Bolões ativos %>
+  <%# Header %>
+  <div class="mb-8 animate-enter">
+    <p class="text-sm text-pitch-400 dark:text-pitch-400 mb-1 font-medium uppercase tracking-widest">Bem-vindo de volta</p>
+    <h1 class="font-display font-bold text-3xl text-pitch-900 dark:text-white">
+      <%= current_user.display_name.split.first %>
+    </h1>
+  </div>
+
+  <%# Stats row %>
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="stat-card animate-enter stagger-1">
+      <span class="stat-label">Bolões</span>
+      <span class="stat-value"><%= @participations.size %></span>
+    </div>
+    <div class="stat-card animate-enter stagger-2">
+      <span class="stat-label">Melhor posição</span>
+      <span class="stat-value">
+        <% best = @participations.map(&:rank).compact.min %>
+        <%= best ? "#{best}º" : "—" %>
+      </span>
+    </div>
+    <div class="stat-card animate-enter stagger-3">
+      <span class="stat-label">Total de pontos</span>
+      <span class="stat-value"><%= @participations.sum(&:total_points) %></span>
+    </div>
+    <div class="stat-card animate-enter stagger-4">
+      <span class="stat-label">Palpites pendentes</span>
+      <span class="stat-value text-neon-500 dark:text-neon-300"><%= @upcoming_matches.size %></span>
+    </div>
+  </div>
+
+  <%# Meus bolões %>
   <section class="mb-8">
-    <h2 class="text-lg font-semibold mb-4"><%= t("dashboard.my_pools") %></h2>
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-display font-bold text-lg text-pitch-900 dark:text-white">Meus Bolões</h2>
+      <%= link_to pools_path, class: "text-sm text-neon-600 dark:text-neon-300 hover:underline font-medium" do %>Ver todos<% end %>
+    </div>
+
     <% if @participations.any? %>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <% @participations.each do |participation| %>
-          <%= render "dashboard/pool_card", participation: participation %>
+        <% @participations.each_with_index do |participation, i| %>
+          <%= render "dashboard/pool_card", participation: participation, index: i %>
         <% end %>
       </div>
     <% else %>
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-8 text-center border border-gray-200 dark:border-gray-700">
-        <p class="text-gray-500 dark:text-gray-400 mb-4"><%= t("dashboard.no_pools") %></p>
-        <%= link_to t("dashboard.find_pool"), pools_path, class: "text-indigo-600 hover:underline" %>
+      <div class="card p-12 text-center">
+        <div class="text-5xl mb-4">⚽</div>
+        <p class="font-display font-bold text-lg text-pitch-900 dark:text-white mb-2">Nenhum bolão ainda</p>
+        <p class="text-sm text-pitch-400 mb-6">Junte-se a um bolão ou crie o seu próprio.</p>
+        <%= link_to pools_path, class: "btn btn-neon" do %>Explorar bolões<% end %>
       </div>
     <% end %>
   </section>
 
-  <%# Próximos palpites %>
+  <%# Próximos jogos %>
   <% if @upcoming_matches.any? %>
-    <section class="mb-8">
-      <h2 class="text-lg font-semibold mb-4"><%= t("dashboard.upcoming_tips") %></h2>
-      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700">
+    <section>
+      <h2 class="font-display font-bold text-lg text-pitch-900 dark:text-white mb-4">Próximos palpites</h2>
+      <div class="card overflow-hidden divide-y divide-pitch-100 dark:divide-pitch-700/50">
         <% @upcoming_matches.each do |match| %>
-          <div class="px-4 py-3 flex items-center justify-between">
-            <span class="text-sm font-medium">
-              <%= match.home_team.name %> × <%= match.away_team.name %>
-            </span>
-            <span class="text-xs text-gray-500">
-              <%= l(match.scheduled_at, format: :short) if match.scheduled_at %>
-            </span>
+          <div class="px-5 py-4 flex items-center justify-between gap-4 hover:bg-pitch-50 dark:hover:bg-pitch-700/30 transition-colors">
+            <div class="flex items-center gap-3 min-w-0">
+              <% if match.home_team.flag_url.present? %>
+                <img src="<%= match.home_team.flag_url %>" class="w-6 h-4 object-cover rounded-sm" alt="">
+              <% end %>
+              <span class="text-sm font-medium text-pitch-900 dark:text-white truncate">
+                <%= match.home_team.name %> <span class="text-pitch-400 dark:text-pitch-500">×</span> <%= match.away_team.name %>
+              </span>
+              <% if match.home_team.flag_url.present? %>
+                <img src="<%= match.away_team.flag_url %>" class="w-6 h-4 object-cover rounded-sm" alt="">
+              <% end %>
+            </div>
+            <% if match.scheduled_at %>
+              <span class="text-xs text-pitch-400 dark:text-pitch-400 shrink-0 font-mono">
+                <%= l(match.scheduled_at, format: :short) %>
+              </span>
+            <% end %>
           </div>
         <% end %>
       </div>
