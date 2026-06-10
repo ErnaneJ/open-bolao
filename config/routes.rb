@@ -16,7 +16,6 @@ Rails.application.routes.draw do
       delete :leave
     end
     resources :tips, only: [:index, :create, :update]
-    resources :special_bets, only: [:index, :create, :update]
   end
 
   resources :notifications, only: [:index, :update]

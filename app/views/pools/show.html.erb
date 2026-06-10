@@ -72,10 +72,9 @@
     <div class="border-b border-pitch-200 dark:border-pitch-700 mb-6">
       <nav class="-mb-px flex gap-1 overflow-x-auto">
         <% [
-          ["tips",         "⚽ Palpites"],
-          ["ranking",      "🏆 Ranking"],
-          ["matches",      "📅 Jogos"],
-          ["special_bets", "🎯 Apostas Especiais"]
+          ["tips",    "⚽ Palpites"],
+          ["ranking", "🏆 Ranking"],
+          ["matches", "📅 Jogos"]
         ].each_with_index do |(id, label), idx| %>
           <button data-tabs-target="tab"
                   data-action="click->tabs#show"
@@ -105,20 +104,5 @@
       <%= render "pools/matches_list", matches: @matches %>
     </div>
 
-    <%# Apostas Especiais %>
-    <div id="tab-special_bets" data-tabs-target="panel" class="hidden">
-      <% if @pool.pool_scope_tournament? %>
-        <div class="card p-8 text-center">
-          <div class="text-4xl mb-4">🎯</div>
-          <h3 class="font-display font-bold text-lg text-pitch-900 dark:text-white mb-2">Apostas Especiais</h3>
-          <p class="text-sm text-pitch-400 mb-4">Aposte no campeão, artilheiro e mais.</p>
-          <%= link_to pool_special_bets_path(@pool), class: "btn btn-primary" do %>Ver apostas especiais<% end %>
-        </div>
-      <% else %>
-        <div class="card p-8 text-center">
-          <p class="text-pitch-400 dark:text-pitch-400 text-sm"><%= t("pools.no_special_bets_single_match") %></p>
-        </div>
-      <% end %>
-    </div>
   </div>
 </div>

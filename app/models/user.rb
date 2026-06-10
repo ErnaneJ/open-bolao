@@ -9,7 +9,6 @@ class User < ApplicationRecord
   has_many :pool_participants, dependent: :destroy
   has_many :pools, through: :pool_participants
   has_many :tips, dependent: :destroy
-  has_many :special_bets, dependent: :destroy
   has_many :notifications, dependent: :destroy
   has_many :webhook_endpoints, as: :owner, dependent: :destroy
   has_many :created_tournaments, class_name: "Tournament", foreign_key: :created_by_id

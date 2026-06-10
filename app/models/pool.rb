@@ -13,14 +13,6 @@ class Pool < ApplicationRecord
     "no_tip_penalty" => 0
   }.freeze
 
-  SPECIAL_BETS_DEFAULTS = {
-    "champion" => { "enabled" => true, "points" => 15 },
-    "top_scorer" => { "enabled" => true, "points" => 10 },
-    "golden_glove" => { "enabled" => false, "points" => 5 },
-    "finalist_home" => { "enabled" => true, "points" => 8 },
-    "finalist_away" => { "enabled" => true, "points" => 8 },
-    "total_goals" => { "enabled" => false, "points" => 10 }
-  }.freeze
 
   enum :pool_scope, { tournament: 0, single_match: 1 }, prefix: true
   enum :status, { draft: 0, open: 1, locked: 2, finished: 3 }, prefix: true
@@ -35,7 +27,6 @@ class Pool < ApplicationRecord
   has_many :pool_participants, dependent: :destroy
   has_many :participants, through: :pool_participants, source: :user
   has_many :tips, dependent: :destroy
-  has_many :special_bets, dependent: :destroy
   has_many :webhook_endpoints, as: :owner, dependent: :destroy
 
   validates :name, presence: true, length: { maximum: 200 }
@@ -53,10 +44,6 @@ class Pool < ApplicationRecord
 
   def scoring_config_with_defaults
     SCORING_DEFAULTS.merge(scoring_config || {})
-  end
-
-  def special_bets_config_with_defaults
-    SPECIAL_BETS_DEFAULTS.merge(special_bets_config || {})
   end
 
   def tournament_pool?
@@ -112,7 +99,6 @@ class Pool < ApplicationRecord
 
   def set_defaults
     self.scoring_config = scoring_config_with_defaults if scoring_config.blank?
-    self.special_bets_config = {} if pool_scope_single_match?
   end
 
   def generate_invite_code
