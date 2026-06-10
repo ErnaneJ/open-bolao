@@ -1,0 +1,23 @@
+<%= link_to pool_path(participation.pool), class: "block bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700 hover:border-indigo-400 transition" do %>
+  <div class="flex items-start justify-between mb-3">
+    <h3 class="font-semibold text-sm truncate"><%= participation.pool.name %></h3>
+    <span class="text-xs px-2 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 ml-2 shrink-0">
+      <%= participation.pool.human_attribute_name(participation.pool.status) rescue participation.pool.status %>
+    </span>
+  </div>
+  <div class="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+    <div>
+      <span class="font-bold text-2xl text-gray-900 dark:text-white"><%= participation.rank || "-" %></span>
+      <span class="text-xs">º</span>
+    </div>
+    <div class="flex flex-col">
+      <span class="text-xs"><%= t("dashboard.points") %></span>
+      <span class="font-bold"><%= participation.total_points %></span>
+    </div>
+    <% if participation.rank_trend_up? %>
+      <span class="text-green-500">↑</span>
+    <% elsif participation.rank_trend_down? %>
+      <span class="text-red-500">↓</span>
+    <% end %>
+  </div>
+<% end %>

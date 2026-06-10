@@ -7,5 +7,5 @@ test:
 
 production:
   adapter: redis
-  url: <%= ENV.fetch("REDIS_URL") { raise "REDIS_URL env var required" } %>
+  url: <%= ENV.fetch("REDIS_URL", "redis://localhost:6379/0") %>
   channel_prefix: bolao_production

@@ -1,31 +1,77 @@
-# Files in the config/locales directory are used for internationalization and
-# are automatically loaded by Rails. If you want to use locales other than
-# English, add the necessary files in this directory.
-#
-# To use the locales, use `I18n.t`:
-#
-#     I18n.t "hello"
-#
-# In views, this is aliased to just `t`:
-#
-#     <%= t("hello") %>
-#
-# To use a different locale, set it with `I18n.locale`:
-#
-#     I18n.locale = :es
-#
-# This would use the information in config/locales/es.yml.
-#
-# To learn more about the API, please read the Rails Internationalization guide
-# at https://guides.rubyonrails.org/i18n.html.
-#
-# Be aware that YAML interprets the following case-insensitive strings as
-# booleans: `true`, `false`, `on`, `off`, `yes`, `no`. Therefore, these strings
-# must be quoted to be interpreted as strings. For example:
-#
-#     en:
-#       "yes": yup
-#       enabled: "ON"
-
 en:
-  hello: "Hello world"
+  app:
+    name: "Pool"
+
+  errors:
+    not_authorized: "You are not authorized to perform this action."
+
+  nav:
+    pools: "Pools"
+    profile: "My Profile"
+    admin: "Admin"
+    super_admin: "Super Admin"
+    logout: "Logout"
+
+  home:
+    tagline: "Your complete, free football pool."
+    login: "Sign In"
+    register: "Create Account"
+
+  dashboard:
+    title: "Dashboard"
+    my_pools: "My Pools"
+    no_pools: "You are not participating in any pool yet."
+    find_pool: "Find a pool"
+    upcoming_tips: "Upcoming Tips"
+    points: "pts"
+
+  pools:
+    joined: "You joined the pool!"
+    already_joined: "You are already in this pool."
+    left: "You left the pool."
+
+  profile:
+    updated: "Profile updated successfully."
+
+  admin:
+    pools:
+      created: "Pool created successfully."
+      updated: "Pool updated successfully."
+      destroyed: "Pool removed successfully."
+      recalculated: "Scores recalculated."
+      status_updated: "Pool status updated."
+      invalid_status: "Invalid status."
+    matches:
+      created: "Match created successfully."
+      updated: "Result updated successfully."
+
+  super_admin:
+    users:
+      updated: "User updated."
+      destroyed: "User removed."
+      impersonating: "You are now browsing as %{name}."
+      banned: "User banned."
+    tournaments:
+      created: "Tournament created."
+      updated: "Tournament updated."
+      destroyed: "Tournament removed."
+      sync_queued: "Sync queued."
+      seed_queued: "API seed queued."
+
+  activerecord:
+    errors:
+      messages:
+        tip_locked: "This tip is locked and cannot be changed."
+        same_as_home: "cannot be the same as the home team."
+
+  date:
+    formats:
+      default: "%m/%d/%Y"
+      short: "%m/%d"
+      long: "%B %d, %Y"
+
+  time:
+    formats:
+      default: "%m/%d/%Y %H:%M"
+      short: "%m/%d %H:%M"
+      long: "%B %d, %Y at %H:%M"

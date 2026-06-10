@@ -1,0 +1,57 @@
+<nav class="fixed top-0 left-0 right-0 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <div class="flex items-center gap-6">
+        <%= link_to t("app.name"), dashboard_path, class: "text-xl font-bold text-indigo-600 dark:text-indigo-400" %>
+        <%= link_to t("nav.pools"), pools_path, class: "hidden sm:block text-sm text-gray-600 dark:text-gray-300 hover:text-indigo-600" %>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <%# Dark mode toggle %>
+        <button data-controller="dark-mode" data-action="click->dark-mode#toggle"
+                class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
+          <span class="hidden dark:block">☀️</span>
+          <span class="dark:hidden">🌙</span>
+        </button>
+
+        <%# Notification bell %>
+        <% unread_count = current_user.notifications.unread.count %>
+        <%= link_to notifications_path, class: "relative p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700" do %>
+          🔔
+          <% if unread_count > 0 %>
+            <span id="notification-badge" class="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+              <%= unread_count %>
+            </span>
+          <% end %>
+        <% end %>
+
+        <%# User dropdown %>
+        <div class="relative" data-controller="dropdown">
+          <button data-action="click->dropdown#toggle"
+                  class="flex items-center gap-2 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+            <% if current_user.avatar.attached? %>
+              <%= image_tag current_user.avatar.variant(resize_to_fill: [32, 32]), class: "w-8 h-8 rounded-full" %>
+            <% else %>
+              <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-sm font-bold">
+                <%= current_user.display_name.first.upcase %>
+              </div>
+            <% end %>
+            <span class="hidden sm:block text-sm font-medium"><%= current_user.display_name %></span>
+          </button>
+
+          <div data-dropdown-target="menu" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1">
+            <%= link_to t("nav.profile"), profile_path, class: "block px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700" %>
+            <% if current_user.role_admin? || current_user.role_super_admin? %>
+              <%= link_to t("nav.admin"), admin_pools_path, class: "block px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700" %>
+            <% end %>
+            <% if current_user.role_super_admin? %>
+              <%= link_to t("nav.super_admin"), super_admin_users_path, class: "block px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700" %>
+            <% end %>
+            <hr class="my-1 border-gray-200 dark:border-gray-700">
+            <%= link_to t("nav.logout"), destroy_user_session_path, data: { turbo_method: :delete }, class: "block px-4 py-2 text-sm text-red-600 hover:bg-gray-50 dark:hover:bg-gray-700" %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>

@@ -1,0 +1,77 @@
+pt-BR:
+  app:
+    name: "Bolão"
+
+  errors:
+    not_authorized: "Você não tem permissão para realizar esta ação."
+
+  nav:
+    pools: "Bolões"
+    profile: "Meu Perfil"
+    admin: "Admin"
+    super_admin: "Super Admin"
+    logout: "Sair"
+
+  home:
+    tagline: "O seu bolão de futebol, completo e gratuito."
+    login: "Entrar"
+    register: "Criar Conta"
+
+  dashboard:
+    title: "Painel"
+    my_pools: "Meus Bolões"
+    no_pools: "Você ainda não participa de nenhum bolão."
+    find_pool: "Encontrar um bolão"
+    upcoming_tips: "Próximos Palpites"
+    points: "pts"
+
+  pools:
+    joined: "Você entrou no bolão!"
+    already_joined: "Você já participa deste bolão."
+    left: "Você saiu do bolão."
+
+  profile:
+    updated: "Perfil atualizado com sucesso."
+
+  admin:
+    pools:
+      created: "Bolão criado com sucesso."
+      updated: "Bolão atualizado com sucesso."
+      destroyed: "Bolão removido com sucesso."
+      recalculated: "Pontuações recalculadas."
+      status_updated: "Status do bolão atualizado."
+      invalid_status: "Status inválido."
+    matches:
+      created: "Jogo criado com sucesso."
+      updated: "Resultado atualizado com sucesso."
+
+  super_admin:
+    users:
+      updated: "Usuário atualizado."
+      destroyed: "Usuário removido."
+      impersonating: "Você está navegando como %{name}."
+      banned: "Usuário banido."
+    tournaments:
+      created: "Torneio criado."
+      updated: "Torneio atualizado."
+      destroyed: "Torneio removido."
+      sync_queued: "Sincronização enfileirada."
+      seed_queued: "Seeds via API enfileiradas."
+
+  activerecord:
+    errors:
+      messages:
+        tip_locked: "Este palpite está travado e não pode ser alterado."
+        same_as_home: "não pode ser igual ao time mandante."
+
+  date:
+    formats:
+      default: "%d/%m/%Y"
+      short: "%d/%m"
+      long: "%d de %B de %Y"
+
+  time:
+    formats:
+      default: "%d/%m/%Y %H:%M"
+      short: "%d/%m %H:%M"
+      long: "%d de %B de %Y às %H:%M"
