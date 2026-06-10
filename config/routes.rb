@@ -57,7 +57,7 @@ Rails.application.routes.draw do
         post :seed_from_api
       end
       resources :teams, only: [:index, :new, :create, :destroy], controller: "tournament_teams"
-      resources :matches
+      resources :matches, controller: "tournament_matches"
       resources :stages
       resource :sync_schedule, only: [:show, :edit, :update] do
         member { post :force_run }
