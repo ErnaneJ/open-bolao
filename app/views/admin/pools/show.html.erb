@@ -1,55 +1,152 @@
-<% content_for :title, "Admin — #{@pool.name}" %>
+<% content_for :title, @pool.name %>
 
-<div class="p-6">
-  <div class="flex items-center gap-3 mb-6 flex-wrap">
-    <%= link_to "← Bolões", admin_pools_path, class: "text-sm text-gray-500 hover:text-indigo-600" %>
-    <h1 class="text-2xl font-bold flex-1"><%= @pool.name %></h1>
-    <%= status_badge(@pool.status) %>
+<div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+  <%= link_to "← Meus bolões", admin_pools_path, class: "text-sm text-pitch-500 hover:text-pitch-700 dark:hover:text-pitch-200" %>
+  <div class="flex items-center gap-2 ml-auto">
+    <%= link_to "Editar", edit_admin_pool_path(@pool), class: "btn btn-ghost btn-sm" %>
+    <%= button_to "Excluir", admin_pool_path(@pool), method: :delete,
+          data: { turbo_confirm: "Excluir este bolão?" },
+          class: "btn btn-danger btn-sm" %>
   </div>
+</div>
 
-  <%# Quick actions %>
-  <div class="flex flex-wrap gap-2 mb-6">
-    <%= link_to "Editar", edit_admin_pool_path(@pool), class: "px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700" %>
-    <%= link_to "Participantes", admin_pool_participants_path(@pool), class: "px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700" %>
-    <%= link_to "Jogos/Resultados", admin_pool_matches_path(@pool), class: "px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700" %>
-    <%= link_to "Convite", admin_pool_invite_path(@pool), class: "px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700" %>
-    <%= link_to "Webhooks", admin_pool_webhook_endpoints_path(@pool), class: "px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700" %>
-    <% if @pool.tournament_pool? %>
-      <%= link_to "Sync", admin_pool_sync_schedule_path(@pool), class: "px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700" %>
-    <% end %>
-    <%= button_to "Recalcular pontos", recalculate_admin_pool_path(@pool), method: :post,
-        class: "px-3 py-1.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 rounded-lg text-sm" %>
-  </div>
-
-  <%# Status transition %>
-  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 mb-6">
-    <h3 class="font-semibold mb-3">Mudar status</h3>
-    <div class="flex flex-wrap gap-2">
-      <% Pool.statuses.keys.each do |status| %>
-        <%= button_to status.humanize, transition_admin_pool_path(@pool), method: :patch,
-            params: { status: status },
-            class: "px-3 py-1.5 text-sm rounded-lg #{status == @pool.status ? 'bg-indigo-600 text-white' : 'border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'}" %>
+<div class="card p-6 mb-6">
+  <div class="flex items-start justify-between gap-4 flex-wrap">
+    <div>
+      <div class="flex items-center gap-2 mb-2">
+        <span class="<%= @pool.status_open? ? 'badge-active' : @pool.status_draft? ? 'badge-draft' : 'badge-finished' %>">
+          <%= I18n.t("activerecord.attributes.pool.statuses.#{@pool.status}", default: @pool.status) %>
+        </span>
+        <span class="badge badge-draft text-[10px]"><%= @pool.pool_scope_tournament? ? "Torneio" : "Jogo único" %></span>
+      </div>
+      <h1 class="font-display font-bold text-2xl text-pitch-900 dark:text-white"><%= @pool.name %></h1>
+      <% if @pool.description.present? %>
+        <p class="text-sm text-pitch-500 dark:text-pitch-300 mt-1"><%= @pool.description %></p>
+      <% end %>
+      <% if @pool.starts_at || @pool.ends_at %>
+        <p class="text-xs text-pitch-400 mt-2">
+          <% if @pool.starts_at %>Início: <strong><%= l(@pool.starts_at, format: :short) %></strong><% end %>
+          <% if @pool.ends_at %> · Fim: <strong><%= l(@pool.ends_at, format: :short) %></strong><% end %>
+        </p>
+      <% end %>
+    </div>
+    <div class="flex flex-wrap gap-1.5">
+      <% Pool.statuses.keys.each do |s| %>
+        <%= button_to I18n.t("activerecord.attributes.pool.statuses.#{s}", default: s.humanize),
+              transition_admin_pool_path(@pool), method: :patch,
+              params: { status: s },
+              class: "btn btn-sm #{s == @pool.status ? 'btn-primary' : 'btn-ghost'}" %>
       <% end %>
     </div>
   </div>
+</div>
 
-  <%# Stats %>
-  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center">
-      <div class="text-3xl font-bold text-indigo-600"><%= @pool.pool_participants.active.count %></div>
-      <div class="text-xs text-gray-500 mt-1">Participantes</div>
-    </div>
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center">
-      <div class="text-3xl font-bold text-indigo-600"><%= @pool.tips.count %></div>
-      <div class="text-xs text-gray-500 mt-1">Palpites</div>
-    </div>
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center">
-      <div class="text-3xl font-bold text-indigo-600"><%= @pool.tips.scored.count %></div>
-      <div class="text-xs text-gray-500 mt-1">Apurados</div>
-    </div>
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center">
-      <div class="text-3xl font-bold text-indigo-600"><%= @pool.invite_code %></div>
-      <div class="text-xs text-gray-500 mt-1">Código de convite</div>
-    </div>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+  <div class="stat-card">
+    <span class="stat-label">Participantes</span>
+    <span class="stat-value text-neon-600 dark:text-neon-300"><%= @pool.pool_participants.active.count %></span>
   </div>
+  <div class="stat-card">
+    <span class="stat-label">Jogos</span>
+    <span class="stat-value"><%= @pool.active_matches.count %></span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Palpites</span>
+    <span class="stat-value"><%= @pool.tips.count %></span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-label">Apurados</span>
+    <span class="stat-value"><%= @pool.tips.scored.count %></span>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+  <div class="card p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="font-display font-bold text-sm text-pitch-900 dark:text-white">Participantes</h3>
+      <%= link_to "Gerenciar →", admin_pool_participants_path(@pool), class: "text-xs text-neon-600 dark:text-neon-300 hover:underline" %>
+    </div>
+    <% @pool.pool_participants.active.includes(:user).order(rank: :asc).limit(5).each do |pp| %>
+      <div class="flex items-center gap-2 py-1.5">
+        <div class="avatar-sm text-[10px]"><%= pp.user.display_name.first.upcase %></div>
+        <span class="text-sm text-pitch-700 dark:text-pitch-200 flex-1 truncate"><%= pp.user.display_name %></span>
+        <% if pp.rank %><span class="text-xs text-pitch-400 font-mono"><%= pp.rank %>º</span><% end %>
+      </div>
+    <% end %>
+    <% extra = @pool.pool_participants.active.count - 5 %>
+    <% if extra > 0 %><p class="text-xs text-pitch-400 mt-1">+ <%= extra %> mais</p><% end %>
+  </div>
+
+  <div class="card p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="font-display font-bold text-sm text-pitch-900 dark:text-white">Jogos do bolão</h3>
+      <%= link_to "Gerenciar →", admin_pool_lineup_index_path(@pool), class: "text-xs text-neon-600 dark:text-neon-300 hover:underline" %>
+    </div>
+    <% count = @pool.active_matches.count %>
+    <p class="stat-value text-2xl"><%= count %></p>
+    <p class="stat-label mt-1">jogos configurados</p>
+    <% if count == 0 %>
+      <%= link_to "Adicionar jogos", admin_pool_lineup_index_path(@pool), class: "btn btn-neon btn-sm mt-3 inline-flex" %>
+    <% end %>
+  </div>
+
+  <div class="card p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="font-display font-bold text-sm text-pitch-900 dark:text-white">Convite</h3>
+      <%= link_to "Ver QR →", admin_pool_invite_path(@pool), class: "text-xs text-neon-600 dark:text-neon-300 hover:underline" %>
+    </div>
+    <code class="text-2xl font-mono font-bold tracking-[0.2em] text-neon-600 dark:text-neon-300 block mb-2">
+      <%= @pool.invite_code %>
+    </code>
+    <button data-controller="clipboard"
+            data-clipboard-text-value="<%= join_pool_by_code_url(invite_code: @pool.invite_code) %>"
+            data-action="click->clipboard#copy"
+            class="btn btn-ghost btn-sm">Copiar link</button>
+  </div>
+
+  <div class="card p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="font-display font-bold text-sm text-pitch-900 dark:text-white">Resultados</h3>
+      <%= link_to "Inserir →", admin_pool_matches_path(@pool), class: "text-xs text-neon-600 dark:text-neon-300 hover:underline" %>
+    </div>
+    <% finished = @pool.active_matches.where(status: :finished).count %>
+    <p class="stat-value text-2xl"><%= finished %> / <%= @pool.active_matches.count %></p>
+    <p class="stat-label mt-1">jogos apurados</p>
+    <%= button_to "Recalcular pontos", recalculate_admin_pool_path(@pool), method: :post,
+          class: "btn btn-ghost btn-sm mt-3 inline-flex" %>
+  </div>
+
+  <div class="card p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="font-display font-bold text-sm text-pitch-900 dark:text-white">Webhooks</h3>
+      <%= link_to "Gerenciar →", admin_pool_webhook_endpoints_path(@pool), class: "text-xs text-neon-600 dark:text-neon-300 hover:underline" %>
+    </div>
+    <p class="stat-value text-2xl"><%= @pool.webhook_endpoints.count %></p>
+    <p class="stat-label mt-1">endpoints configurados</p>
+    <%= link_to "+ Novo webhook", new_admin_pool_webhook_endpoint_path(@pool), class: "btn btn-ghost btn-sm mt-3 inline-flex" %>
+  </div>
+
+  <% if @pool.pool_scope_tournament? %>
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-display font-bold text-sm text-pitch-900 dark:text-white">Sincronização</h3>
+        <%= link_to "Configurar →", admin_pool_sync_schedule_path(@pool), class: "text-xs text-neon-600 dark:text-neon-300 hover:underline" %>
+      </div>
+      <% schedule = @pool.tournament&.sync_schedule %>
+      <% if schedule %>
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 rounded-full <%= schedule.paused_until&.future? ? 'bg-amber-400' : schedule.enabled? ? 'bg-grass-500' : 'bg-pitch-300' %>"></div>
+          <span class="text-sm text-pitch-700 dark:text-pitch-200">
+            <%= schedule.paused_until&.future? ? "Pausado" : schedule.enabled? ? "Ativo" : "Desativado" %>
+          </span>
+        </div>
+        <% if schedule.last_run_at %>
+          <p class="text-xs text-pitch-400 mt-2">Último sync: <%= time_ago_in_words(schedule.last_run_at) %> atrás</p>
+        <% end %>
+      <% else %>
+        <p class="text-sm text-pitch-400">Nenhum schedule.</p>
+      <% end %>
+    </div>
+  <% end %>
 </div>

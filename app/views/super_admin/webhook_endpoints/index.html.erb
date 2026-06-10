@@ -1,0 +1,36 @@
+<% content_for :title, "Webhooks globais" %>
+<div class="flex items-center justify-between mb-6">
+  <h1 class="font-display font-bold text-2xl text-pitch-900 dark:text-white">Webhooks globais</h1>
+  <%= link_to "Novo endpoint", new_super_admin_webhook_endpoint_path, class: "btn btn-neon btn-sm" %>
+</div>
+
+<% if @endpoints.any? %>
+  <div class="card overflow-hidden divide-y divide-pitch-100 dark:divide-pitch-700/50">
+    <% @endpoints.each do |ep| %>
+      <div class="px-5 py-4 flex items-start justify-between gap-4">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 mb-1">
+            <div class="w-2 h-2 rounded-full <%= ep.active? ? 'bg-grass-500' : 'bg-pitch-300' %>"></div>
+            <code class="text-sm font-mono truncate text-pitch-700 dark:text-pitch-200"><%= ep.url %></code>
+          </div>
+          <div class="flex flex-wrap gap-1 mt-1">
+            <% Array(ep.events).each do |event| %>
+              <span class="badge badge-draft text-[10px]"><%= event %></span>
+            <% end %>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <%= link_to "Ver", super_admin_webhook_endpoint_path(ep), class: "btn btn-ghost btn-sm" %>
+          <%= button_to "Excluir", super_admin_webhook_endpoint_path(ep), method: :delete,
+                data: { turbo_confirm: "Excluir?" }, class: "btn btn-danger btn-sm" %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+  <%= render "shared/pagy", pagy: @pagy %>
+<% else %>
+  <div class="card p-12 text-center">
+    <p class="text-pitch-400 mb-4">Nenhum webhook configurado.</p>
+    <%= link_to "Criar primeiro", new_super_admin_webhook_endpoint_path, class: "btn btn-neon btn-sm" %>
+  </div>
+<% end %>

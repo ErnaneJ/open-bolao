@@ -84,6 +84,7 @@
 
         <%= form_with url: tip ? pool_tip_path(pool, tip.match_id) : pool_tips_path(pool),
                       method: tip ? :patch : :post,
+                      scope: :tip,
                       data: { controller: "tip", tip_target: "form" },
                       class: "flex items-center gap-2" do |f| %>
           <%= f.hidden_field :match_id, value: match.id %>

@@ -28,6 +28,9 @@ class Pool < ApplicationRecord
 
   belongs_to :admin, class_name: "User"
   belongs_to :tournament, optional: true
+
+  has_many :pool_matches, dependent: :destroy
+  has_many :selected_matches, through: :pool_matches, source: :match
   belongs_to :match, optional: true
   has_many :pool_participants, dependent: :destroy
   has_many :participants, through: :pool_participants, source: :user
@@ -61,6 +64,22 @@ class Pool < ApplicationRecord
 
   def single_match_pool?
     pool_scope_single_match?
+  end
+
+  # Returns the match set for this pool:
+  # 1. Explicit pool_matches if any have been defined
+  # 2. All tournament matches (fallback for existing tournament pools)
+  # 3. The single linked match
+  def active_matches
+    if pool_matches.loaded? ? pool_matches.any? : pool_matches.exists?
+      selected_matches.includes(:home_team, :away_team, :stage).order(:scheduled_at)
+    elsif pool_scope_tournament? && tournament.present?
+      tournament.matches.includes(:home_team, :away_team, :stage).order(:scheduled_at)
+    elsif pool_scope_single_match? && match_id.present?
+      Match.where(id: match_id).includes(:home_team, :away_team)
+    else
+      Match.none
+    end
   end
 
   # Returns true when the competition has effectively started (any match live/finished)

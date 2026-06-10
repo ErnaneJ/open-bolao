@@ -1,0 +1,87 @@
+<% content_for :title, "Jogos — #{@pool.name}" %>
+
+<div class="flex items-center gap-3 mb-6 flex-wrap">
+  <%= link_to "← #{@pool.name}", admin_pool_path(@pool), class: "text-sm text-pitch-500 hover:text-pitch-700 dark:hover:text-pitch-200" %>
+  <h1 class="font-display font-bold text-xl text-pitch-900 dark:text-white flex-1">Lineup de Jogos</h1>
+  <div class="flex items-center gap-2">
+    <% if @pool.tournament %>
+      <%= button_to "Importar do torneio", import_tournament_admin_pool_lineup_index_path(@pool),
+            method: :post, class: "btn btn-ghost btn-sm" %>
+      <%= button_to "Sincronizar da API", import_api_admin_pool_lineup_index_path(@pool),
+            method: :post, class: "btn btn-neon btn-sm" %>
+    <% end %>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+  <%# Current lineup %>
+  <div>
+    <h2 class="font-display font-bold text-sm text-pitch-900 dark:text-white uppercase tracking-widest mb-3">
+      Jogos no bolão (<%= @pool_matches.size %>)
+    </h2>
+    <% if @pool_matches.any? %>
+      <div class="card overflow-hidden divide-y divide-pitch-100 dark:divide-pitch-700/50">
+        <% @pool_matches.each do |pm| %>
+          <div class="px-4 py-3 flex items-center gap-3">
+            <% m = pm.match %>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-pitch-900 dark:text-white truncate">
+                <%= m.home_team.name %> × <%= m.away_team.name %>
+              </p>
+              <p class="text-[11px] text-pitch-400 mt-0.5">
+                <%= m.scheduled_at ? l(m.scheduled_at, format: :short) : "?" %>
+                <% if m.stage %> · <%= m.stage.name %><% end %>
+              </p>
+            </div>
+            <% if m.status_finished? %>
+              <span class="font-mono text-sm font-bold text-pitch-700 dark:text-pitch-200">
+                <%= m.home_score %>–<%= m.away_score %>
+              </span>
+            <% end %>
+            <%= button_to admin_pool_lineup_path(@pool, pm),
+                  method: :delete,
+                  data: { turbo_confirm: "Remover jogo?" },
+                  class: "btn btn-danger btn-sm shrink-0" do %>✕<% end %>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="card p-8 text-center">
+        <p class="text-pitch-400 text-sm mb-3">Nenhum jogo no bolão ainda.</p>
+        <% if @pool.tournament %>
+          <%= button_to "Importar todos do torneio", import_tournament_admin_pool_lineup_index_path(@pool),
+                method: :post, class: "btn btn-neon btn-sm" %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <%# Available to add %>
+  <% if @available_matches.any? %>
+    <div>
+      <h2 class="font-display font-bold text-sm text-pitch-900 dark:text-white uppercase tracking-widest mb-3">
+        Disponíveis para adicionar (<%= @available_matches.size %>)
+      </h2>
+      <div class="card overflow-hidden divide-y divide-pitch-100 dark:divide-pitch-700/50">
+        <% @available_matches.each do |m| %>
+          <div class="px-4 py-3 flex items-center gap-3">
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-pitch-900 dark:text-white truncate">
+                <%= m.home_team.name %> × <%= m.away_team.name %>
+              </p>
+              <p class="text-[11px] text-pitch-400 mt-0.5">
+                <%= m.scheduled_at ? l(m.scheduled_at, format: :short) : "?" %>
+                <% if m.stage %> · <%= m.stage.name %><% end %>
+              </p>
+            </div>
+            <%= button_to admin_pool_lineup_index_path(@pool),
+                  method: :post,
+                  params: { match_id: m.id },
+                  class: "btn btn-ghost btn-sm shrink-0" do %>+ Adicionar<% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

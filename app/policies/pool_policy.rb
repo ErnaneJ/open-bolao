@@ -1,7 +1,7 @@
 class PoolPolicy < ApplicationPolicy
   def index?  = true
   def show?   = user.present? && (participant? || admin_owner? || super_admin?)
-  def create? = admin? || super_admin?
+  def create? = user.present?
   def update? = admin_owner? || super_admin?
   def destroy? = admin_owner? || super_admin?
   def join?   = user.present? && !participant?

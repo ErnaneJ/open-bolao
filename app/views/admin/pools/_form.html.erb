@@ -3,72 +3,90 @@
 <div class="space-y-5">
   <% if pool.new_record? %>
     <div>
-      <%= f.label :pool_scope, "Tipo de bolão", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
-      <%= f.select :pool_scope, [["Bolão de Torneio", "tournament"], ["Bolão de Jogo Único", "single_match"]],
-          {},
-          class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm",
-          data: { controller: "pool-scope" } %>
+      <%= f.label :pool_scope, "Tipo de bolão", class: "form-label" %>
+      <%= f.select :pool_scope,
+            [["⚽ Bolão de Torneio", "tournament"], ["🎯 Bolão de Jogo Único", "single_match"]],
+            {},
+            class: "form-input",
+            data: { controller: "pool-scope" } %>
     </div>
     <div data-pool-scope-target="tournamentFields">
-      <%= f.label :tournament_id, "Torneio", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+      <%= f.label :tournament_id, "Torneio", class: "form-label" %>
       <%= f.collection_select :tournament_id, Tournament.all, :id, :name,
-          { include_blank: "Selecionar torneio" },
-          class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+            { include_blank: "Selecionar torneio" },
+            class: "form-input" %>
     </div>
   <% end %>
 
   <div>
-    <%= f.label :name, "Nome do bolão", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
-    <%= f.text_field :name, class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+    <%= f.label :name, "Nome do bolão", class: "form-label" %>
+    <%= f.text_field :name, class: "form-input", placeholder: "Ex: Bolão Copa 2026" %>
   </div>
 
   <div>
-    <%= f.label :description, "Descrição", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
-    <%= f.text_area :description, rows: 3, class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+    <%= f.label :description, "Descrição", class: "form-label" %>
+    <%= f.text_area :description, rows: 3, class: "form-input", placeholder: "Opcional" %>
   </div>
 
   <div class="grid grid-cols-2 gap-4">
     <div>
-      <%= f.label :visibility, "Visibilidade", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
-      <%= f.select :visibility, [["Público", "public_pool"], ["Privado", "private_pool"], ["Somente convite", "invite_only"]],
-          {},
-          class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+      <%= f.label :starts_at, "Início do bolão", class: "form-label" %>
+      <%= f.datetime_local_field :starts_at, class: "form-input",
+            value: pool.starts_at&.strftime("%Y-%m-%dT%H:%M") %>
     </div>
     <div>
-      <%= f.label :max_participants, "Máx. participantes", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
-      <%= f.number_field :max_participants, min: 2, placeholder: "Ilimitado", class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+      <%= f.label :ends_at, "Fim do bolão", class: "form-label" %>
+      <%= f.datetime_local_field :ends_at, class: "form-input",
+            value: pool.ends_at&.strftime("%Y-%m-%dT%H:%M") %>
     </div>
   </div>
 
   <div class="grid grid-cols-2 gap-4">
     <div>
-      <%= f.label :lock_before_minutes, "Travar X min antes", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
-      <%= f.number_field :lock_before_minutes, min: 0, max: 1440, class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+      <%= f.label :visibility, "Visibilidade", class: "form-label" %>
+      <%= f.select :visibility,
+            [["Público", "public_pool"], ["Privado", "private_pool"], ["Somente convite", "invite_only"]],
+            {},
+            class: "form-input" %>
     </div>
     <div>
-      <%= f.label :entry_fee, "Taxa de entrada (R$)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
-      <%= f.number_field :entry_fee, step: 0.01, min: 0, placeholder: "0,00", class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+      <%= f.label :max_participants, "Máx. participantes", class: "form-label" %>
+      <%= f.number_field :max_participants, min: 2, placeholder: "Ilimitado", class: "form-input" %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <%= f.label :lock_before_minutes, "Travar X min antes do jogo", class: "form-label" %>
+      <%= f.number_field :lock_before_minutes, min: 0, max: 1440, class: "form-input" %>
+    </div>
+    <div>
+      <%= f.label :entry_fee, "Taxa de entrada (R$)", class: "form-label" %>
+      <%= f.number_field :entry_fee, step: 0.01, min: 0, placeholder: "0,00", class: "form-input" %>
     </div>
   </div>
 
   <div>
-    <%= f.label :prize_description, "Premiação", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
-    <%= f.text_area :prize_description, rows: 2, class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+    <%= f.label :prize_description, "Premiação / Prêmio", class: "form-label" %>
+    <%= f.text_area :prize_description, rows: 2, class: "form-input", placeholder: "Opcional" %>
   </div>
 
   <%# Scoring config %>
-  <div class="border border-gray-200 dark:border-gray-600 rounded-xl p-4">
-    <h4 class="font-medium text-sm mb-3">Pontuação</h4>
-    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-      <% Pool::SCORING_DEFAULTS.each do |key, default_val| %>
-        <div>
-          <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1"><%= key.humanize %></label>
-          <%= f.fields_for :scoring_config do |sc| %>
-            <%= sc.number_field key, step: 0.5, min: 0, value: (pool.scoring_config || {})[key] || default_val,
-                class: "w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
-          <% end %>
+  <details class="rounded-xl border border-pitch-200 dark:border-pitch-600">
+    <summary class="px-4 py-3 text-sm font-semibold text-pitch-700 dark:text-pitch-200 cursor-pointer select-none">
+      Configuração de pontuação
+    </summary>
+    <div class="p-4 space-y-3 border-t border-pitch-200 dark:border-pitch-600">
+      <% Pool::SCORING_DEFAULTS.each do |key, default| %>
+        <div class="flex items-center justify-between gap-4">
+          <%= f.label "scoring_config_#{key}", key.humanize, class: "text-sm text-pitch-600 dark:text-pitch-300 flex-1" %>
+          <%= f.number_field "scoring_config[#{key}]",
+                value: pool.scoring_config_with_defaults[key],
+                step: key.include?("multiplier") ? 0.5 : 1,
+                min: 0,
+                class: "form-input w-24 text-center" %>
         </div>
       <% end %>
     </div>
-  </div>
+  </details>
 </div>

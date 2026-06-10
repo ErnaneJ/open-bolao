@@ -30,6 +30,12 @@ Rails.application.routes.draw do
       end
       resources :participants, only: [:index, :update, :destroy]
       resources :matches, only: [:index, :edit, :update]
+      resources :lineup, only: [:index, :create, :destroy] do
+        collection do
+          post :import_tournament
+          post :import_api
+        end
+      end
       resources :webhook_endpoints do
         member { post :test }
       end

@@ -71,10 +71,6 @@ class PoolsController < ApplicationController
   end
 
   def pool_matches
-    if @pool.tournament_pool?
-      @pool.tournament.matches.includes(:home_team, :away_team, :stage).order(:scheduled_at)
-    else
-      Match.where(id: @pool.match_id).includes(:home_team, :away_team)
-    end
+    @pool.active_matches
   end
 end

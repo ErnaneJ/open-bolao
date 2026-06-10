@@ -75,7 +75,7 @@ class Admin::PoolsController < Admin::BaseController
     params.require(:pool).permit(
       :name, :description, :pool_scope, :tournament_id, :match_id,
       :status, :visibility, :entry_fee, :prize_description, :max_participants,
-      :allow_late_entries, :lock_before_minutes,
+      :allow_late_entries, :lock_before_minutes, :starts_at, :ends_at,
       scoring_config: Pool::SCORING_DEFAULTS.keys,
       special_bets_config: {}
     )
