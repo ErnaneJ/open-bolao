@@ -12,12 +12,12 @@
     <meta property="og:site_name"   content="<%= t('app.name') %>">
     <meta property="og:title"       content="<%= content_for(:title).presence || t('app.name') %>">
     <meta property="og:description" content="<%= content_for(:meta_description).presence || 'Bolão de futebol online — faça seus palpites, convide amigos e dispute o ranking da Copa do Mundo 2026.' %>">
-    <meta property="og:image"       content="<%= image_url('icon.svg') %>">
+    <meta property="og:image"       content="<%= "#{request.base_url}/icon.svg" %>">
     <%# Twitter / X %>
     <meta name="twitter:card"        content="summary">
     <meta name="twitter:title"       content="<%= content_for(:title).presence || t('app.name') %>">
     <meta name="twitter:description" content="<%= content_for(:meta_description).presence || 'Bolão de futebol online — Copa do Mundo 2026.' %>">
-    <meta name="twitter:image"       content="<%= image_url('icon.svg') %>">
+    <meta name="twitter:image"       content="<%= "#{request.base_url}/icon.svg" %>">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <link rel="preconnect" href="https://fonts.googleapis.com">
