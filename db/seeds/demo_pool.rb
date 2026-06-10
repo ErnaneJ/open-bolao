@@ -14,7 +14,6 @@ if tournament
     description: "Bolão demo da Copa do Mundo 2026",
     lock_before_minutes: 5,
     scoring_config: Pool::SCORING_DEFAULTS,
-    special_bets_config: Pool::SPECIAL_BETS_DEFAULTS
   )
   pool.save!
   puts "Tournament pool: #{pool.name} (#{pool.invite_code})"

@@ -13,95 +13,121 @@ tournament.assign_attributes(
 tournament.save!
 puts "Tournament: #{tournament.name}"
 
-adapter = ApiProviders::Worldcup2026Adapter.new
+# ── Teams from worldcup26.ir (has flag_url + iso2) ──────────────────────────
+adapter_wc = ApiProviders::Worldcup2026Adapter.new
 
 begin
-  # --- Teams ---
-  teams_data = adapter.fetch_teams
-  puts "Fetched #{teams_data.size} teams from API"
+  teams_data = adapter_wc.fetch_teams
+  puts "Fetched #{teams_data.size} teams from worldcup26.ir"
 
-  # external_id → Team record map for match seeding
-  team_by_external_id = {}
-
+  team_by_wc_id = {}
   teams_data.each do |td|
     team = Team.find_or_initialize_by(name: td.name)
     team.assign_attributes(
       country_code: td.country_code,
-      flag_url:     td.flag_url
-    ) if team.respond_to?(:country_code)
+      flag_url: td.flag_url,
+      external_provider_id: td.external_id,
+      external_provider_name: "worldcup2026"
+    )
     team.save! if team.new_record? || team.changed?
 
     TournamentTeam.find_or_create_by!(tournament: tournament, team: team) do |tt|
-      tt.group_name   = td.group_name
-      tt.external_id  = td.external_id
+      tt.group_name  = td.group_name
+      tt.external_id = td.external_id
     end
 
-    team_by_external_id[td.external_id] = team
+    team_by_wc_id[td.external_id] = team
   end
 
   puts "Teams seeded: #{tournament.teams.count}"
+rescue => e
+  puts "worldcup26.ir teams unavailable (#{e.message})"
+end
 
-  # --- Stage helpers ---
-  stage_for = lambda do |match_data|
-    if match_data.match_type == "group"
-      label = match_data.group_name ? "Grupo #{match_data.group_name}" : "Fase de Grupos"
-      tournament.stages.find_or_create_by!(name: label) do |s|
-        s.stage_type     = :group
-        s.order_position = tournament.stages.count
-      end
-    else
-      type_map = {
-        "round_of_32"  => [:round_of_32,  "Rodada de 32"],
-        "round_of_16"  => [:round_of_16,  "Oitavas de Final"],
-        "quarter_final"=> [:quarterfinal, "Quartas de Final"],
-        "semi_final"   => [:semifinal,    "Semifinais"],
-        "third_place"  => [:third_place,  "Terceiro Lugar"],
-        "final"        => [:final,        "Final"]
-      }
-      stype, sname = type_map[match_data.match_type] || [:round_of_16, match_data.match_type.to_s.humanize]
-      tournament.stages.find_or_create_by!(name: sname) do |s|
-        s.stage_type     = stype
-        s.order_position = tournament.stages.count
-      end
+# ── Matches from TheSportsDB (has correct UTC timestamps) ───────────────────
+tsdb = ApiProviders::ThesportsdbAdapter.new
+TSDB_LEAGUE = "4429"
+
+begin
+  matches_data = tsdb.fetch_matches_for_season("2026", TSDB_LEAGUE)
+  puts "Fetched #{matches_data.size} matches from TheSportsDB"
+
+  stage_cache = {}
+  stage_for = lambda do |md|
+    type  = md.match_type.to_s
+    label = case type
+            when /final.*round|round.*32/ then "Rodada de 32"
+            when /round.*16/              then "Oitavas de Final"
+            when /quarter/                then "Quartas de Final"
+            when /semi/                   then "Semifinal"
+            when /third/                  then "Terceiro Lugar"
+            when "final"                  then "Final"
+            else
+              md.group_name ? "Grupo #{md.group_name}" : "Fase de Grupos"
+            end
+
+    stage_cache[label] ||= tournament.stages.find_or_create_by!(name: label) do |s|
+      s.stage_type     = label.include?("Grupo") ? :group : :round_of_16
+      s.order_position = tournament.stages.count
     end
   end
 
-  # --- Matches ---
-  matches_data = adapter.fetch_matches
-  puts "Fetched #{matches_data.size} matches from API"
-
   matches_data.each do |md|
-    home_team = team_by_external_id[md.home_team_external_id] ||
+    home_team = team_by_wc_id.values.find { |t| t.name.downcase == md.home_team_name.downcase } ||
                 Team.find_by("name ILIKE ?", md.home_team_name)
-    away_team = team_by_external_id[md.away_team_external_id] ||
+    away_team = team_by_wc_id.values.find { |t| t.name.downcase == md.away_team_name.downcase } ||
                 Team.find_by("name ILIKE ?", md.away_team_name)
     next unless home_team && away_team
 
     stage = stage_for.call(md)
 
-    Match.find_or_initialize_by(external_id: md.external_id, tournament: tournament).tap do |m|
-      m.home_team   = home_team
-      m.away_team   = away_team
-      m.scheduled_at = md.scheduled_at
-      m.status      = md.status || :scheduled
-      m.home_score  = md.home_score
-      m.away_score  = md.away_score
-      m.stage       = stage
-      m.save!
-    end
+    # Deduplicate by external_id + provider
+    match = Match.find_or_initialize_by(
+      external_tsdb_id:       md.external_tsdb_id,
+      external_provider_name: "thesportsdb"
+    )
+    match.assign_attributes(
+      home_team:   home_team,
+      away_team:   away_team,
+      scheduled_at: md.scheduled_at,  # UTC from TheSportsDB — correct!
+      status:      md.status || :scheduled,
+      home_score:  md.home_score,
+      away_score:  md.away_score,
+      stage:       stage,
+      tournament:  tournament,
+      stream_url:  md.stream_url.presence || "https://www.youtube.com/@CazeTV/streams"
+    )
+    match.save! if match.new_record? || match.changed?
   end
 
   puts "Matches seeded: #{tournament.matches.count}"
 rescue => e
-  puts "API unavailable (#{e.message}), skipping live seed."
+  puts "TheSportsDB unavailable (#{e.message}), skipping match import."
 end
 
-# Seed TheSportsDB as default API provider
-ApiProvider.find_or_create_by!(name: "TheSportsDB — Copa 2026") do |ap|
-  ap.provider_type = "thesportsdb"
-  ap.base_url      = "https://www.thesportsdb.com/api/v1/json"
-  ap.active        = true
-  ap.config        = { "api_key" => "123", "league_id" => "4429" }
-end
+# ── Seed TheSportsDB as default API provider ────────────────────────────────
+tsdb_provider = ApiProvider.find_or_initialize_by(name: "TheSportsDB — Copa 2026")
+tsdb_provider.assign_attributes(
+  provider_type: :thesportsdb,
+  base_url:      "https://www.thesportsdb.com/api/v1/json",
+  active:        true,
+  config:        { "api_key" => "123", "league_id" => "4429" }
+)
+tsdb_provider.save!
+puts "TheSportsDB API provider: #{tsdb_provider.name}"
 
-puts "TheSportsDB API provider seeded."
+# ── Configure SyncSchedule for tournament (daily updates) ───────────────────
+schedule = SyncSchedule.find_or_initialize_by(
+  schedulable: tournament,
+  api_provider: tsdb_provider
+)
+schedule.assign_attributes(
+  enabled:               true,
+  interval_seconds:      300,        # every 5 min during active window
+  active_from:           Time.current.change(hour: 13, min: 0),
+  active_until:          Time.current.change(hour: 23, min: 59),
+  run_only_on_match_days: false,
+  consecutive_failures:  0
+)
+schedule.save!
+puts "SyncSchedule: #{schedule.enabled? ? 'active' : 'inactive'} every #{schedule.interval_seconds}s"

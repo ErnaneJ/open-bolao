@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_10_222409) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_10_223608) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -127,6 +127,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_222409) do
     t.bigint "away_team_id", null: false
     t.datetime "created_at", null: false
     t.string "external_id"
+    t.string "external_provider_name"
+    t.string "external_tsdb_id"
     t.integer "home_score"
     t.integer "home_score_et"
     t.integer "home_score_ht"
@@ -141,6 +143,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_222409) do
     t.string "venue"
     t.bigint "winner_team_id"
     t.index ["away_team_id"], name: "index_matches_on_away_team_id"
+    t.index ["external_id", "external_provider_name"], name: "idx_matches_on_provider", unique: true, where: "(external_id IS NOT NULL)"
     t.index ["external_id"], name: "index_matches_on_external_id"
     t.index ["home_team_id"], name: "index_matches_on_home_team_id"
     t.index ["scheduled_at"], name: "index_matches_on_scheduled_at"
@@ -287,11 +290,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_222409) do
     t.string "country_code"
     t.datetime "created_at", null: false
     t.bigint "created_by_id"
+    t.string "external_provider_id"
+    t.string "external_provider_name"
     t.string "flag_url"
     t.string "name", null: false
     t.string "short_name"
     t.datetime "updated_at", null: false
     t.index ["country_code"], name: "index_teams_on_country_code"
+    t.index ["external_provider_id", "external_provider_name"], name: "idx_teams_on_provider", unique: true, where: "(external_provider_id IS NOT NULL)"
     t.index ["name"], name: "index_teams_on_name"
   end
 

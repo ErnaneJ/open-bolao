@@ -23,13 +23,13 @@
       </h1>
     </div>
     <div class="flex items-center gap-2">
-      <%= link_to admin_pools_path, class: "btn btn-ghost btn-sm" do %>
-        <%= t("dashboard.my_pools_admin") %>
+      <% if @participations.any? || @administered_pools.any? %>
+        <%= link_to admin_pools_path, class: "btn btn-ghost btn-sm" do %>Meus bolões<% end %>
       <% end %>
       <%= link_to new_my_pool_path,
             class: "btn btn-neon btn-sm",
             data: { action: "click->modal#open", turbo_frame: "new_pool_modal" } do %>
-        + <%= t("pools.new.create_btn") %>
+        + Criar bolão
       <% end %>
     </div>
   </div>

@@ -2,13 +2,19 @@ sync_scheduler:
   cron: "* * * * *"
   class: "Sync::SchedulerJob"
   queue: scheduler
-  description: "Master scheduler that decides which sync jobs to enqueue"
+  description: "Master scheduler — enqueues FetchResultsJob for due SyncSchedules"
 
 lock_tips:
   cron: "* * * * *"
   class: "Pools::LockTipsJob"
   queue: scheduler
-  description: "Locks tips for matches starting soon"
+  description: "Locks tips for matches starting within lock_before_minutes"
+
+daily_import_tsdb:
+  cron: "0 6 * * *"
+  class: "Sync::ImportFromTsdbJob"
+  queue: default
+  description: "Daily import of match schedule + team data from TheSportsDB"
 
 purge_sync_logs:
   cron: "0 3 * * 0"
