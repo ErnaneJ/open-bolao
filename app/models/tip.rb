@@ -7,13 +7,26 @@ class Tip < ApplicationRecord
   validate :match_not_locked, on: :create
   validate :match_not_locked, on: :update, if: :scores_changed?
 
-  scope :scored, -> { where.not(points_earned: nil) }
+  scope :scored,   -> { where.not(points_earned: nil) }
   scope :unscored, -> { where(points_earned: nil) }
-  scope :locked, -> { where.not(locked_at: nil) }
+  scope :locked,   -> { where.not(locked_at: nil) }
   scope :unlocked, -> { where(locked_at: nil) }
 
+  # Explicitly locked by admin/system (tip-level flag)
   def locked?
     locked_at.present?
+  end
+
+  # Lock triggered by match start time + pool's lock_before_minutes buffer
+  def time_locked?
+    return false unless match.scheduled_at.present?
+    deadline = match.scheduled_at - (pool.lock_before_minutes || 0).minutes
+    Time.current >= deadline
+  end
+
+  # Either hard-locked or time-locked
+  def effectively_locked?
+    locked? || time_locked? || match.status_live? || match.status_finished? || match.status_cancelled?
   end
 
   def scored?
@@ -27,7 +40,6 @@ class Tip < ApplicationRecord
   end
 
   def match_not_locked
-    return unless locked?
-    errors.add(:base, :tip_locked)
+    errors.add(:base, :tip_locked) if effectively_locked?
   end
 end

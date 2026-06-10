@@ -1,19 +1,18 @@
-<div class="card p-4
-  <%= tip&.locked? ? 'opacity-70' : '' %>
-  <%= tip&.scored? && tip.points_earned.to_i > 0 ? 'border-neon-400/40 dark:border-neon-400/30' : '' %>">
+<% is_locked = pool.tips_locked_for?(match) %>
+
+<div class="card p-4 <%= is_locked && tip&.scored? && tip.points_earned.to_i > 0 ? 'border-neon-400/40 dark:border-neon-400/30' : '' %>
+  <%= is_locked && !(tip&.scored?) ? 'opacity-75' : '' %>">
 
   <div class="flex flex-col sm:flex-row sm:items-center gap-4">
 
     <%# Match info %>
     <div class="flex-1 min-w-0">
-      <%# Teams row %>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 flex-wrap">
         <% if match.home_team.flag_url.present? %>
           <img src="<%= match.home_team.flag_url %>" class="w-6 h-4 object-cover rounded-sm shrink-0" alt="">
         <% end %>
         <span class="text-sm font-semibold text-pitch-900 dark:text-white truncate"><%= match.home_team.name %></span>
 
-        <%# Live score or scheduled time %>
         <div class="shrink-0 mx-1 text-center">
           <% if match.status_finished? %>
             <span class="font-mono font-bold text-base text-pitch-900 dark:text-white" style="font-family: var(--font-mono)">
@@ -34,15 +33,15 @@
         <% end %>
       </div>
 
-      <%# Stage / group %>
       <% if match.stage %>
         <p class="text-[10px] text-pitch-400 dark:text-pitch-500 mt-1 uppercase tracking-wide"><%= match.stage.name %></p>
       <% end %>
     </div>
 
-    <%# Tip input / result %>
+    <%# Tip result or form %>
     <div class="shrink-0">
-      <% if tip&.locked? || match.status_finished? || match.status_live? || match.status_cancelled? %>
+      <% if is_locked %>
+        <%# Show saved tip (read-only) %>
         <div class="flex items-center gap-2">
           <% if tip&.home_score_tip.present? %>
             <div class="flex items-center gap-1.5 bg-pitch-50 dark:bg-pitch-700/60 rounded-xl px-3 py-2">
@@ -55,17 +54,34 @@
                 +<%= tip.points_earned %><span class="text-[10px] font-normal ml-0.5">pts</span>
               </span>
             <% elsif tip.scored? %>
-              <span class="badge bg-pitch-100 dark:bg-pitch-700 text-pitch-400 font-semibold">0 pts</span>
+              <span class="badge badge-finished font-semibold">0 pts</span>
             <% end %>
           <% else %>
-            <span class="text-xs text-pitch-300 dark:text-pitch-500 italic px-3 py-2"><%= t("tips.no_tip") %></span>
+            <%# No tip submitted before lock %>
+            <span class="text-xs text-pitch-300 dark:text-pitch-500 italic px-3 py-2 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+              Bloqueado
+            </span>
           <% end %>
-          <% if tip&.locked? && !match.status_finished? %>
-            <span class="text-pitch-400 text-xs">🔒</span>
+
+          <%# Lock reason badge %>
+          <% if match.status_live? %>
+            <span class="badge badge-live text-[9px]">Ao vivo</span>
+          <% elsif match.status_finished? %>
+            <span class="badge badge-finished text-[9px]">Encerrado</span>
+          <% elsif tip&.locked? %>
+            <span class="badge badge-draft text-[9px]">🔒</span>
+          <% else %>
+            <span class="badge badge-draft text-[9px]">Fechado</span>
           <% end %>
         </div>
+
       <% else %>
-        <%# Editable form %>
+        <%# Editable form — show countdown if close to lock %>
+        <% deadline = pool.tip_deadline_for(match) %>
+
         <%= form_with url: tip ? pool_tip_path(pool, tip.match_id) : pool_tips_path(pool),
                       method: tip ? :patch : :post,
                       data: { controller: "tip", tip_target: "form" },
@@ -89,6 +105,12 @@
           <%= f.submit tip ? "✓" : "Salvar",
                 class: "btn btn-neon btn-sm",
                 data: { tip_target: "submitBtn" } %>
+        <% end %>
+
+        <% if deadline && deadline - Time.current < 30.minutes %>
+          <p class="text-[10px] text-amber-500 mt-1 font-medium">
+            ⏱ Fecha em <%= distance_of_time_in_words(Time.current, deadline) %>
+          </p>
         <% end %>
       <% end %>
     </div>

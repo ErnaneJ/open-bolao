@@ -63,6 +63,20 @@ class Pool < ApplicationRecord
     pool_scope_single_match?
   end
 
+  # Returns true when tips should no longer be accepted for this match
+  def tips_locked_for?(match)
+    return true if status_locked? || status_finished?
+    return true if match.status_live? || match.status_finished? || match.status_cancelled?
+    return false unless match.scheduled_at.present?
+    Time.current >= match.scheduled_at - (lock_before_minutes || 0).minutes
+  end
+
+  # Human-readable deadline for a match's tips
+  def tip_deadline_for(match)
+    return nil unless match.scheduled_at.present?
+    match.scheduled_at - (lock_before_minutes || 0).minutes
+  end
+
   private
 
   def set_defaults
