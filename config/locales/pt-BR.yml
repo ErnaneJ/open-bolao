@@ -203,3 +203,88 @@ pt-BR:
       default: "%d/%m/%Y %H:%M"
       short: "%d/%m %H:%M"
       long: "%d de %B de %Y às %H:%M"
+      time_only: "%H:%M"
+      date_short: "%d/%m/%Y"
+
+  common:
+    cancel: "Cancelar"
+    save: "Salvar"
+    edit: "Editar"
+    delete: "Excluir"
+
+  dashboard:
+    title: "Painel"
+    welcome_back: "Bem-vindo de volta"
+    my_pools: "Meus Bolões"
+    my_pools_admin: "Gerenciar bolões"
+    admin_pool_hint: "Você criou este bolão mas ainda não está participando."
+    no_pools: "Nenhum bolão ainda"
+    no_pools_hint: "Crie o seu primeiro bolão ou entre com um link de convite."
+    upcoming_tips: "Próximos Palpites"
+    upcoming_matches: "Próximos Jogos"
+    live_now: "Ao vivo agora"
+    points: "pts"
+
+  pools:
+    created: "Bolão criado com sucesso!"
+    updated: "Bolão atualizado."
+    destroyed: "Bolão removido."
+    new:
+      title: "Criar Bolão"
+      create_btn: "Criar bolão"
+    scope:
+      tournament: "Torneio"
+      tournament_desc: "Múltiplos jogos de um torneio"
+      single_match: "Jogo único"
+      single_match_desc: "Apenas um jogo específico"
+    fields:
+      type: "Tipo de bolão"
+      tournament: "Torneio"
+      tournament_placeholder: "Selecionar torneio..."
+      name: "Nome do bolão"
+      name_placeholder: "Ex: Bolão Copa 2026"
+      description: "Descrição"
+      description_placeholder: "Opcional — conte aos participantes do que se trata"
+      starts_at: "Início"
+      ends_at: "Fim"
+      lock_before: "Travar X min antes do jogo"
+      lock_before_hint: "Mínimo 5 minutos. Após esse tempo, palpites são bloqueados."
+      timezone: "Fuso horário"
+      max_participants: "Máx. participantes"
+      visibility: "Visibilidade"
+      prize: "Premiação"
+
+  scoring:
+    correct_winner:
+      label: "Vencedor correto"
+      description: "Pontos ganhos ao acertar qual time vai vencer (ou empate)."
+    correct_draw:
+      label: "Empate correto"
+      description: "Pontos extras ao prever corretamente um empate."
+    exact_score:
+      label: "Placar exato"
+      description: "Pontos por acertar o placar exato do jogo."
+    correct_goal_difference:
+      label: "Saldo de gols"
+      description: "Pontos por acertar a diferença de gols, mesmo sem o placar exato."
+    correct_total_goals:
+      label: "Total de gols"
+      description: "Pontos por acertar a soma total de gols da partida."
+    knockout_multiplier:
+      label: "Multiplicador mata-mata"
+      description: "Multiplica todos os pontos em jogos das fases eliminatórias."
+    final_multiplier:
+      label: "Multiplicador final"
+      description: "Multiplica todos os pontos no jogo da grande final."
+    no_tip_penalty:
+      label: "Penalidade sem palpite"
+      description: "Pontos negativos descontados quando o jogador não faz um palpite. Use 0 para sem penalidade."
+
+  activerecord:
+    attributes:
+      pool:
+        statuses:
+          draft: "Rascunho"
+          open: "Aberto"
+          locked: "Travado"
+          finished: "Encerrado"

@@ -1,0 +1,66 @@
+<% content_for :title, "#{@match.home_team.name} × #{@match.away_team.name}" %>
+
+<div class="flex items-center gap-3 mb-6">
+  <%= link_to "← Jogos", admin_matches_path, class: "text-sm text-pitch-500 hover:text-pitch-700 dark:hover:text-pitch-200" %>
+  <div class="ml-auto flex gap-2">
+    <%= link_to "Editar", edit_admin_match_path(@match), class: "btn btn-ghost btn-sm" %>
+    <%= link_to new_admin_pool_path(pool: { pool_scope: "single_match", match_id: @match.id }),
+          class: "btn btn-neon btn-sm" do %>+ Criar bolão<% end %>
+  </div>
+</div>
+
+<div class="card p-6 mb-6">
+  <div class="flex items-center justify-center gap-8 mb-4">
+    <div class="text-center">
+      <% if @match.home_team.flag_url.present? %>
+        <img src="<%= @match.home_team.flag_url %>" class="w-16 h-11 object-cover rounded-lg mx-auto mb-2" alt="">
+      <% end %>
+      <p class="font-display font-bold text-lg text-pitch-900 dark:text-white"><%= @match.home_team.name %></p>
+    </div>
+    <div class="text-center">
+      <% if @match.status_finished? || @match.status_live? %>
+        <p class="font-mono font-bold text-4xl text-pitch-900 dark:text-white">
+          <%= @match.home_score %> – <%= @match.away_score %>
+        </p>
+      <% else %>
+        <p class="text-pitch-400 font-mono text-sm">
+          <%= @match.scheduled_at ? l(@match.scheduled_at, format: :short) : "A definir" %>
+        </p>
+      <% end %>
+      <div class="mt-1"><%= status_badge(@match.status) %></div>
+    </div>
+    <div class="text-center">
+      <% if @match.away_team.flag_url.present? %>
+        <img src="<%= @match.away_team.flag_url %>" class="w-16 h-11 object-cover rounded-lg mx-auto mb-2" alt="">
+      <% end %>
+      <p class="font-display font-bold text-lg text-pitch-900 dark:text-white"><%= @match.away_team.name %></p>
+    </div>
+  </div>
+  <div class="text-center text-sm text-pitch-400">
+    <% if @match.tournament %><span class="font-medium text-pitch-600 dark:text-pitch-300"><%= @match.tournament.name %></span> · <% end %>
+    <% if @match.stage %><%= @match.stage.name %> · <% end %>
+    <% if @match.venue.present? %><%= @match.venue %><% end %>
+  </div>
+  <% if @match.stream_url.present? %>
+    <div class="mt-4 text-center">
+      <%= link_to "▶ Assistir transmissão", @match.stream_url, target: "_blank", class: "btn btn-neon btn-sm" %>
+    </div>
+  <% end %>
+</div>
+
+<% if @pools_for_match.any? %>
+  <h3 class="font-display font-bold text-lg text-pitch-900 dark:text-white mb-3">
+    Bolões com este jogo (<%= @pools_for_match.size %>)
+  </h3>
+  <div class="card overflow-hidden divide-y divide-pitch-100 dark:divide-pitch-700/50">
+    <% @pools_for_match.each do |pool| %>
+      <div class="px-5 py-3 flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-pitch-900 dark:text-white"><%= pool.name %></p>
+          <p class="text-xs text-pitch-400">Admin: <%= pool.admin.display_name %> · <%= pool.pool_participants.active.count %> participantes</p>
+        </div>
+        <span class="<%= pool.status_open? ? 'badge-active' : 'badge-finished' %>"><%= pool.status %></span>
+      </div>
+    <% end %>
+  </div>
+<% end %>

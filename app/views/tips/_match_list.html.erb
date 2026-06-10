@@ -2,21 +2,22 @@
 <% if matches.empty? %>
   <div class="card p-12 text-center">
     <div class="text-4xl mb-3">📅</div>
-    <p class="text-pitch-400 dark:text-pitch-400 font-medium">Nenhum jogo disponível.</p>
+    <p class="text-pitch-400 font-medium">Nenhum jogo disponível.</p>
   </div>
 <% else %>
-  <div class="space-y-6">
+  <div class="space-y-8">
     <% matches_by_stage.each do |stage, stage_matches| %>
       <div>
         <% if stage %>
-          <div class="flex items-center gap-3 mb-3">
+          <div class="flex items-center gap-3 mb-4">
             <span class="text-[10px] font-bold uppercase tracking-widest text-pitch-400 dark:text-pitch-500">
               <%= stage.name %>
             </span>
             <div class="flex-1 h-px bg-pitch-100 dark:bg-pitch-700/50"></div>
+            <span class="text-[10px] text-pitch-400"><%= stage_matches.size %> jogo<%= stage_matches.size > 1 ? "s" : "" %></span>
           </div>
         <% end %>
-        <div class="space-y-2">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <% stage_matches.each do |match| %>
             <% tip = tips_map[match.id] %>
             <%= turbo_frame_tag "tip_#{match.id}" do %>

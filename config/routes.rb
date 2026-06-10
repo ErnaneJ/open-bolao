@@ -7,6 +7,8 @@ Rails.application.routes.draw do
 
   get "dashboard", to: "dashboard#index", as: :dashboard
 
+  resources :my_pools, only: [:new, :create, :edit, :update, :destroy], path: "meus-boloes"
+  resources :matches, only: [:show]
   get  "join/:invite_code", to: "pools#join_by_code", as: :join_pool_by_code
   post "join/:invite_code", to: "pools#accept_invite", as: :accept_pool_invite
 
@@ -47,7 +49,7 @@ Rails.application.routes.draw do
     resources :teams, only: [:new, :create] do
       collection { get :search }
     end
-    resources :matches, only: [:new, :create, :edit, :update]
+    resources :matches, only: [:index, :show, :new, :create, :edit, :update]
   end
 
   namespace :super_admin do

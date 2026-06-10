@@ -1,0 +1,107 @@
+<%= turbo_frame_tag "new_pool_modal" do %>
+  <div class="p-6">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="font-display font-bold text-xl text-pitch-900 dark:text-white">
+        <%= t("pools.new.title") %>
+      </h2>
+      <button data-action="click->modal#close" data-modal-close="true"
+              class="p-2 rounded-lg text-pitch-400 hover:bg-pitch-100 dark:hover:bg-pitch-700">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <%= render "shared/error_messages", object: @pool %>
+
+    <%= form_with model: @pool, url: my_pools_path do |f| %>
+      <div class="space-y-4">
+
+        <%# Pool scope selector %>
+        <div>
+          <%= f.label :pool_scope, t("pools.fields.type"), class: "form-label" %>
+          <div class="grid grid-cols-2 gap-3">
+            <label class="cursor-pointer">
+              <%= f.radio_button :pool_scope, "tournament",
+                    class: "sr-only peer",
+                    checked: @pool.pool_scope_tournament? || @pool.pool_scope.nil? %>
+              <div class="peer-checked:border-neon-400 peer-checked:bg-neon-400/5 border-2 border-pitch-200 dark:border-pitch-600 rounded-xl p-3 text-center transition">
+                <div class="text-2xl mb-1">🏆</div>
+                <p class="text-sm font-semibold text-pitch-900 dark:text-white"><%= t("pools.scope.tournament") %></p>
+                <p class="text-[11px] text-pitch-400"><%= t("pools.scope.tournament_desc") %></p>
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <%= f.radio_button :pool_scope, "single_match",
+                    class: "sr-only peer",
+                    checked: @pool.pool_scope_single_match? %>
+              <div class="peer-checked:border-neon-400 peer-checked:bg-neon-400/5 border-2 border-pitch-200 dark:border-pitch-600 rounded-xl p-3 text-center transition">
+                <div class="text-2xl mb-1">⚽</div>
+                <p class="text-sm font-semibold text-pitch-900 dark:text-white"><%= t("pools.scope.single_match") %></p>
+                <p class="text-[11px] text-pitch-400"><%= t("pools.scope.single_match_desc") %></p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <%# Tournament selector %>
+        <div>
+          <%= f.label :tournament_id, t("pools.fields.tournament"), class: "form-label" %>
+          <%= f.collection_select :tournament_id, @tournaments, :id, :name,
+                { include_blank: t("pools.fields.tournament_placeholder") },
+                class: "form-input" %>
+        </div>
+
+        <%# Name %>
+        <div>
+          <%= f.label :name, t("pools.fields.name"), class: "form-label" %>
+          <%= f.text_field :name, class: "form-input",
+                placeholder: t("pools.fields.name_placeholder") %>
+        </div>
+
+        <%# Description %>
+        <div>
+          <%= f.label :description, t("pools.fields.description"), class: "form-label" %>
+          <%= f.text_area :description, rows: 2, class: "form-input",
+                placeholder: t("pools.fields.description_placeholder") %>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <%= f.label :starts_at, t("pools.fields.starts_at"), class: "form-label" %>
+            <%= f.datetime_local_field :starts_at, class: "form-input",
+                  value: @pool.starts_at&.strftime("%Y-%m-%dT%H:%M") %>
+          </div>
+          <div>
+            <%= f.label :ends_at, t("pools.fields.ends_at"), class: "form-label" %>
+            <%= f.datetime_local_field :ends_at, class: "form-input",
+                  value: @pool.ends_at&.strftime("%Y-%m-%dT%H:%M") %>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <%= f.label :lock_before_minutes, t("pools.fields.lock_before"), class: "form-label" %>
+            <%= f.number_field :lock_before_minutes, min: 5, max: 1440, class: "form-input" %>
+            <p class="text-[10px] text-pitch-400 mt-1"><%= t("pools.fields.lock_before_hint") %></p>
+          </div>
+          <div>
+            <%= f.label :timezone, t("pools.fields.timezone"), class: "form-label" %>
+            <%= f.select :timezone,
+                  ActiveSupport::TimeZone.all.map { |tz| [tz.to_s, tz.name] },
+                  { selected: @pool.timezone || "America/Fortaleza" },
+                  class: "form-input" %>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button type="button" data-action="click->modal#close" data-modal-close="true"
+                  class="btn btn-ghost">
+            <%= t("common.cancel") %>
+          </button>
+          <%= f.submit t("pools.new.create_btn"), class: "btn btn-neon cursor-pointer" %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% end %>

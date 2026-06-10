@@ -95,3 +95,13 @@ begin
 rescue => e
   puts "API unavailable (#{e.message}), skipping live seed."
 end
+
+# Seed TheSportsDB as default API provider
+ApiProvider.find_or_create_by!(name: "TheSportsDB — Copa 2026") do |ap|
+  ap.provider_type = "thesportsdb"
+  ap.base_url      = "https://www.thesportsdb.com/api/v1/json"
+  ap.active        = true
+  ap.config        = { "api_key" => "123", "league_id" => "4429" }
+end
+
+puts "TheSportsDB API provider seeded."

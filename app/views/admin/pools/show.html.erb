@@ -48,7 +48,7 @@
   </div>
   <div class="stat-card">
     <span class="stat-label">Jogos</span>
-    <span class="stat-value"><%= @pool.active_matches.count %></span>
+    <span class="stat-value"><%= @pool.pool_matches.any? ? @pool.pool_matches.count : @pool.active_matches.count %></span>
   </div>
   <div class="stat-card">
     <span class="stat-label">Palpites</span>
@@ -83,7 +83,7 @@
       <h3 class="font-display font-bold text-sm text-pitch-900 dark:text-white">Jogos do bolão</h3>
       <%= link_to "Gerenciar →", admin_pool_lineup_index_path(@pool), class: "text-xs text-neon-600 dark:text-neon-300 hover:underline" %>
     </div>
-    <% count = @pool.active_matches.count %>
+    <% count = @pool.pool_matches.any? ? @pool.pool_matches.count : @pool.active_matches.count %>
     <p class="stat-value text-2xl"><%= count %></p>
     <p class="stat-label mt-1">jogos configurados</p>
     <% if count == 0 %>
@@ -111,7 +111,7 @@
       <%= link_to "Inserir →", admin_pool_matches_path(@pool), class: "text-xs text-neon-600 dark:text-neon-300 hover:underline" %>
     </div>
     <% finished = @pool.active_matches.where(status: :finished).count %>
-    <p class="stat-value text-2xl"><%= finished %> / <%= @pool.active_matches.count %></p>
+    <p class="stat-value text-2xl"><%= finished %> / <%= @pool.pool_matches.any? ? @pool.pool_matches.count : @pool.active_matches.count %></p>
     <p class="stat-label mt-1">jogos apurados</p>
     <%= button_to "Recalcular pontos", recalculate_admin_pool_path(@pool), method: :post,
           class: "btn btn-ghost btn-sm mt-3 inline-flex" %>

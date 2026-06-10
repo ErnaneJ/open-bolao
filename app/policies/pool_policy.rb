@@ -1,6 +1,7 @@
 class PoolPolicy < ApplicationPolicy
   def index?  = true
   def show?   = user.present? && (participant? || admin_owner? || super_admin?)
+  def manage? = admin_owner? || super_admin?
   def create? = user.present?
   def update? = admin_owner? || super_admin?
   def destroy? = admin_owner? || super_admin?
@@ -17,8 +18,9 @@ class PoolPolicy < ApplicationPolicy
         scope.where(admin_id: user.id)
              .or(scope.joins(:pool_participants).where(pool_participants: { user_id: user.id, status: :active }))
       else
-        scope.joins(:pool_participants)
-             .where(pool_participants: { user_id: user.id, status: :active })
+        # Regular users: see pools they administer OR participate in
+        scope.where(admin_id: user.id)
+             .or(scope.joins(:pool_participants).where(pool_participants: { user_id: user.id, status: :active }))
       end
     end
   end

@@ -36,7 +36,8 @@ module Sync
 
     def build_adapter(api_provider)
       case api_provider.provider_type
-      when "worldcup2026" then ApiProviders::Worldcup2026Adapter.new(api_provider)
+      when "worldcup2026"  then ApiProviders::Worldcup2026Adapter.new(api_provider)
+      when "thesportsdb"   then ApiProviders::ThesportsdbAdapter.new(api_provider)
       else raise "Unknown provider: #{api_provider.provider_type}"
       end
     end

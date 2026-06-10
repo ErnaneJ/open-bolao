@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_10_214619) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_10_222409) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -135,6 +135,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_214619) do
     t.datetime "scheduled_at"
     t.bigint "stage_id"
     t.integer "status", default: 0, null: false
+    t.string "stream_url"
     t.bigint "tournament_id"
     t.datetime "updated_at", null: false
     t.string "venue"
@@ -207,6 +208,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_214619) do
     t.jsonb "special_bets_config", default: {}
     t.datetime "starts_at"
     t.integer "status", default: 0, null: false
+    t.string "timezone"
     t.bigint "tournament_id"
     t.datetime "updated_at", null: false
     t.integer "visibility", default: 0, null: false

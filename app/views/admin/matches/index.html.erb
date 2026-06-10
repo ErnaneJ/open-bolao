@@ -1,44 +1,121 @@
-<% content_for :title, "Jogos — #{@pool.name}" %>
-<div class="p-6">
-  <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
-    <%= link_to "← #{@pool.name}", admin_pool_path(@pool), class: "text-sm text-gray-500 hover:text-indigo-600" %>
-    <h1 class="text-2xl font-bold flex-1">Jogos e Resultados</h1>
+<% if @pool %>
+  <%# Nested context: enter results for a specific pool %>
+  <% content_for :title, "Resultados — #{@pool.name}" %>
+  <div class="flex items-center gap-3 mb-6">
+    <%= link_to "← #{@pool.name}", admin_pool_path(@pool), class: "text-sm text-pitch-500 hover:text-pitch-700 dark:hover:text-pitch-200" %>
+    <h1 class="font-display font-bold text-xl text-pitch-900 dark:text-white flex-1">Inserir Resultados</h1>
   </div>
-
-  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-    <table class="w-full text-sm">
-      <thead class="bg-gray-50 dark:bg-gray-700/50">
-        <tr>
-          <th class="px-4 py-3 text-left font-medium text-gray-500">Jogo</th>
-          <th class="px-4 py-3 text-left font-medium text-gray-500">Data</th>
-          <th class="px-4 py-3 text-center font-medium text-gray-500">Placar</th>
-          <th class="px-4 py-3 text-center font-medium text-gray-500">Status</th>
-          <th class="px-4 py-3 text-right font-medium text-gray-500">Ação</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-        <% @matches.each do |match| %>
+  <div class="card overflow-hidden">
+    <table class="data-table">
+      <thead><tr>
+        <th>Jogo</th>
+        <th class="hidden sm:table-cell">Data</th>
+        <th class="text-center">Placar</th>
+        <th class="text-center">Status</th>
+        <th class="text-right">Ação</th>
+      </tr></thead>
+      <tbody>
+        <% @matches.each do |m| %>
           <tr>
-            <td class="px-4 py-3 font-medium">
-              <%= match.home_team.name %> × <%= match.away_team.name %>
+            <td class="font-medium text-pitch-900 dark:text-white">
+              <%= m.home_team.name %> × <%= m.away_team.name %>
             </td>
-            <td class="px-4 py-3 text-gray-500 text-xs">
-              <%= match.scheduled_at ? l(match.scheduled_at, format: :default) : "—" %>
+            <td class="hidden sm:table-cell text-pitch-400 text-xs">
+              <%= m.scheduled_at ? l(m.scheduled_at, format: :short) : "—" %>
             </td>
-            <td class="px-4 py-3 text-center font-bold">
-              <% if match.status_finished? || match.status_live? %>
-                <%= match.home_score %> – <%= match.away_score %>
+            <td class="text-center font-mono font-bold">
+              <% if m.status_finished? || m.status_live? %>
+                <%= m.home_score %> – <%= m.away_score %>
               <% else %>
-                <span class="text-gray-300 dark:text-gray-600">–</span>
+                <span class="text-pitch-300 dark:text-pitch-600">—</span>
               <% end %>
             </td>
-            <td class="px-4 py-3 text-center"><%= status_badge(match.status) %></td>
-            <td class="px-4 py-3 text-right">
-              <%= link_to "Inserir resultado", edit_admin_pool_match_path(@pool, match), class: "text-xs text-indigo-600 hover:underline" %>
+            <td class="text-center"><%= status_badge(m.status) %></td>
+            <td class="text-right">
+              <%= link_to "Editar", edit_admin_pool_match_path(@pool, m), class: "btn btn-ghost btn-sm" %>
             </td>
           </tr>
         <% end %>
       </tbody>
     </table>
   </div>
-</div>
+
+<% else %>
+  <%# Top-level: browse all matches, create pool from one %>
+  <% content_for :title, "Jogos" %>
+  <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
+    <div>
+      <h1 class="font-display font-bold text-2xl text-pitch-900 dark:text-white">Jogos</h1>
+      <p class="text-sm text-pitch-400 mt-0.5">Browse todos os jogos cadastrados. Crie um bolão a partir de qualquer jogo.</p>
+    </div>
+    <%= link_to "Novo jogo", new_admin_match_path, class: "btn btn-ghost btn-sm" %>
+  </div>
+
+  <%# Filters %>
+  <%= form_with url: admin_matches_path, method: :get, local: true, class: "flex flex-wrap gap-3 mb-6" do |f| %>
+    <%= f.text_field :q, value: params[:q], placeholder: "Buscar time...", class: "form-input w-48" %>
+    <%= f.select :tournament_id,
+          [["Todos os torneios", ""]] + @tournaments.map { |t| [t.name, t.id] },
+          { selected: params[:tournament_id] },
+          class: "form-input w-48" %>
+    <%= f.select :status,
+          [["Todos os status", ""], ["Agendado", "scheduled"], ["Ao vivo", "live"], ["Encerrado", "finished"]],
+          { selected: params[:status] },
+          class: "form-input w-40" %>
+    <%= f.submit "Filtrar", class: "btn btn-ghost btn-sm cursor-pointer" %>
+  <% end %>
+
+  <div class="card overflow-hidden">
+    <table class="data-table">
+      <thead><tr>
+        <th>Jogo</th>
+        <th class="hidden md:table-cell">Torneio</th>
+        <th class="hidden sm:table-cell">Data</th>
+        <th class="text-center">Placar</th>
+        <th class="text-center">Status</th>
+        <th class="text-right">Ações</th>
+      </tr></thead>
+      <tbody>
+        <% @matches.each do |m| %>
+          <tr>
+            <td>
+              <div class="flex items-center gap-2">
+                <% if m.home_team.flag_url.present? %>
+                  <img src="<%= m.home_team.flag_url %>" class="w-5 h-3.5 object-cover rounded-sm shrink-0" alt="">
+                <% end %>
+                <span class="font-medium text-pitch-900 dark:text-white text-sm truncate max-w-32 sm:max-w-none">
+                  <%= m.home_team.name %> × <%= m.away_team.name %>
+                </span>
+                <% if m.away_team.flag_url.present? %>
+                  <img src="<%= m.away_team.flag_url %>" class="w-5 h-3.5 object-cover rounded-sm shrink-0" alt="">
+                <% end %>
+              </div>
+            </td>
+            <td class="hidden md:table-cell text-pitch-400 text-xs"><%= m.tournament&.name || "—" %></td>
+            <td class="hidden sm:table-cell text-pitch-400 text-xs font-mono">
+              <%= m.scheduled_at ? l(m.scheduled_at, format: :short) : "—" %>
+            </td>
+            <td class="text-center font-mono font-bold text-sm">
+              <% if m.home_score.present? %>
+                <span class="text-pitch-900 dark:text-white"><%= m.home_score %>–<%= m.away_score %></span>
+              <% else %>
+                <span class="text-pitch-300 dark:text-pitch-600">—</span>
+              <% end %>
+            </td>
+            <td class="text-center"><%= status_badge(m.status) %></td>
+            <td class="text-right">
+              <div class="flex items-center justify-end gap-1">
+                <%= link_to "Ver", admin_match_path(m), class: "btn btn-ghost btn-sm" %>
+                <%= link_to "Editar", edit_admin_match_path(m), class: "btn btn-ghost btn-sm" %>
+                <%# Create pool from this match %>
+                <%= link_to new_admin_pool_path(pool: { pool_scope: "single_match", match_id: m.id }),
+                      class: "btn btn-neon btn-sm hidden sm:inline-flex" do %>+ Bolão<% end %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <div class="mt-4"><%= render "shared/pagy", pagy: @pagy %></div>
+<% end %>

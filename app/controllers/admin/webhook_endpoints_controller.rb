@@ -1,6 +1,6 @@
 class Admin::WebhookEndpointsController < Admin::BaseController
   before_action :set_pool
-  before_action :set_endpoint, only: [:show, :edit, :update, :destroy, :test]
+  before_action :set_endpoint, only: [:edit, :update, :destroy, :test]
 
   def index
     skip_authorization

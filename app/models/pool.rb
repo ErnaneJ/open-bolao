@@ -39,6 +39,11 @@ class Pool < ApplicationRecord
   before_validation :set_defaults
   before_create :generate_invite_code
 
+  after_initialize do
+    self.timezone     ||= "America/Fortaleza"
+    self.lock_before_minutes ||= 5
+  end
+
   scope :open_pools, -> { where(status: :open) }
   scope :public_or_invite, -> { where(visibility: [:public_pool, :invite_only]) }
 

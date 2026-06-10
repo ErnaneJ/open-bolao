@@ -1,0 +1,162 @@
+<% content_for :title, "#{@match.home_team.name} × #{@match.away_team.name}" %>
+<%= turbo_stream_from "match_#{@match.id}" %>
+
+<div class="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+
+  <%# Match Hero %>
+  <div class="card p-8 mb-6 text-center">
+    <%# Tournament/Stage info %>
+    <% if @match.tournament || @match.stage %>
+      <p class="text-xs font-bold uppercase tracking-widest text-pitch-400 mb-4">
+        <%= [@match.tournament&.name, @match.stage&.name].compact.join(" · ") %>
+      </p>
+    <% end %>
+
+    <%# Teams + Score %>
+    <div class="flex items-center justify-center gap-6 sm:gap-12">
+      <div class="text-center flex-1">
+        <% if @match.home_team.flag_url.present? %>
+          <img src="<%= @match.home_team.flag_url %>"
+               class="w-20 h-14 sm:w-28 sm:h-20 object-cover rounded-xl mx-auto mb-3 shadow-lg" alt="">
+        <% end %>
+        <p class="font-display font-bold text-lg sm:text-2xl text-pitch-900 dark:text-white">
+          <%= @match.home_team.name %>
+        </p>
+        <% if @match.home_team.country_code.present? %>
+          <p class="text-xs text-pitch-400 mt-1"><%= @match.home_team.country_code %></p>
+        <% end %>
+      </div>
+
+      <div class="text-center shrink-0">
+        <% if @match.status_finished? || @match.status_live? %>
+          <div id="live-score" class="font-mono font-bold text-pitch-900 dark:text-white"
+               style="font-size: clamp(2rem, 8vw, 4rem)">
+            <%= @match.home_score %><span class="text-pitch-400 mx-1">–</span><%= @match.away_score %>
+          </div>
+          <% if @match.status_live? %>
+            <div class="flex items-center justify-center gap-1.5 mt-2">
+              <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+              <span class="text-xs font-bold text-red-500 uppercase tracking-wide">Ao Vivo</span>
+            </div>
+          <% else %>
+            <span class="badge badge-finished text-xs mt-2">Encerrado</span>
+          <% end %>
+        <% else %>
+          <div class="text-center">
+            <p class="font-mono font-bold text-3xl text-pitch-900 dark:text-white">
+              <%= @match.scheduled_at ? l(@match.scheduled_at, format: :time_only) : "–:–" %>
+            </p>
+            <p class="text-xs text-pitch-400 mt-1">
+              <%= @match.scheduled_at ? l(@match.scheduled_at, format: :date_short) : "" %>
+            </p>
+            <span class="badge badge-draft text-[10px] mt-2">Agendado</span>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="text-center flex-1">
+        <% if @match.away_team.flag_url.present? %>
+          <img src="<%= @match.away_team.flag_url %>"
+               class="w-20 h-14 sm:w-28 sm:h-20 object-cover rounded-xl mx-auto mb-3 shadow-lg" alt="">
+        <% end %>
+        <p class="font-display font-bold text-lg sm:text-2xl text-pitch-900 dark:text-white">
+          <%= @match.away_team.name %>
+        </p>
+        <% if @match.away_team.country_code.present? %>
+          <p class="text-xs text-pitch-400 mt-1"><%= @match.away_team.country_code %></p>
+        <% end %>
+      </div>
+    </div>
+
+    <%# Venue %>
+    <% if @match.venue.present? %>
+      <p class="text-xs text-pitch-400 mt-5 flex items-center justify-center gap-1">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        <%= @match.venue %>
+      </p>
+    <% end %>
+  </div>
+
+  <%# Stream / Watch %>
+  <% if @match.stream_url.present? %>
+    <div class="card mb-6 overflow-hidden">
+      <% if @match.stream_url.include?("youtube.com") || @match.stream_url.include?("youtu.be") %>
+        <% video_id = @match.stream_url.match(/(?:v=|youtu\.be\/)([^&\n?#]+)/)&.captures&.first %>
+        <% if video_id %>
+          <div class="aspect-video">
+            <iframe src="https://www.youtube.com/embed/<%= video_id %>?autoplay=0"
+                    class="w-full h-full" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+          </div>
+        <% else %>
+          <div class="p-4 text-center">
+            <%= link_to "▶ Assistir transmissão", @match.stream_url, target: "_blank", class: "btn btn-neon" %>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="p-4 text-center">
+          <%= link_to "▶ Assistir transmissão", @match.stream_url, target: "_blank", class: "btn btn-neon" %>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <%# Default Cazé TV link for Copa 2026 matches %>
+    <% if @match.tournament&.name&.include?("2026") || @match.tournament&.name&.include?("Copa") %>
+      <div class="card p-4 mb-6 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">📺</span>
+          <div>
+            <p class="text-sm font-semibold text-pitch-900 dark:text-white">Cazé TV</p>
+            <p class="text-xs text-pitch-400">Transmissão gratuita no YouTube</p>
+          </div>
+        </div>
+        <%= link_to "https://www.youtube.com/@CazeTV/streams", target: "_blank",
+              class: "btn btn-neon btn-sm shrink-0" do %>
+          ▶ Assistir ao vivo
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+
+  <%# Bolões para este jogo %>
+  <% if @pools.any? %>
+    <section class="mb-6">
+      <h2 class="font-display font-bold text-lg text-pitch-900 dark:text-white mb-4">
+        Bolões com este jogo (<%= @pools.size %>)
+      </h2>
+      <div class="space-y-2">
+        <% @pools.each do |pool| %>
+          <% is_mine = @my_pools.include?(pool) %>
+          <div class="card px-5 py-4 flex items-center justify-between gap-4">
+            <div class="min-w-0">
+              <p class="text-sm font-semibold text-pitch-900 dark:text-white truncate"><%= pool.name %></p>
+              <p class="text-xs text-pitch-400">
+                Admin: <%= pool.admin.display_name %> ·
+                <%= pool.pool_participants.active.count %> participantes
+              </p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <% if is_mine %>
+                <%= link_to pool_path(pool), class: "btn btn-neon btn-sm" do %>Ver palpites<% end %>
+              <% elsif user_signed_in? %>
+                <%= link_to join_pool_by_code_path(invite_code: pool.invite_code),
+                      class: "btn btn-ghost btn-sm" do %>Entrar<% end %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+
+  <%# Admin edit link %>
+  <% if user_signed_in? && current_user.role_super_admin? %>
+    <div class="text-center">
+      <%= link_to edit_admin_match_path(@match), class: "btn btn-ghost btn-sm" do %>Editar jogo<% end %>
+    </div>
+  <% end %>
+</div>

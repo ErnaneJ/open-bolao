@@ -251,6 +251,24 @@
   .stagger-4 { animation-delay: 0.20s; }
 }
 
+/* ── Modal/Dialog ── */
+dialog {
+  @apply rounded-2xl border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 text-pitch-900 dark:text-pitch-50 p-0 shadow-2xl;
+  max-width: min(90vw, 580px);
+  width: 100%;
+}
+dialog::backdrop {
+  background: rgba(4, 9, 26, 0.7);
+  backdrop-filter: blur(4px);
+}
+dialog[open] {
+  animation: dialog-enter 0.2s ease both;
+}
+@keyframes dialog-enter {
+  from { opacity: 0; transform: translateY(-12px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 /* ── Turbo ── */
 .turbo-progress-bar {
   height: 3px;

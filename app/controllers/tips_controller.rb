@@ -13,7 +13,7 @@ class TipsController < ApplicationController
     @tip.assign_attributes(tip_params)
     if @tip.save
       respond_to do |format|
-        format.turbo_stream { render turbo_stream: turbo_stream.replace("tip_#{@tip.match_id}", partial: "tips/tip", locals: { tip: @tip, pool: @pool }) }
+        format.turbo_stream { render turbo_stream: turbo_stream.replace("tip_#{@tip.match_id}", partial: "tips/tip", locals: { tip: @tip, match: @tip.match, pool: @pool, participant_tips_by_match: {}, tip_counts_by_match: {} }) }
         format.html { redirect_to pool_path(@pool) }
       end
     else
@@ -26,7 +26,7 @@ class TipsController < ApplicationController
     authorize @tip
     if @tip.update(tip_params)
       respond_to do |format|
-        format.turbo_stream { render turbo_stream: turbo_stream.replace("tip_#{@tip.match_id}", partial: "tips/tip", locals: { tip: @tip, pool: @pool }) }
+        format.turbo_stream { render turbo_stream: turbo_stream.replace("tip_#{@tip.match_id}", partial: "tips/tip", locals: { tip: @tip, match: @tip.match, pool: @pool, participant_tips_by_match: {}, tip_counts_by_match: {} }) }
         format.html { redirect_to pool_path(@pool) }
       end
     else

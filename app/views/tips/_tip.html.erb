@@ -1,127 +1,153 @@
 <% is_locked = pool.tips_locked_for?(match) %>
+<% deadline   = pool.tip_deadline_for(match) %>
 
-<div class="card p-4 <%= is_locked && tip&.scored? && tip.points_earned.to_i > 0 ? 'border-neon-400/40 dark:border-neon-400/30' : '' %>
-  <%= is_locked && !(tip&.scored?) ? 'opacity-75' : '' %>">
+<div class="card overflow-hidden hover:border-pitch-200 dark:hover:border-pitch-600 transition-all">
+  <%# Click to match page %>
+  <div class="block">
 
-  <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+    <%# Teams row with flags and score/form in center %>
+    <div class="p-4">
+      <div class="flex items-center gap-3">
 
-    <%# Match info %>
-    <div class="flex-1 min-w-0">
-      <div class="flex items-center gap-2 flex-wrap">
-        <% if match.home_team.flag_url.present? %>
-          <img src="<%= match.home_team.flag_url %>" class="w-6 h-4 object-cover rounded-sm shrink-0" alt="">
-        <% end %>
-        <span class="text-sm font-semibold text-pitch-900 dark:text-white truncate"><%= match.home_team.name %></span>
-
-        <div class="shrink-0 mx-1 text-center">
-          <% if match.status_finished? %>
-            <span class="font-mono font-bold text-base text-pitch-900 dark:text-white" style="font-family: var(--font-mono)">
-              <%= match.home_score %><span class="text-pitch-400 mx-0.5">–</span><%= match.away_score %>
-            </span>
-          <% elsif match.status_live? %>
-            <span class="badge-live text-[10px]">● AO VIVO</span>
+        <%# Home team %>
+        <div class="flex-1 text-center">
+          <% if match.home_team.flag_url.present? %>
+            <img src="<%= match.home_team.flag_url %>"
+                 class="w-12 h-9 sm:w-16 sm:h-11 object-cover rounded-lg mx-auto mb-1.5 shadow" alt="">
           <% else %>
-            <span class="text-[11px] text-pitch-400 font-mono">
-              <%= match.scheduled_at ? l(match.scheduled_at, format: :short) : "?" %>
-            </span>
+            <div class="w-12 h-9 rounded-lg bg-pitch-100 dark:bg-pitch-700 mx-auto mb-1.5 flex items-center justify-center text-lg">⚽</div>
+          <% end %>
+          <p class="text-xs sm:text-sm font-semibold text-pitch-900 dark:text-white truncate leading-tight">
+            <%= match.home_team.name %>
+          </p>
+        </div>
+
+        <%# Center: score / form / lock info %>
+        <div class="shrink-0 text-center min-w-[90px]">
+          <% if match.status_finished? %>
+            <%# Show result %>
+            <div class="text-pitch-400 text-[10px] uppercase tracking-wide mb-1">Resultado</div>
+            <div class="font-mono font-bold text-2xl text-pitch-900 dark:text-white">
+              <%= match.home_score %><span class="text-pitch-400 mx-1">–</span><%= match.away_score %>
+            </div>
+            <span class="badge badge-finished text-[9px] mt-1">Encerrado</span>
+          <% elsif match.status_live? %>
+            <div class="font-mono font-bold text-2xl text-red-500">
+              <%= match.home_score %><span class="text-red-400 mx-1">–</span><%= match.away_score %>
+            </div>
+            <div class="flex items-center justify-center gap-1 mt-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+              <span class="text-[10px] text-red-500 font-bold">AO VIVO</span>
+            </div>
+          <% elsif is_locked %>
+            <div class="text-pitch-400 text-xs mb-1">
+              <%= match.scheduled_at ? l(match.scheduled_at, format: :time_only) : "?" %>
+            </div>
+            <div class="text-pitch-400 text-[10px]">
+              <%= match.scheduled_at ? l(match.scheduled_at, format: :date_short) : "" %>
+            </div>
+            <span class="badge badge-draft text-[9px] mt-1">🔒 Fechado</span>
+          <% else %>
+            <div class="text-pitch-400 text-xs mb-1">
+              <%= match.scheduled_at ? l(match.scheduled_at, format: :time_only) : "?" %>
+            </div>
+            <div class="text-pitch-400 text-[10px]">
+              <%= match.scheduled_at ? l(match.scheduled_at, format: :date_short) : "" %>
+            </div>
           <% end %>
         </div>
 
-        <span class="text-sm font-semibold text-pitch-900 dark:text-white truncate"><%= match.away_team.name %></span>
-        <% if match.away_team.flag_url.present? %>
-          <img src="<%= match.away_team.flag_url %>" class="w-6 h-4 object-cover rounded-sm shrink-0" alt="">
-        <% end %>
+        <%# Away team %>
+        <div class="flex-1 text-center">
+          <% if match.away_team.flag_url.present? %>
+            <img src="<%= match.away_team.flag_url %>"
+                 class="w-12 h-9 sm:w-16 sm:h-11 object-cover rounded-lg mx-auto mb-1.5 shadow" alt="">
+          <% else %>
+            <div class="w-12 h-9 rounded-lg bg-pitch-100 dark:bg-pitch-700 mx-auto mb-1.5 flex items-center justify-center text-lg">⚽</div>
+          <% end %>
+          <p class="text-xs sm:text-sm font-semibold text-pitch-900 dark:text-white truncate leading-tight">
+            <%= match.away_team.name %>
+          </p>
+        </div>
       </div>
 
       <% if match.stage %>
-        <p class="text-[10px] text-pitch-400 dark:text-pitch-500 mt-1 uppercase tracking-wide"><%= match.stage.name %></p>
+        <p class="text-[10px] text-center text-pitch-400 mt-2 uppercase tracking-wide"><%= match.stage.name %></p>
       <% end %>
     </div>
 
-    <%# Tip result or form %>
-    <div class="shrink-0">
+    <%# Tip input / result row %>
+    <div class="border-t border-pitch-100 dark:border-pitch-700/50 px-4 py-3 bg-pitch-50/50 dark:bg-pitch-800/40">
       <% if is_locked %>
-        <%# Show saved tip (read-only) %>
-        <div class="flex items-center gap-2">
-          <% if tip&.home_score_tip.present? %>
-            <div class="flex items-center gap-1.5 bg-pitch-50 dark:bg-pitch-700/60 rounded-xl px-3 py-2">
-              <span class="font-mono font-bold text-lg text-pitch-900 dark:text-white" style="font-family: var(--font-mono)"><%= tip.home_score_tip %></span>
-              <span class="text-pitch-400 font-bold">×</span>
-              <span class="font-mono font-bold text-lg text-pitch-900 dark:text-white" style="font-family: var(--font-mono)"><%= tip.away_score_tip %></span>
-            </div>
-            <% if tip.scored? && tip.points_earned.to_i > 0 %>
-              <span class="badge bg-neon-400/15 text-neon-600 dark:text-neon-300 font-display font-bold text-sm">
-                +<%= tip.points_earned %><span class="text-[10px] font-normal ml-0.5">pts</span>
-              </span>
-            <% elsif tip.scored? %>
-              <span class="badge badge-finished font-semibold">0 pts</span>
+        <%# Read-only tip %>
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-pitch-500 dark:text-pitch-400">Seu palpite:</span>
+            <% if tip&.home_score_tip.present? %>
+              <div class="flex items-center gap-1.5 bg-white dark:bg-pitch-700 rounded-lg px-3 py-1.5 border border-pitch-200 dark:border-pitch-600">
+                <span class="font-mono font-bold text-base text-pitch-900 dark:text-white" style="font-family: var(--font-mono)">
+                  <%= tip.home_score_tip %>
+                </span>
+                <span class="text-pitch-400">×</span>
+                <span class="font-mono font-bold text-base text-pitch-900 dark:text-white" style="font-family: var(--font-mono)">
+                  <%= tip.away_score_tip %>
+                </span>
+              </div>
+              <% if tip.scored? && tip.points_earned.to_i > 0 %>
+                <span class="badge bg-neon-400/15 text-neon-600 dark:text-neon-300 font-display font-bold">
+                  +<%= tip.points_earned %>pts
+                </span>
+              <% elsif tip.scored? %>
+                <span class="badge badge-finished">0 pts</span>
+              <% end %>
+            <% else %>
+              <span class="text-xs text-pitch-300 dark:text-pitch-500 italic">Sem palpite</span>
             <% end %>
-          <% else %>
-            <%# No tip submitted before lock %>
-            <span class="text-xs text-pitch-300 dark:text-pitch-500 italic px-3 py-2 flex items-center gap-1.5">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-              </svg>
-              Bloqueado
-            </span>
-          <% end %>
-
-          <%# Lock reason badge %>
-          <% if match.status_live? %>
-            <span class="badge badge-live text-[9px]">Ao vivo</span>
-          <% elsif match.status_finished? %>
-            <span class="badge badge-finished text-[9px]">Encerrado</span>
-          <% elsif tip&.locked? %>
-            <span class="badge badge-draft text-[9px]">🔒</span>
-          <% else %>
-            <span class="badge badge-draft text-[9px]">Fechado</span>
+          </div>
+          <% if match.stream_url.present? %>
+            <%= link_to match.stream_url, target: "_blank", class: "btn btn-ghost btn-sm text-[10px]" do %>▶<% end %>
           <% end %>
         </div>
-
       <% else %>
-        <%# Editable form — show countdown if close to lock %>
-        <% deadline = pool.tip_deadline_for(match) %>
-
-        <%= form_with url: tip ? pool_tip_path(pool, tip.match_id) : pool_tips_path(pool),
-                      method: tip ? :patch : :post,
-                      scope: :tip,
-                      data: { controller: "tip", tip_target: "form" },
-                      class: "flex items-center gap-2" do |f| %>
-          <%= f.hidden_field :match_id, value: match.id %>
-          <div class="flex items-center gap-1.5 bg-pitch-50 dark:bg-pitch-800/80 rounded-xl px-3 py-2 border-2 border-pitch-200 dark:border-pitch-600 focus-within:border-neon-400 dark:focus-within:border-neon-400 transition-colors">
-            <%= f.number_field :home_score_tip,
-                  value: tip&.home_score_tip,
-                  min: 0, max: 99, step: 1,
-                  placeholder: "0",
-                  class: "score-input w-11 bg-transparent border-0 p-0 focus:ring-0",
-                  data: { action: "change->tip#autoSubmit", tip_target: "home" } %>
-            <span class="text-pitch-400 font-bold font-mono select-none">×</span>
-            <%= f.number_field :away_score_tip,
-                  value: tip&.away_score_tip,
-                  min: 0, max: 99, step: 1,
-                  placeholder: "0",
-                  class: "score-input w-11 bg-transparent border-0 p-0 focus:ring-0",
-                  data: { action: "change->tip#autoSubmit", tip_target: "away" } %>
-          </div>
-          <%= f.submit tip ? "✓" : "Salvar",
-                class: "btn btn-neon btn-sm",
-                data: { tip_target: "submitBtn" } %>
-        <% end %>
-
-        <% if deadline && deadline - Time.current < 30.minutes %>
-          <p class="text-[10px] text-amber-500 mt-1 font-medium">
-            ⏱ Fecha em <%= distance_of_time_in_words(Time.current, deadline) %>
-          </p>
-        <% end %>
+        <%# Editable form %>
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-pitch-500 dark:text-pitch-400 shrink-0">Seu palpite:</span>
+          <%= form_with url: tip ? pool_tip_path(pool, tip.match_id) : pool_tips_path(pool),
+                        method: tip ? :patch : :post,
+                        scope: :tip,
+                        data: { controller: "tip", tip_target: "form" },
+                        class: "flex items-center gap-2 flex-1" do |f| %>
+            <%= f.hidden_field :match_id, value: match.id %>
+            <div class="flex items-center gap-1.5 bg-white dark:bg-pitch-700/80 rounded-xl px-3 py-2 border-2 border-pitch-200 dark:border-pitch-600 focus-within:border-neon-400 dark:focus-within:border-neon-400 transition-colors">
+              <%= f.number_field :home_score_tip,
+                    value: tip&.home_score_tip, min: 0, max: 99, step: 1, placeholder: "0",
+                    class: "score-input w-10",
+                    data: { action: "change->tip#autoSubmit", tip_target: "home" } %>
+              <span class="text-pitch-400 font-bold select-none">×</span>
+              <%= f.number_field :away_score_tip,
+                    value: tip&.away_score_tip, min: 0, max: 99, step: 1, placeholder: "0",
+                    class: "score-input w-10",
+                    data: { action: "change->tip#autoSubmit", tip_target: "away" } %>
+            </div>
+            <%= f.submit tip ? "✓" : "Salvar",
+                  class: "btn btn-neon btn-sm cursor-pointer",
+                  data: { tip_target: "submitBtn" } %>
+          <% end %>
+          <% if deadline && deadline - Time.current < 30.minutes %>
+            <span class="text-[10px] text-amber-500 font-medium shrink-0">
+              ⏱ <%= distance_of_time_in_words(Time.current, deadline) %>
+            </span>
+          <% end %>
+        </div>
       <% end %>
     </div>
-    </div>
 
-  <%# Other participants' tips (blurred before match starts, revealed after) %>
-  <% if defined?(participant_tips_by_match) && defined?(tip_counts_by_match) %>
-    <%= render "tips/participants_tips",
-          match: match, pool: pool,
-          participant_tips_by_match: participant_tips_by_match,
-          tip_counts_by_match: tip_counts_by_match %>
-  <% end %>
+    <%# Other participants %>
+    <% if defined?(participant_tips_by_match) && defined?(tip_counts_by_match) %>
+      <%= render "tips/participants_tips",
+            match: match, pool: pool,
+            participant_tips_by_match: participant_tips_by_match,
+            tip_counts_by_match: tip_counts_by_match %>
+    <% end %>
+  </div>
 </div>
