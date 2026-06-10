@@ -91,10 +91,12 @@ module Tips
     def apply_stage_multiplier(points)
       return points unless match.stage.present?
 
-      multiplier = case match.stage.stage_type
-                   when "final"        then config.fetch("final_multiplier", 3.0).to_f
-                   when "group"        then 1.0
-                   else config.fetch("knockout_multiplier", 2.0).to_f
+      multiplier = if match.stage.stage_final?
+                     config.fetch("final_multiplier", 3.0).to_f
+                   elsif match.stage.stage_group?
+                     1.0
+                   else
+                     config.fetch("knockout_multiplier", 2.0).to_f
                    end
 
       (points * multiplier).to_i

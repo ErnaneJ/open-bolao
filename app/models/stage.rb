@@ -2,7 +2,7 @@ class Stage < ApplicationRecord
   STAGE_TYPES = %i[group round_of_32 round_of_16 quarterfinal semifinal third_place final].freeze
 
   enum :stage_type, { group: 0, round_of_32: 1, round_of_16: 2, quarterfinal: 3,
-                      semifinal: 4, third_place: 5, final: 6 }
+                      semifinal: 4, third_place: 5, final: 6 }, prefix: :stage
 
   belongs_to :tournament
   has_many :matches, dependent: :nullify
@@ -14,6 +14,6 @@ class Stage < ApplicationRecord
   scope :ordered, -> { order(:order_position) }
 
   def knockout?
-    !group?
+    !stage_group?
   end
 end
