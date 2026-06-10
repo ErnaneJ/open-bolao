@@ -474,7 +474,7 @@ DEPENDENCIES
   faker
   faraday
   faraday-retry
-  friendly_id
+  friendly_id (~> 5.5)
   heroicon
   image_processing (~> 1.2)
   importmap-rails

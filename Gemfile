@@ -36,7 +36,7 @@ gem "faraday"
 gem "faraday-retry"
 
 # Slugs
-gem "friendly_id"
+gem "friendly_id", "~> 5.5"
 
 # QR codes
 gem "rqrcode"
