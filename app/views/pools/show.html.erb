@@ -89,7 +89,9 @@
 
     <%# Palpites %>
     <div id="tab-tips" data-tabs-target="panel">
-      <%= render "tips/match_list", pool: @pool, matches: @matches, tips_map: @tips_map %>
+      <%= render "tips/match_list", pool: @pool, matches: @matches, tips_map: @tips_map,
+                participant_tips_by_match: @participant_tips_by_match,
+                tip_counts_by_match: @tip_counts_by_match %>
     </div>
 
     <%# Ranking %>

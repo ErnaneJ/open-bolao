@@ -16,6 +16,16 @@ class PoolsController < ApplicationController
     )
     @matches = pool_matches
     @tips_map = current_user.tips.where(pool: @pool).index_by(&:match_id)
+
+    # For the tips tab: count of participants who tipped per match,
+    # and actual tips for matches that have already started (locked)
+    started_match_ids = @matches.select { |m| @pool.tips_locked_for?(m) }.map(&:id)
+    @participant_tips_by_match = @pool.tips
+      .where(match_id: started_match_ids)
+      .includes(:user)
+      .group_by(&:match_id)
+    @tip_counts_by_match = @pool.tips.where(match_id: @matches.map(&:id))
+      .group(:match_id).count
   end
 
   def join

@@ -115,5 +115,13 @@
         <% end %>
       <% end %>
     </div>
-  </div>
+    </div>
+
+  <%# Other participants' tips (blurred before match starts, revealed after) %>
+  <% if defined?(participant_tips_by_match) && defined?(tip_counts_by_match) %>
+    <%= render "tips/participants_tips",
+          match: match, pool: pool,
+          participant_tips_by_match: participant_tips_by_match,
+          tip_counts_by_match: tip_counts_by_match %>
+  <% end %>
 </div>

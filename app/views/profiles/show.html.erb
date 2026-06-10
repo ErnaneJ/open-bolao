@@ -1,36 +1,69 @@
-<% content_for :title, t("profile.title") %>
+<% content_for :title, "Perfil" %>
 
-<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  <h1 class="text-2xl font-bold mb-6"><%= t("profile.title") %></h1>
+<div class="max-w-2xl mx-auto px-4 sm:px-6 py-8">
 
-  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 mb-6">
-    <div class="flex items-center gap-4 mb-4">
-      <div class="w-16 h-16 rounded-full bg-indigo-500 flex items-center justify-center text-white text-2xl font-bold">
-        <%= @user.display_name.first.upcase %>
+  <div class="card p-6 mb-6">
+    <div class="flex items-center gap-5 mb-5">
+      <% if @user.avatar.attached? %>
+        <%= image_tag @user.avatar.variant(resize_to_fill: [80, 80]),
+              class: "w-20 h-20 rounded-2xl object-cover" %>
+      <% else %>
+        <div class="w-20 h-20 rounded-2xl bg-pitch-900 dark:bg-pitch-600 flex items-center justify-center">
+          <span class="font-display font-bold text-2xl text-white"><%= @user.display_name.first.upcase %></span>
+        </div>
+      <% end %>
+      <div class="flex-1 min-w-0">
+        <h1 class="font-display font-bold text-2xl text-pitch-900 dark:text-white truncate"><%= @user.display_name %></h1>
+        <p class="text-sm text-pitch-400 truncate"><%= @user.email %></p>
+        <div class="mt-1"><%= role_badge(@user.role) %></div>
       </div>
-      <div>
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-white"><%= @user.display_name %></h2>
-        <p class="text-sm text-gray-500 dark:text-gray-400"><%= @user.email %></p>
-        <%= role_badge(@user.role) %>
+      <%= link_to "Editar perfil", edit_profile_path, class: "btn btn-ghost btn-sm shrink-0" %>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4 pt-4 border-t border-pitch-100 dark:border-pitch-700/50">
+      <div class="text-center">
+        <p class="stat-value text-2xl"><%= @user.pool_participants.active.count %></p>
+        <p class="stat-label">bolões</p>
+      </div>
+      <div class="text-center">
+        <p class="stat-value text-2xl"><%= @user.pool_participants.active.sum(:total_points) %></p>
+        <p class="stat-label">pontos totais</p>
+      </div>
+      <div class="text-center">
+        <p class="stat-value text-2xl"><%= @user.tips.count %></p>
+        <p class="stat-label">palpites</p>
       </div>
     </div>
-    <%= link_to t("profile.edit"), edit_profile_path, class: "text-sm text-indigo-600 hover:underline" %>
   </div>
 
-  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-    <h3 class="font-semibold mb-4"><%= t("profile.my_pools") %></h3>
+  <section>
+    <h2 class="font-display font-bold text-lg text-pitch-900 dark:text-white mb-4">Meus bolões</h2>
     <% pools = @user.pool_participants.active.includes(pool: :tournament).order(created_at: :desc) %>
     <% if pools.any? %>
-      <div class="space-y-2">
+      <div class="card overflow-hidden divide-y divide-pitch-100 dark:divide-pitch-700/50">
         <% pools.each do |pp| %>
-          <%= link_to pool_path(pp.pool), class: "flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition" do %>
-            <span class="text-sm font-medium"><%= pp.pool.name %></span>
-            <span class="text-xs text-gray-400"><%= pp.total_points %> pts</span>
+          <%= link_to pool_path(pp.pool),
+                class: "flex items-center justify-between px-5 py-3.5 hover:bg-pitch-50 dark:hover:bg-pitch-700/30 transition-colors" do %>
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-pitch-900 dark:text-white truncate"><%= pp.pool.name %></p>
+              <% if pp.pool.tournament %>
+                <p class="text-xs text-pitch-400"><%= pp.pool.tournament.name %></p>
+              <% end %>
+            </div>
+            <div class="flex items-center gap-3 shrink-0 ml-3">
+              <% if pp.rank %>
+                <span class="text-sm font-display font-bold text-pitch-700 dark:text-pitch-200"><%= pp.rank %>º</span>
+              <% end %>
+              <span class="badge badge-active text-[10px]"><%= pp.total_points %> pts</span>
+            </div>
           <% end %>
         <% end %>
       </div>
     <% else %>
-      <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("profile.no_pools") %></p>
+      <div class="card p-8 text-center">
+        <p class="text-pitch-400 text-sm mb-3">Você ainda não participa de nenhum bolão.</p>
+        <%= link_to pools_path, class: "btn btn-neon btn-sm" do %>Explorar bolões<% end %>
+      </div>
     <% end %>
-  </div>
+  </section>
 </div>

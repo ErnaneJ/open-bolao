@@ -1,0 +1,60 @@
+<%
+  is_locked     = pool.tips_locked_for?(match)
+  visible_tips  = participant_tips_by_match[match.id] || []
+  tip_count     = tip_counts_by_match[match.id].to_i
+  total_players = pool.pool_participants.active.count
+%>
+<% if total_players > 1 %>
+  <div class="mt-3 pt-3 border-t border-pitch-100 dark:border-pitch-700/50">
+    <% if is_locked %>
+      <%# Match started — show all participants' tips %>
+      <% if visible_tips.any? %>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-pitch-400 mb-2">Palpites</p>
+        <div class="flex flex-wrap gap-2">
+          <% visible_tips.sort_by { |t| t.points_earned.to_i }.reverse.each do |t| %>
+            <div class="flex items-center gap-1.5 bg-pitch-50 dark:bg-pitch-700/50 rounded-lg px-2.5 py-1.5
+                 <%= t.user_id == current_user.id ? 'ring-1 ring-neon-400/40' : '' %>">
+              <div class="avatar-sm w-5 h-5 text-[9px]"><%= t.user.display_name.first.upcase %></div>
+              <span class="text-[11px] text-pitch-600 dark:text-pitch-300 font-medium"><%= t.user.display_name.split.first %></span>
+              <span class="font-mono text-sm font-bold text-pitch-900 dark:text-white">
+                <%= t.home_score_tip %>–<%= t.away_score_tip %>
+              </span>
+              <% if t.scored? && t.points_earned.to_i > 0 %>
+                <span class="text-[10px] text-neon-600 dark:text-neon-300 font-bold">+<%= t.points_earned %>pts</span>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-[11px] text-pitch-400 italic">Nenhum palpite registrado.</p>
+      <% end %>
+    <% else %>
+      <%# Match not started yet — show blurred count but not scores %>
+      <div class="flex items-center gap-3">
+        <div class="flex -space-x-1">
+          <% visible_tips.first(5).each do |t| %>
+            <div class="avatar-sm w-6 h-6 text-[9px] ring-2 ring-white dark:ring-pitch-800">
+              <%= t.user.display_name.first.upcase %>
+            </div>
+          <% end %>
+        </div>
+        <% if tip_count > 0 %>
+          <div class="flex items-center gap-1.5">
+            <span class="text-[11px] text-pitch-500 dark:text-pitch-400">
+              <span class="font-semibold text-pitch-700 dark:text-pitch-200"><%= tip_count %></span>/<%= total_players %> palpitaram
+            </span>
+            <%# Blurred placeholder scores to tease without revealing %>
+            <div class="flex gap-1 ml-1">
+              <% [*1..[ tip_count, 3].min].each do %>
+                <span class="font-mono text-sm bg-pitch-200 dark:bg-pitch-600 text-transparent rounded px-1.5 select-none"
+                      style="filter: blur(4px); user-select: none;">0–0</span>
+              <% end %>
+            </div>
+          </div>
+        <% else %>
+          <span class="text-[11px] text-pitch-400 italic">Nenhum palpite ainda.</span>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

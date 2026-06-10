@@ -42,6 +42,7 @@ class Pool < ApplicationRecord
   validates :pool_scope, presence: true
   validates :status, presence: true
   validates :visibility, presence: true
+  validates :lock_before_minutes, numericality: { greater_than_or_equal_to: 5 }, allow_nil: false
   validate :scope_reference_consistency
 
   before_validation :set_defaults
