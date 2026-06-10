@@ -4,6 +4,23 @@ pt-BR:
 
   errors:
     not_authorized: "Você não tem permissão para realizar esta ação."
+    not_participant: "Você precisa participar do bolão para acessar isso."
+    messages:
+      header:
+        one: "1 erro impediu que este formulário fosse salvo:"
+        other: "%{count} erros impediram que este formulário fosse salvo:"
+
+  actions:
+    save: "Salvar"
+    cancel: "Cancelar"
+    edit: "Editar"
+    delete: "Excluir"
+    back: "Voltar"
+
+  roles:
+    user: "Usuário"
+    admin: "Admin"
+    super_admin: "Super Admin"
 
   nav:
     pools: "Bolões"
@@ -26,12 +43,71 @@ pt-BR:
     points: "pts"
 
   pools:
+    join: "Entrar"
+    leave: "Sair do bolão"
+    leave_confirm: "Tem certeza que deseja sair deste bolão?"
     joined: "Você entrou no bolão!"
     already_joined: "Você já participa deste bolão."
     left: "Você saiu do bolão."
+    go_to_special_bets: "Ir para palpites especiais →"
+    no_special_bets_single_match: "Palpites especiais não estão disponíveis em bolões de jogo único."
+    index:
+      title: "Bolões"
+      enter_by_code: "Entrar por código"
+      code_placeholder: "Ex: ABC12345"
+      enter: "Entrar"
+      no_pools: "Nenhum bolão público disponível no momento."
+    tabs:
+      tips: "Palpites"
+      ranking: "Ranking"
+      matches: "Jogos"
+      special_bets: "Palpites Especiais"
+
+  ranking:
+    player: "Participante"
+    points: "Pontos"
+    trend: "Tendência"
+    empty: "Nenhum participante ranqueado ainda."
+
+  tips:
+    save: "Salvar"
+    update: "Atualizar"
+    no_tip: "Sem palpite"
+
+  special_bets:
+    title: "Palpites Especiais"
+    save: "Salvar"
+    select_team: "Selecionar time..."
+    player_name_placeholder: "Nome do jogador"
+    types:
+      champion: "Campeão"
+      top_scorer: "Artilheiro"
+      golden_glove: "Goleiro do Torneio"
+      best_player: "Melhor Jogador"
+      finalist_home: "Finalista Mandante"
+      finalist_away: "Finalista Visitante"
+      total_goals: "Total de Gols no Torneio"
+
+  notifications:
+    title: "Notificações"
+    unread: "não lidas"
+    empty: "Nenhuma notificação."
 
   profile:
+    title: "Meu Perfil"
+    edit_title: "Editar Perfil"
     updated: "Perfil atualizado com sucesso."
+    my_pools: "Meus Bolões"
+    no_pools: "Você não participa de nenhum bolão."
+    change_password: "Alterar senha (opcional)"
+    fields:
+      name: "Nome"
+      language: "Idioma"
+      current_password: "Senha atual"
+      new_password: "Nova senha"
+
+  matches:
+    no_date: "Sem data definida"
 
   admin:
     pools:
@@ -44,6 +120,21 @@ pt-BR:
     matches:
       created: "Jogo criado com sucesso."
       updated: "Resultado atualizado com sucesso."
+    participants:
+      updated: "Participante atualizado."
+      removed: "Participante removido."
+    invites:
+      regenerated: "Novo código gerado."
+    sync:
+      updated: "Configuração de sync atualizada."
+      forced: "Sincronização enfileirada."
+    webhooks:
+      created: "Webhook criado."
+      updated: "Webhook atualizado."
+      destroyed: "Webhook removido."
+      tested: "Payload de teste enviado."
+    teams:
+      created: "Time criado."
 
   super_admin:
     users:
@@ -57,14 +148,49 @@ pt-BR:
       destroyed: "Torneio removido."
       sync_queued: "Sincronização enfileirada."
       seed_queued: "Seeds via API enfileiradas."
+    teams:
+      created: "Time criado."
+      updated: "Time atualizado."
+      destroyed: "Time removido."
+    pools:
+      updated: "Bolão atualizado."
+      destroyed: "Bolão removido."
+    matches:
+      created: "Jogo criado."
+      updated: "Jogo atualizado."
+      destroyed: "Jogo removido."
+    tournament_teams:
+      created: "Time adicionado ao torneio."
+      destroyed: "Time removido do torneio."
+    stages:
+      created: "Fase criada."
+      updated: "Fase atualizada."
+      destroyed: "Fase removida."
+    webhooks:
+      created: "Webhook criado."
+      updated: "Webhook atualizado."
+      destroyed: "Webhook removido."
+      tested: "Payload de teste enviado."
+    api_providers:
+      created: "Provedor criado."
+      updated: "Provedor atualizado."
+      destroyed: "Provedor removido."
+      connection_ok: "Conexão OK — %{count} times encontrados."
+      connection_empty: "Conexão OK mas nenhum dado retornado."
+      connection_failed: "Falha na conexão: %{error}"
+    settings:
+      updated: "Configurações atualizadas."
 
   activerecord:
     errors:
       messages:
         tip_locked: "Este palpite está travado e não pode ser alterado."
         same_as_home: "não pode ser igual ao time mandante."
+        blank: "não pode ficar em branco"
 
   date:
+    month_names: [~, Janeiro, Fevereiro, Março, Abril, Maio, Junho, Julho, Agosto, Setembro, Outubro, Novembro, Dezembro]
+    abbr_month_names: [~, Jan, Fev, Mar, Abr, Mai, Jun, Jul, Ago, Set, Out, Nov, Dez]
     formats:
       default: "%d/%m/%Y"
       short: "%d/%m"
