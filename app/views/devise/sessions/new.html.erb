@@ -1,26 +1,37 @@
-<h2>Log in</h2>
-
-<%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
-  <div class="field">
-    <p><%= f.label :email %></p>
-    <p><%= f.email_field :email, autofocus: true, autocomplete: "email" %></p>
-  </div>
-
-  <div class="field">
-    <p><%= f.label :password %></p>
-    <p><%= f.password_field :password, autocomplete: "current-password" %></p>
-  </div>
-
-  <% if devise_mapping.rememberable? %>
-    <div class="field">
-      <p><%= f.check_box :remember_me %></p>
-      <p><%= f.label :remember_me %></p>
+<div class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
+  <div class="w-full max-w-sm">
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-indigo-600 dark:text-indigo-400"><%= t("app.name") %></h1>
+      <p class="text-gray-500 dark:text-gray-400 mt-1">Entre na sua conta</p>
     </div>
-  <% end %>
 
-  <div class="actions">
-    <%= f.submit "Log in" %>
+    <div class="card p-6">
+      <%= render "devise/shared/error_messages", resource: resource %>
+      <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
+        <div class="space-y-4">
+          <div>
+            <%= f.label :email, "E-mail", class: "form-label" %>
+            <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-input" %>
+          </div>
+          <div>
+            <%= f.label :password, "Senha", class: "form-label" %>
+            <%= f.password_field :password, autocomplete: "current-password", class: "form-input" %>
+          </div>
+          <div class="flex items-center justify-between">
+            <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
+              <%= f.check_box :remember_me, class: "rounded border-gray-300 text-indigo-600" %>
+              Lembrar de mim
+            </label>
+            <%= link_to "Esqueceu a senha?", new_user_password_path, class: "text-sm text-indigo-600 hover:underline" %>
+          </div>
+          <%= f.submit "Entrar", class: "w-full btn btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="text-center mt-4 text-sm text-gray-500 dark:text-gray-400">
+      Não tem conta?
+      <%= link_to "Criar conta", new_user_registration_path, class: "text-indigo-600 hover:underline ml-1" %>
+    </div>
   </div>
-<% end %>
-
-<%= render "devise/shared/links" %>
+</div>
