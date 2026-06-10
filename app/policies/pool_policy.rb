@@ -5,7 +5,7 @@ class PoolPolicy < ApplicationPolicy
   def update? = admin_owner? || super_admin?
   def destroy? = admin_owner? || super_admin?
   def join?   = user.present? && !participant?
-  def leave?  = participant?
+  def leave?  = participant? && !record.competition_started?
   def recalculate? = admin_owner? || super_admin?
   def transition?  = admin_owner? || super_admin?
 

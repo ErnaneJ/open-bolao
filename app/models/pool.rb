@@ -63,6 +63,17 @@ class Pool < ApplicationRecord
     pool_scope_single_match?
   end
 
+  # Returns true when the competition has effectively started (any match live/finished)
+  def competition_started?
+    if pool_scope_tournament? && tournament.present?
+      tournament.matches.where(status: [ :live, :finished ]).exists?
+    elsif pool_scope_single_match? && match.present?
+      match.status_live? || match.status_finished?
+    else
+      false
+    end
+  end
+
   # Returns true when tips should no longer be accepted for this match
   def tips_locked_for?(match)
     return true if status_locked? || status_finished?

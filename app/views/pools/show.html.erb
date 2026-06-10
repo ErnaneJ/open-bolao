@@ -47,14 +47,20 @@
               <%= @participant.total_points %>
             </p>
           </div>
-          <%= button_to leave_pool_path(@pool), method: :delete,
-                data: { turbo_confirm: t("pools.leave_confirm") },
-                class: "btn btn-danger btn-sm" do %>
-            Sair
+          <% if @pool.competition_started? %>
+            <span class="text-[10px] text-pitch-400 dark:text-pitch-500 text-center max-w-[80px] leading-tight">
+              Torneio em andamento
+            </span>
+          <% else %>
+            <%= button_to leave_pool_path(@pool), method: :delete,
+                  data: { turbo_confirm: t("pools.leave_confirm") },
+                  class: "btn btn-danger btn-sm" do %>
+              Sair
+            <% end %>
           <% end %>
         <% else %>
           <%= button_to join_pool_path(@pool), class: "btn btn-neon" do %>
-            Participar
+            Entrar no bolão
           <% end %>
         <% end %>
       </div>

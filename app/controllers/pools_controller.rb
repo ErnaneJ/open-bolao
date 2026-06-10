@@ -32,6 +32,10 @@ class PoolsController < ApplicationController
 
   def leave
     authorize @pool
+    if @pool.competition_started?
+      redirect_to pool_path(@pool), alert: t("pools.cannot_leave_started")
+      return
+    end
     participant = @pool.pool_participants.find_by!(user_id: current_user.id)
     participant.destroy!
     redirect_to pools_path, notice: t("pools.left")
