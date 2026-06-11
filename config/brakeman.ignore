@@ -1,0 +1,27 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 70,
+      "fingerprint": "463f2535895353fdbe258faa23688551a4c97835a0cefab86055e693ed5da7c1",
+      "check_name": "PermitAttributes",
+      "message": "Potentially dangerous key allowed for mass assignment",
+      "file": "app/controllers/super_admin/users_controller.rb",
+      "line": 52,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.require(:user).permit(:name, :email, :role, :locale)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "SuperAdmin::UsersController",
+        "method": "user_params"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "cve_id": null,
+      "note": "Intentional: super_admin role is the only actor that reaches this controller and must be able to change user roles."
+    }
+  ],
+  "updated": "2026-06-11 00:00:00 +0000",
+  "brakeman_version": "8.0.4"
+}
