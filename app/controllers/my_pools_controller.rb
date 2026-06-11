@@ -12,10 +12,15 @@ class MyPoolsController < ApplicationController
     @pool = current_user.administered_pools.build(pool_params)
     authorize @pool
     if @pool.save
-      # When submitted from the drawer (turbo frame), break out to top-level navigation.
-      # This closes the drawer naturally and redirects the whole page.
-      response.headers["Turbo-Frame"] = "_top" if turbo_frame_request?
-      redirect_to admin_pool_path(@pool), notice: t("pools.created")
+      flash[:notice] = t("pools.created")
+      respond_to do |format|
+        format.turbo_stream do
+          # Frame requests can't redirect to a page without the frame — use a
+          # custom stream action to trigger a full-page Turbo visit instead.
+          render turbo_stream: "<turbo-stream action='redirect' target='#{admin_pool_path(@pool)}'></turbo-stream>"
+        end
+        format.html { redirect_to admin_pool_path(@pool) }
+      end
     else
       @tournaments = Tournament.order(:name)
       render :new, status: :unprocessable_entity
