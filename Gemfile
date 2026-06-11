@@ -22,7 +22,7 @@ gem "redis", "~> 5.0"
 gem "connection_pool", "~> 2.4"
 
 # Pagination
-gem "pagy", "~> 9.0"
+gem "pagy", "~> 43.5"
 
 # Analytics
 gem "blazer"
