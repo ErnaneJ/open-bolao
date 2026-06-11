@@ -390,7 +390,14 @@ module ApiProviders
 
     def parse_timestamp(value)
       return nil if value.blank?
-      Time.parse("#{value} UTC")
+      str = value.to_s.strip
+      # TSDB returns timestamps like "2026-06-11T19:00:00+00:00", "...Z", or "2026-06-11".
+      # Only append +00:00 when there is NO timezone info already in the string,
+      # so we never double-interpret an offset (old bug: forced " UTC" overwrote real offsets).
+      unless str.match?(/[Zz]$|[+\-]\d{2}:?\d{2}$/)
+        str = "#{str}+00:00"
+      end
+      Time.parse(str).utc
     rescue ArgumentError, TypeError
       nil
     end
