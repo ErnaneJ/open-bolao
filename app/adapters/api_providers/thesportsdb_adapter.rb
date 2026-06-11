@@ -167,7 +167,20 @@ module ApiProviders
       when Tournament
         season = schedulable.season || Time.current.year.to_s
         league = schedulable.external_config&.dig("tsdb_league_id") || WC_LEAGUE
-        fetch_matches_for_season(season, league)
+
+        # Full season batch — catches final scores and schedule changes
+        season_matches = fetch_matches_for_season(season, league)
+
+        # For matches currently in the live window, supplement with real-time
+        # lookupevent.php data (more frequently updated than eventsseason.php)
+        live_overrides = fetch_live_overrides(schedulable)
+        if live_overrides.any?
+          live_ids = live_overrides.map(&:external_id).to_set
+          season_matches.reject! { |m| live_ids.include?(m.external_id) }
+          season_matches + live_overrides
+        else
+          season_matches
+        end
       when Match
         return [] if schedulable.external_tsdb_id.blank?
         m = fetch_match(schedulable.external_tsdb_id)
@@ -178,6 +191,21 @@ module ApiProviders
     end
 
     private
+
+    # ── Live override helper ─────────────────────────────────────────────
+    # Fetches real-time data for matches that are currently in progress.
+    # eventsseason.php caches between updates; lookupevent.php reflects live state.
+    # Window: started in the last 2.5 hours and not yet finished in our DB.
+    def fetch_live_overrides(tournament)
+      live_window = tournament.matches
+        .where(status: [ :scheduled, :live ])
+        .where(scheduled_at: 2.5.hours.ago..Time.current)
+        .where.not(external_tsdb_id: [ nil, "" ])
+
+      return [] if live_window.none?
+
+      live_window.filter_map { |m| fetch_match(m.external_tsdb_id) }
+    end
 
     # ── Rate limiting — token-slot approach ──────────────────────────────
     # Acquires the next available request slot globally across all Sidekiq workers.
