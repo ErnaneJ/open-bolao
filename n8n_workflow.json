@@ -8,7 +8,7 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "1a2b3c4d-0001-0001-0001-000000000001",
+      "id": "node-webhook-trigger",
       "name": "Receber Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
@@ -21,11 +21,11 @@
         "responseBody": "={ \"ok\": true }",
         "options": {}
       },
-      "id": "1a2b3c4d-0002-0002-0002-000000000002",
+      "id": "node-respond-200",
       "name": "Responder 200",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [460, 300]
+      "position": [460, 180]
     },
     {
       "parameters": {
@@ -34,7 +34,7 @@
           "combinator": "and",
           "conditions": [
             {
-              "id": "cond-webhook-enabled",
+              "id": "cond-has-group",
               "leftValue": "={{ $json.body.pool_metadata?.whatsapp_group_id }}",
               "rightValue": "",
               "operator": { "type": "string", "operation": "notEmpty" }
@@ -43,64 +43,91 @@
         },
         "options": {}
       },
-      "id": "1a2b3c4d-0003-0003-0003-000000000003",
+      "id": "node-check-group",
       "name": "Tem group ID?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [680, 300]
+      "position": [460, 380]
     },
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "const body = $input.item.json.body;\nconst event = body.event;\nconst meta  = body.pool_metadata || {};\nconst match = body.match || {};\nconst pool  = body.pool  || {};\n\nlet text = '';\n\nswitch (event) {\n  case 'match.goal':\n    text = `⚽ *Gol!* ${match.home_team} ${match.home_score} x ${match.away_score} ${match.away_team}\\n${meta.pool_name || pool.name || 'Bolão'}`;\n    break;\n  case 'match.live':\n    text = `🏁 *Jogo começou!*\\n${match.home_team} x ${match.away_team}\\n${meta.pool_name || pool.name || 'Bolão'}`;\n    break;\n  case 'match.finished':\n    text = `🔔 *Jogo encerrado!*\\n${match.home_team} *${match.home_score}* x *${match.away_score}* ${match.away_team}\\n${meta.pool_name || pool.name || 'Bolão'}`;\n    break;\n  case 'pool.ranking_updated':\n    text = `📊 *Ranking atualizado!*\\nLíder: ${body.leader || '—'}\\n${meta.pool_name || pool.name || 'Bolão'}`;\n    break;\n  case 'pool.finished':\n    text = `🏆 *Bolão encerrado!*\\n${pool.name || meta.pool_name || 'Bolão'}\\nConfira o resultado final!`;\n    break;\n  case 'tip.scored':\n    text = `✅ *Palpite pontuado!*\\n${(body.tip || {}).user || '—'} ganhou ${(body.tip || {}).points_earned || 0} pts\\n${meta.pool_name || pool.name || 'Bolão'}`;\n    break;\n  case 'pool.daily_matches':\n    const matches = (body.matches || []).map(m => `• ${m.home_team} x ${m.away_team} — ${m.scheduled_at}`).join('\\n');\n    text = `📅 *Jogos de hoje — ${pool.name || meta.pool_name || 'Bolão'}*\\n${matches || 'Nenhum jogo hoje.'}`;\n    break;\n  default:\n    text = `📣 Evento: *${event}*\\n${meta.pool_name || pool.name || 'Bolão'}`;\n}\n\nreturn { ...body, _whatsapp_message: text, _group_id: meta.whatsapp_group_id };"
+        "jsCode": "const body = $input.item.json.body;\nconst event  = body.event;\nconst meta   = body.pool_metadata || {};\nconst match  = body.match  || {};\nconst pool   = body.pool   || {};\nconst tip    = body.tip    || {};\nconst poolName = meta.pool_name || pool.name || 'Bolão';\n\nlet text = '';\n\nswitch (event) {\n  case 'match.goal':\n    text = `⚽ *Gol!*\\n${match.home_team} *${match.home_score}* x *${match.away_score}* ${match.away_team}\\n_${poolName}_`;\n    break;\n  case 'match.live':\n    text = `🏁 *Jogo começou!*\\n${match.home_team} x ${match.away_team}\\n_${poolName}_`;\n    break;\n  case 'match.finished':\n    text = `🔔 *Jogo encerrado!*\\n${match.home_team} *${match.home_score}* x *${match.away_score}* ${match.away_team}\\n_${poolName}_`;\n    break;\n  case 'pool.ranking_updated':\n    text = `📊 *Ranking atualizado!*\\nLíder: *${body.leader || '—'}*\\n_${poolName}_`;\n    break;\n  case 'pool.finished':\n    text = `🏆 *Bolão encerrado!*\\n_${poolName}_\\nConfira o resultado final!`;\n    break;\n  case 'tip.scored':\n    text = `✅ *Palpite pontuado!*\\n${tip.user || '—'} → *${tip.points_earned || 0} pts*\\n_${poolName}_`;\n    break;\n  case 'pool.daily_matches':\n    const rows = (body.matches || []).map(m => `• ${m.home_team} x ${m.away_team}`).join('\\n');\n    text = `📅 *Jogos de hoje — ${poolName}*\\n${rows || 'Nenhum jogo hoje.'}`;\n    break;\n  default:\n    text = `📣 *${event}*\\n_${poolName}_`;\n}\n\nreturn {\n  json: {\n    whatsapp_group_id: meta.whatsapp_group_id,\n    payload: {\n      to:      meta.whatsapp_group_id,\n      message: text,\n      type:    'text'\n    }\n  }\n};"
       },
-      "id": "1a2b3c4d-0004-0004-0004-000000000004",
+      "id": "node-build-message",
       "name": "Montar mensagem",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [900, 180]
+      "position": [680, 380]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Salva o payload para combinar com o token depois\nconst item = $input.first().json;\nreturn [{ json: { payload: item.payload } }];"
+      },
+      "id": "node-save-payload",
+      "name": "Merge Payloads",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 380]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "https://api-buddy.cloudnane.com/messages",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            { "name": "Content-Type", "value": "application/json" }
-          ]
-        },
+        "url": "https://api-buddy.cloudnane.com/api/auth/admin",
         "sendBody": true,
         "bodyParameters": {
           "parameters": [
-            { "name": "to",      "value": "={{ $json._group_id }}" },
-            { "name": "message", "value": "={{ $json._whatsapp_message }}" },
-            { "name": "type",    "value": "text" }
+            { "name": "email",    "value": "={{ $vars.BUDDY_EMAIL }}" },
+            { "name": "password", "value": "={{ $vars.BUDDY_PASSWORD }}" }
           ]
         },
         "options": {}
       },
-      "id": "1a2b3c4d-0005-0005-0005-000000000005",
+      "id": "node-buddy-login",
+      "name": "Buddy Login - Token",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [1120, 380]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Combina o token com o payload salvo anteriormente\nconst token   = $input.first().json.token;\nconst payload = $('Merge Payloads').first().json.payload;\n\nreturn [{ json: { token, payload } }];"
+      },
+      "id": "node-combine-token",
+      "name": "Combinar Token + Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 380]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api-buddy.cloudnane.com/api/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $json.token }}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.payload }}",
+        "options": {},
+        "alwaysOutputData": true
+      },
+      "id": "node-send-whatsapp",
       "name": "Enviar WhatsApp",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [1120, 180],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "API_BUDDY_CREDENTIAL_ID",
-          "name": "API Buddy Token"
-        }
-      }
+      "typeVersion": 4.4,
+      "position": [1560, 380]
     }
   ],
   "connections": {
     "Receber Webhook": {
       "main": [
         [
-          { "node": "Responder 200", "type": "main", "index": 0 },
-          { "node": "Tem group ID?", "type": "main", "index": 0 }
+          { "node": "Responder 200",  "type": "main", "index": 0 },
+          { "node": "Tem group ID?",  "type": "main", "index": 0 }
         ]
       ]
     },
@@ -112,6 +139,21 @@
     },
     "Montar mensagem": {
       "main": [
+        [{ "node": "Merge Payloads", "type": "main", "index": 0 }]
+      ]
+    },
+    "Merge Payloads": {
+      "main": [
+        [{ "node": "Buddy Login - Token", "type": "main", "index": 0 }]
+      ]
+    },
+    "Buddy Login - Token": {
+      "main": [
+        [{ "node": "Combinar Token + Payload", "type": "main", "index": 0 }]
+      ]
+    },
+    "Combinar Token + Payload": {
+      "main": [
         [{ "node": "Enviar WhatsApp", "type": "main", "index": 0 }]
       ]
     }
@@ -121,7 +163,8 @@
   },
   "staticData": null,
   "meta": {
-    "instanceId": "open-bolao"
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4791448249eaca70b534ec798c13a3292a73c4613f455fbb8480ede10841d784"
   },
   "tags": []
 }
