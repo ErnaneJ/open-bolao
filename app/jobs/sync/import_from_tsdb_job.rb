@@ -23,8 +23,20 @@ module Sync
           external_provider_id: td.external_tsdb_id,
           external_provider_name: PROVIDER_NAME
         )
-        team.assign_attributes(name: td.name, short_name: td.short_name,
-                               country_code: td.country_code)
+        team.assign_attributes(
+          name:          td.name,
+          short_name:    td.short_name,
+          country_code:  td.country_code,
+          logo_url:      td.logo_url.presence || team.logo_url,
+          banner_url:    td.banner_url.presence || team.banner_url,
+          fanart_url:    td.fanart_url.presence || team.fanart_url,
+          primary_color: td.primary_color.presence || team.primary_color,
+          formed_year:   td.formed_year || team.formed_year,
+          stadium_name:  td.stadium_name.presence || team.stadium_name,
+          description:   td.description.presence || team.description,
+          website:       td.website.presence || team.website,
+          gender:        td.gender.presence || team.gender
+        )
         team.save! if team.new_record? || team.changed?
         TournamentTeam.find_or_create_by!(tournament: tournament, team: team)
         team_cache[td.external_tsdb_id] = team
@@ -53,14 +65,27 @@ module Sync
 
         if changed
           match.assign_attributes(
-            home_team:              home_team,
-            away_team:              away_team,
-            scheduled_at:           md.scheduled_at,
-            status:                 md.status || :scheduled,
-            home_score:             md.home_score,
-            away_score:             md.away_score,
-            tournament:             tournament,
-            stream_url:             md.stream_url.presence
+            home_team:            home_team,
+            away_team:            away_team,
+            scheduled_at:         md.scheduled_at,
+            status:               md.status || :scheduled,
+            home_score:           md.home_score,
+            away_score:           md.away_score,
+            home_score_ht:        md.home_score_ht,
+            away_score_ht:        md.away_score_ht,
+            home_score_et:        md.home_score_et,
+            away_score_et:        md.away_score_et,
+            home_score_penalties: md.home_score_penalties,
+            away_score_penalties: md.away_score_penalties,
+            tournament:           tournament,
+            venue:                md.stadium_name,
+            city:                 md.city,
+            thumb_url:            md.thumb_url,
+            stream_url:           md.stream_url.presence,
+            season:               md.season,
+            round_number:         md.round_number,
+            referee:              md.referee,
+            attendance:           md.attendance
           )
           match.save!
           updated += 1

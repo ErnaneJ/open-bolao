@@ -1,5 +1,5 @@
 class MyPoolsController < ApplicationController
-  before_action :set_pool, only: [:show, :edit, :update, :destroy]
+  before_action :set_pool, only: [ :edit, :update, :destroy ]
 
   def new
     @pool = Pool.new(lock_before_minutes: 5, timezone: "America/Fortaleza",
@@ -12,15 +12,10 @@ class MyPoolsController < ApplicationController
     @pool = current_user.administered_pools.build(pool_params)
     authorize @pool
     if @pool.save
-      if request.headers["Turbo-Frame"] == "new_pool_modal"
-        render turbo_stream: [
-          turbo_stream.replace("new_pool_modal", ""),
-          turbo_stream.prepend("pool-list", partial: "dashboard/pool_card",
-            locals: { participation: nil, pool: @pool, index: 0 })
-        ]
-      else
-        redirect_to admin_pool_path(@pool), notice: t("pools.created")
-      end
+      # When submitted from the drawer (turbo frame), break out to top-level navigation.
+      # This closes the drawer naturally and redirects the whole page.
+      response.headers["Turbo-Frame"] = "_top" if turbo_frame_request?
+      redirect_to admin_pool_path(@pool), notice: t("pools.created")
     else
       @tournaments = Tournament.order(:name)
       render :new, status: :unprocessable_entity

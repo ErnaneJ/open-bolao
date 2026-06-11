@@ -1,108 +1,165 @@
 <% content_for :title, @pool.name %>
+<% match_view = params[:match_view] || "table" %>
+<% tip_view   = params[:tip_view]   || "grid" %>
 
-<div class="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+<%# ── Wrap the whole page in the match-panel controller ───────────────────── %>
+<div data-controller="match-panel" class="relative">
 
-  <%# Pool header %>
-  <div class="card p-6 mb-6 animate-enter">
-    <div class="flex items-start justify-between gap-4 flex-wrap">
-      <div class="min-w-0">
-        <div class="flex items-center gap-2 mb-2">
-          <%= @pool.pool_scope_tournament? ?
-                '<span class="badge-active text-xs">Torneio</span>'.html_safe :
-                '<span class="badge-pending text-xs">Jogo único</span>'.html_safe %>
-          <%= content_tag :span, @pool.status.to_s.humanize,
-                class: "badge #{@pool.status_open? ? 'badge-active' : 'badge-finished'}" %>
-        </div>
-        <h1 class="font-display font-bold text-2xl sm:text-3xl text-pitch-900 dark:text-white leading-tight">
-          <%= @pool.name %>
-        </h1>
-        <% if @pool.description.present? %>
-          <p class="text-sm text-pitch-500 dark:text-pitch-300 mt-1.5"><%= @pool.description %></p>
-        <% end %>
-        <% if current_user == @pool.admin || current_user.role_super_admin? %>
-          <div class="flex items-center gap-2 mt-3">
-            <code class="text-xs font-mono text-pitch-400 bg-pitch-50 dark:bg-pitch-700/60 px-2.5 py-1 rounded-lg truncate max-w-xs">
-              <%= join_pool_by_code_url(invite_code: @pool.invite_code) %>
-            </code>
-            <button data-controller="clipboard"
-                    data-clipboard-text-value="<%= join_pool_by_code_url(invite_code: @pool.invite_code) %>"
-                    data-action="click->clipboard#copy"
-                    class="btn btn-ghost btn-sm shrink-0">Copiar link</button>
-          </div>
-        <% end %>
-      </div>
+  <%# ── Overlay (mobile) ──────────────────────────────────────────────────── %>
+  <div data-match-panel-target="overlay"
+       data-action="click->match-panel#close"
+       class="hidden fixed inset-0 z-30 bg-pitch-950/50 backdrop-blur-sm"></div>
 
-      <div class="flex items-center gap-2 shrink-0">
-        <% if @participant %>
-          <%# User's own stats %>
-          <div class="text-center px-4 py-2 rounded-xl bg-neon-400/10 dark:bg-neon-400/10 border border-neon-400/20">
-            <p class="text-[10px] font-bold uppercase tracking-widest text-pitch-500 dark:text-pitch-400">Sua posição</p>
-            <p class="font-display font-bold text-2xl text-pitch-900 dark:text-white leading-none">
-              <%= @participant.rank ? "#{@participant.rank}º" : "—" %>
-            </p>
-          </div>
-          <div class="text-center px-4 py-2 rounded-xl bg-pitch-50 dark:bg-pitch-700/50 border border-pitch-200 dark:border-pitch-700">
-            <p class="text-[10px] font-bold uppercase tracking-widest text-pitch-500 dark:text-pitch-400">Pontos</p>
-            <p class="font-display font-bold text-2xl text-pitch-900 dark:text-white leading-none">
-              <%= @participant.total_points %>
-            </p>
-          </div>
-          <% if @pool.competition_started? %>
-            <span class="text-[10px] text-pitch-400 dark:text-pitch-500 text-center max-w-[80px] leading-tight">
-              Torneio em andamento
-            </span>
-          <% else %>
-            <%= button_to leave_pool_path(@pool), method: :delete,
-                  data: { turbo_confirm: t("pools.leave_confirm") },
-                  class: "btn btn-danger btn-sm" do %>
-              Sair
-            <% end %>
-          <% end %>
-        <% else %>
-          <%= button_to join_pool_path(@pool), class: "btn btn-neon" do %>
-            Entrar no bolão
-          <% end %>
-        <% end %>
-      </div>
+  <%# ── Bottom sheet panel ─────────────────────────────────────────────── %>
+  <div data-match-panel-target="panel"
+       class="fixed bottom-0 left-0 right-0 z-40 max-h-[90vh] bg-white dark:bg-pitch-900 rounded-t-2xl border-t border-pitch-200 dark:border-pitch-800 shadow-2xl shadow-black/30 transition-transform duration-300 flex flex-col">
+    <%# Drag handle + close — always in DOM, never inside turbo frame %>
+    <div class="shrink-0 flex items-center justify-between px-5 pt-3 pb-2">
+      <div class="w-10 h-1 rounded-full bg-pitch-200 dark:bg-pitch-600 mx-auto absolute left-1/2 -translate-x-1/2 top-3"></div>
+      <div class="flex-1"></div>
+      <button type="button"
+              data-action="click->match-panel#close"
+              class="p-1.5 rounded-lg text-pitch-400 hover:bg-pitch-100 dark:hover:bg-pitch-700 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
     </div>
+    <turbo-frame id="match_panel_frame" data-match-panel-target="frame"
+                 class="flex-1 overflow-y-auto flex flex-col min-h-0">
+      <%# Loaded on demand %>
+    </turbo-frame>
   </div>
 
-  <%# Tabs %>
-  <div data-controller="tabs">
-    <div class="border-b border-pitch-200 dark:border-pitch-700 mb-6">
-      <nav class="-mb-px flex gap-1 overflow-x-auto">
-        <% [
-          ["tips",    "⚽ Palpites"],
-          ["ranking", "🏆 Ranking"],
-          ["matches", "📅 Jogos"]
-        ].each_with_index do |(id, label), idx| %>
-          <button data-tabs-target="tab"
-                  data-action="click->tabs#show"
-                  data-tab="<%= id %>"
-                  class="tab-btn <%= idx == 0 ? 'tab-btn-active' : '' %> px-4">
-            <%= label %>
-          </button>
+  <%# ── Main content ─────────────────────────────────────────────────────── %>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+
+    <%# Pool header %>
+    <div class="card p-6 mb-6 animate-enter">
+      <div class="flex items-start justify-between gap-4 flex-wrap">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 mb-2">
+            <%= @pool.pool_scope_tournament? ?
+                  '<span class="badge-active text-xs">Torneio</span>'.html_safe :
+                  '<span class="badge-pending text-xs">Jogo único</span>'.html_safe %>
+            <%= content_tag :span, @pool.status.to_s.humanize,
+                  class: "badge #{@pool.status_open? ? 'badge-active' : 'badge-finished'}" %>
+          </div>
+          <h1 class="font-display font-bold text-2xl sm:text-3xl text-pitch-900 dark:text-white leading-tight">
+            <%= @pool.name %>
+          </h1>
+          <% if @pool.description.present? %>
+            <p class="text-sm text-pitch-500 dark:text-pitch-300 mt-1.5"><%= @pool.description %></p>
+          <% end %>
+          <% if current_user == @pool.admin || current_user.role_super_admin? %>
+            <div class="flex items-center gap-2 mt-3">
+              <code class="text-xs font-mono text-pitch-400 bg-pitch-50 dark:bg-pitch-700/60 px-2.5 py-1 rounded-lg truncate max-w-xs">
+                <%= join_pool_by_code_url(invite_code: @pool.invite_code) %>
+              </code>
+              <button data-controller="clipboard"
+                      data-clipboard-text-value="<%= join_pool_by_code_url(invite_code: @pool.invite_code) %>"
+                      data-action="click->clipboard#copy"
+                      class="btn btn-ghost btn-sm shrink-0">Copiar link</button>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0 flex-wrap">
+          <% if @participant %>
+            <div class="text-center px-4 py-2 rounded-xl bg-neon-400/10 border border-neon-400/20">
+              <p class="text-[10px] font-bold uppercase tracking-widest text-pitch-500 dark:text-pitch-400">Posição</p>
+              <p class="font-display font-bold text-2xl text-pitch-900 dark:text-white leading-none">
+                <%= @participant.rank ? "#{@participant.rank}º" : "—" %>
+              </p>
+            </div>
+            <div class="text-center px-4 py-2 rounded-xl bg-pitch-50 dark:bg-pitch-700/50 border border-pitch-200 dark:border-pitch-700">
+              <p class="text-[10px] font-bold uppercase tracking-widest text-pitch-500 dark:text-pitch-400">Pontos</p>
+              <p class="font-display font-bold text-2xl text-pitch-900 dark:text-white leading-none">
+                <%= @participant.total_points %>
+              </p>
+            </div>
+            <% unless @pool.competition_started? %>
+              <%= button_to leave_pool_path(@pool), method: :delete,
+                    data: { turbo_confirm: t("pools.leave_confirm") },
+                    class: "btn btn-danger btn-sm" do %>Sair<% end %>
+            <% end %>
+          <% else %>
+            <%= button_to join_pool_path(@pool), class: "btn btn-neon" do %>
+              Entrar no bolão
+            <% end %>
+          <% end %>
+
+          <% if current_user == @pool.admin || current_user.role_super_admin? %>
+            <%= link_to "Gerenciar", admin_pool_path(@pool), class: "btn btn-ghost btn-sm" %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <%# Tabs %>
+    <div data-controller="tabs">
+      <div class="border-b border-pitch-200 dark:border-pitch-700 mb-6">
+        <nav class="-mb-px flex gap-1 overflow-x-auto">
+          <% [
+            ["tips",    "⚽ Palpites"],
+            ["ranking", "🏆 Ranking"],
+            ["matches", "📅 Jogos"]
+          ].each_with_index do |(id, label), idx| %>
+            <button data-tabs-target="tab"
+                    data-action="click->tabs#show"
+                    data-tab="<%= id %>"
+                    class="tab-btn <%= idx == 0 ? 'tab-btn-active' : '' %> px-4">
+              <%= label %>
+            </button>
+          <% end %>
+        </nav>
+      </div>
+
+      <%# ── Palpites tab — somente cards ──────────────────────────────────── %>
+      <div id="tab-tips" data-tabs-target="panel">
+        <%# Next upcoming match for highlight %>
+        <% next_match = @matches.reject { |m|
+             @pool.tips_locked_for?(m) || m.status_live? || m.status_finished?
+           }.first %>
+        <%= render "tips/match_list",
+              pool: @pool, matches: @matches, tips_map: @tips_map,
+              participant_tips_by_match: @participant_tips_by_match,
+              tip_counts_by_match: @tip_counts_by_match,
+              next_match: next_match %>
+      </div>
+
+      <%# ── Ranking tab ─────────────────────────────────────────────────────── %>
+      <div id="tab-ranking" data-tabs-target="panel" class="hidden">
+        <%= turbo_stream_from "ranking_pool_#{@pool.id}" %>
+        <% if current_user == @pool.admin || current_user.role_super_admin? %>
+          <div class="flex justify-end mb-4">
+            <%= button_to recalculate_ranking_pool_path(@pool), method: :post,
+                  class: "btn btn-ghost btn-sm gap-1.5" do %>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              Atualizar ranking
+            <% end %>
+          </div>
         <% end %>
-      </nav>
-    </div>
+        <%= render "pools/ranking", pool: @pool, ranking: @ranking, pagy: @pagy_ranking %>
+      </div>
 
-    <%# Palpites %>
-    <div id="tab-tips" data-tabs-target="panel">
-      <%= render "tips/match_list", pool: @pool, matches: @matches, tips_map: @tips_map,
-                participant_tips_by_match: @participant_tips_by_match,
-                tip_counts_by_match: @tip_counts_by_match %>
-    </div>
+      <%# ── Jogos tab ────────────────────────────────────────────────────────── %>
+      <div id="tab-matches" data-tabs-target="panel" class="hidden">
+        <%# View toggle %>
+        <div class="flex items-center justify-end gap-1 mb-4">
+          <% [["table", "≡ Tabela"], ["grid", "⊞ Grid"], ["calendar", "📅 Calendário"]].each do |mode, label| %>
+            <%= link_to pool_path(@pool, match_view: mode, anchor: "tab-matches"),
+                  class: "btn btn-sm #{match_view == mode ? 'btn-primary' : 'btn-ghost'}",
+                  data: { turbo: false } do %>
+              <%= label %>
+            <% end %>
+          <% end %>
+        </div>
+        <%= render "pools/matches_list", matches: @matches, view_mode: match_view %>
+      </div>
 
-    <%# Ranking %>
-    <div id="tab-ranking" data-tabs-target="panel" class="hidden">
-      <%= turbo_stream_from "ranking_pool_#{@pool.id}" %>
-      <%= render "pools/ranking", pool: @pool, ranking: @ranking, pagy: @pagy_ranking %>
     </div>
-
-    <%# Jogos %>
-    <div id="tab-matches" data-tabs-target="panel" class="hidden">
-      <%= render "pools/matches_list", matches: @matches %>
-    </div>
-
   </div>
 </div>

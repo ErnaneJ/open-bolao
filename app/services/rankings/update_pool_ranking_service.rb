@@ -41,19 +41,22 @@ module Rankings
       sorted = pool.pool_participants
                    .active
                    .order(total_points: :desc, joined_at: :asc)
+                   .to_a
 
+      current_rank = 1
       sorted.each_with_index do |participant, idx|
-        new_rank = idx + 1
-        prev_rank = previous_ranks[participant.user_id]
+        # Dense ranking: increment only when points actually differ
+        current_rank += 1 if idx > 0 && sorted[idx - 1].total_points != participant.total_points
 
+        prev_rank = previous_ranks[participant.user_id]
         trend = if prev_rank.nil? then :same
-                elsif new_rank < prev_rank then :up
-                elsif new_rank > prev_rank then :down
-                else :same
-                end
+        elsif current_rank < prev_rank then :up
+        elsif current_rank > prev_rank then :down
+        else :same
+        end
 
         participant.update_columns(
-          rank: new_rank,
+          rank: current_rank,
           rank_previous: prev_rank,
           rank_trend: PoolParticipant.rank_trends[trend]
         )

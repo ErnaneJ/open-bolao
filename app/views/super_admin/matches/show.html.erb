@@ -1,0 +1,48 @@
+<% content_for :title, "#{@match.home_team.name} × #{@match.away_team.name}" %>
+<div class="max-w-2xl">
+  <div class="flex items-center gap-3 mb-6">
+    <%= link_to "← Jogos", super_admin_matches_path, class: "text-sm text-pitch-500 hover:text-pitch-700 dark:hover:text-pitch-200" %>
+    <div class="ml-auto flex gap-2">
+      <%= link_to "Editar", edit_super_admin_match_path(@match), class: "btn btn-ghost btn-sm" %>
+      <%= button_to "Excluir", super_admin_match_path(@match), method: :delete,
+            data: { turbo_confirm: "Excluir este jogo?" },
+            class: "btn btn-danger btn-sm" %>
+    </div>
+  </div>
+
+  <div class="card p-6 mb-4">
+    <div class="flex items-center gap-4 mb-4">
+      <div class="flex-1 text-center">
+        <% if @match.home_team.flag_url.present? %>
+          <img src="<%= @match.home_team.flag_url %>" class="w-16 h-11 object-cover rounded-lg mx-auto mb-2" alt="">
+        <% end %>
+        <p class="font-bold text-pitch-900 dark:text-white"><%= @match.home_team.name %></p>
+      </div>
+      <div class="text-center shrink-0">
+        <% if @match.status_finished? || @match.status_live? %>
+          <div class="font-mono font-bold text-3xl text-pitch-900 dark:text-white">
+            <%= @match.home_score %><span class="text-pitch-300 mx-1">–</span><%= @match.away_score %>
+          </div>
+        <% end %>
+        <%= status_badge(@match.status) %>
+        <% if @match.scheduled_at %>
+          <p class="text-xs text-pitch-400 mt-1 font-mono">
+            <%= @match.scheduled_at.in_time_zone("America/Fortaleza").strftime("%d/%m/%Y %H:%M") %>
+          </p>
+        <% end %>
+      </div>
+      <div class="flex-1 text-center">
+        <% if @match.away_team.flag_url.present? %>
+          <img src="<%= @match.away_team.flag_url %>" class="w-16 h-11 object-cover rounded-lg mx-auto mb-2" alt="">
+        <% end %>
+        <p class="font-bold text-pitch-900 dark:text-white"><%= @match.away_team.name %></p>
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-2 text-xs text-pitch-500 dark:text-pitch-400 pt-4 border-t border-pitch-100 dark:border-pitch-700">
+      <div><span class="font-medium text-pitch-700 dark:text-pitch-200">Torneio:</span> <%= @match.tournament&.name || "—" %></div>
+      <div><span class="font-medium text-pitch-700 dark:text-pitch-200">Fase:</span> <%= @match.stage&.name || "—" %></div>
+      <div><span class="font-medium text-pitch-700 dark:text-pitch-200">Estádio:</span> <%= @match.venue || "—" %></div>
+      <div><span class="font-medium text-pitch-700 dark:text-pitch-200">ID TSDB:</span> <code class="font-mono"><%= @match.external_tsdb_id || "—" %></code></div>
+    </div>
+  </div>
+</div>

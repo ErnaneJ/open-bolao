@@ -1,4 +1,14 @@
 class WebhookEndpoint < ApplicationRecord
+  ALL_EVENTS = {
+    "match.finished"       => "Jogo encerrado",
+    "match.live"           => "Jogo ao vivo",
+    "match.goal"           => "Gol marcado",
+    "pool.daily_matches"   => "Jogos do dia (8h)",
+    "pool.ranking_updated" => "Ranking atualizado",
+    "pool.finished"        => "Bolão encerrado",
+    "tip.scored"           => "Palpite pontuado"
+  }.freeze
+
   belongs_to :owner, polymorphic: true
   has_many :webhook_deliveries, dependent: :destroy
 
@@ -6,7 +16,7 @@ class WebhookEndpoint < ApplicationRecord
   validates :events, presence: true
 
   scope :active, -> { where(active: true) }
-  scope :for_event, ->(event) { active.where("events @> ?", [event].to_json) }
+  scope :for_event, ->(event) { active.where("events @> ?", [ event ].to_json) }
 
   before_create :generate_secret_token
 

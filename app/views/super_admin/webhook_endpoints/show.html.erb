@@ -1,0 +1,97 @@
+<% content_for :title, "Webhook — #{@endpoint.url.truncate(50)}" %>
+
+<div class="max-w-3xl">
+  <div class="flex items-center gap-3 mb-6">
+    <%= link_to "← Webhooks", super_admin_webhook_endpoints_path, class: "text-sm text-pitch-500 hover:text-pitch-700 dark:hover:text-pitch-200" %>
+    <div class="flex items-center gap-2 ml-auto">
+      <%= link_to "Editar", edit_super_admin_webhook_endpoint_path(@endpoint), class: "btn btn-ghost btn-sm" %>
+      <%= button_to "Excluir", super_admin_webhook_endpoint_path(@endpoint), method: :delete,
+            data: { turbo_confirm: "Excluir este webhook?" },
+            class: "btn btn-danger btn-sm" %>
+    </div>
+  </div>
+
+  <%# Endpoint info %>
+  <div class="card p-5 mb-6">
+    <div class="flex items-start gap-3">
+      <div class="w-2 h-2 rounded-full mt-2 shrink-0 <%= @endpoint.active? ? 'bg-grass-500' : 'bg-pitch-300' %>"></div>
+      <div class="flex-1 min-w-0">
+        <code class="text-sm font-mono text-pitch-900 dark:text-white break-all"><%= @endpoint.url %></code>
+        <div class="flex flex-wrap gap-1 mt-2">
+          <% Array(@endpoint.events).each do |event| %>
+            <span class="badge badge-draft text-[10px]"><%= event %></span>
+          <% end %>
+        </div>
+        <% if @endpoint.last_triggered_at %>
+          <p class="text-xs text-pitch-400 mt-2">
+            Último disparo: <%= time_ago_in_words(@endpoint.last_triggered_at) %> atrás
+            <% if @endpoint.last_response_code %>
+              · Resposta: <span class="<%= @endpoint.last_response_code.to_s.start_with?("2") ? 'text-grass-500' : 'text-red-500' %> font-mono font-bold"><%= @endpoint.last_response_code %></span>
+            <% end %>
+          </p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <%# Test button per event %>
+  <div class="card p-5 mb-6">
+    <h2 class="font-display font-bold text-sm uppercase tracking-widest text-pitch-400 mb-3">Testar endpoint</h2>
+    <p class="text-xs text-pitch-400 mb-3">Envia um payload de teste para o URL acima com um evento real.</p>
+    <div class="flex flex-wrap gap-2">
+      <% available_events = Array(@endpoint.events).presence || %w[test] %>
+      <% available_events.each do |event| %>
+        <%= button_to test_super_admin_webhook_endpoint_path(@endpoint),
+              method: :post,
+              params: { event_type: event },
+              class: "btn btn-ghost btn-sm" do %>
+          Testar <span class="font-mono text-neon-600 dark:text-neon-300"><%= event %></span>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Delivery history %>
+  <div>
+    <h2 class="font-display font-bold text-sm uppercase tracking-widest text-pitch-400 mb-3">
+      Histórico de entregas
+    </h2>
+    <% if @deliveries.any? %>
+      <div class="card overflow-hidden divide-y divide-pitch-100 dark:divide-pitch-700/30">
+        <% @deliveries.each do |d| %>
+          <div class="px-4 py-3 flex items-start gap-3">
+            <div class="<%= d.delivered_at ? 'text-grass-500' : 'text-red-500' %> shrink-0 mt-0.5">
+              <% if d.delivered_at %>
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <% else %>
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+              <% end %>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="badge badge-draft text-[9px]"><%= d.event_type %></span>
+                <% if d.response_code %>
+                  <span class="font-mono text-xs font-bold <%= d.response_code.to_s.start_with?('2') ? 'text-grass-500' : 'text-red-500' %>">
+                    HTTP <%= d.response_code %>
+                  </span>
+                <% end %>
+                <span class="text-[10px] text-pitch-400"><%= time_ago_in_words(d.attempted_at) %> atrás</span>
+                <% if d.payload&.dig("test") %>
+                  <span class="badge badge-draft text-[9px]">TESTE</span>
+                <% end %>
+              </div>
+              <% if d.response_body.present? %>
+                <code class="text-[11px] text-pitch-400 block mt-1 truncate"><%= d.response_body.truncate(100) %></code>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+      <%= render "shared/pagy", pagy: @pagy %>
+    <% else %>
+      <div class="card p-8 text-center">
+        <p class="text-pitch-400 text-sm">Nenhuma entrega ainda. Use o botão "Testar" acima.</p>
+      </div>
+    <% end %>
+  </div>
+</div>

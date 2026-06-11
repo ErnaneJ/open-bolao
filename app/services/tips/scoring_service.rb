@@ -5,9 +5,9 @@ module Tips
     end
 
     def initialize(tip:, match:, pool:)
-      @tip = tip
+      @tip   = tip
       @match = match
-      @pool = pool
+      @pool  = pool
       @config = pool.scoring_config_with_defaults
     end
 
@@ -22,84 +22,26 @@ module Tips
     attr_reader :tip, :match, :pool, :config
 
     def calculate_points
-      return no_tip_penalty if tip_missing?
+      return 0 if tip.home_score_tip.nil? || tip.away_score_tip.nil?
       return 0 unless match.status_finished?
+      return 0 if match.home_score.nil? || match.away_score.nil?
 
-      base = base_points
-      base = apply_stage_multiplier(base) if pool.tournament_pool?
-      base
-    end
+      actual_draw = match.home_score == match.away_score
+      tip_result  = tip.home_score_tip <=> tip.away_score_tip  # -1, 0, 1
+      real_result = match.home_score   <=> match.away_score
+      exact       = tip.home_score_tip == match.home_score &&
+                    tip.away_score_tip == match.away_score
 
-    def tip_missing?
-      tip.home_score_tip.nil? || tip.away_score_tip.nil?
-    end
-
-    def no_tip_penalty
-      config.fetch("no_tip_penalty", 0).to_i
-    end
-
-    def base_points
-      points = 0
-
-      if exact_score?
-        points += winner_points + config.fetch("exact_score", 5).to_i
-      elsif correct_winner?
-        points += winner_points
-        points += config.fetch("correct_goal_difference", 1).to_i if correct_goal_difference?
-      end
-
-      points += config.fetch("correct_total_goals", 1).to_i if correct_total_goals? && !exact_score?
-
-      points
-    end
-
-    def winner_points
-      result = match_result(match.home_score, match.away_score)
-      if result == :draw
-        config.fetch("correct_draw", 3).to_i
+      if exact
+        actual_draw ? config.fetch("correct_draw_score", 5).to_i
+                    : config.fetch("correct_score", 5).to_i
+      elsif tip_result == real_result && actual_draw
+        config.fetch("correct_draw", 3).to_i   # acertou empate, errou o placar
+      elsif tip_result == real_result
+        config.fetch("correct_winner", 3).to_i  # acertou vencedor, errou o placar
       else
-        config.fetch("correct_winner", 3).to_i
+        0
       end
-    end
-
-    def exact_score?
-      tip.home_score_tip == match.home_score &&
-        tip.away_score_tip == match.away_score
-    end
-
-    def correct_winner?
-      match_result(tip.home_score_tip, tip.away_score_tip) ==
-        match_result(match.home_score, match.away_score)
-    end
-
-    def correct_goal_difference?
-      (tip.home_score_tip - tip.away_score_tip) ==
-        (match.home_score - match.away_score)
-    end
-
-    def correct_total_goals?
-      (tip.home_score_tip + tip.away_score_tip) ==
-        (match.home_score + match.away_score)
-    end
-
-    def match_result(home, away)
-      return :home if home > away
-      return :away if home < away
-      :draw
-    end
-
-    def apply_stage_multiplier(points)
-      return points unless match.stage.present?
-
-      multiplier = if match.stage.stage_final?
-                     config.fetch("final_multiplier", 3.0).to_f
-                   elsif match.stage.stage_group?
-                     1.0
-                   else
-                     config.fetch("knockout_multiplier", 2.0).to_f
-                   end
-
-      (points * multiplier).to_i
     end
   end
 end

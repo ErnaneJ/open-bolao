@@ -5,22 +5,75 @@ module ApiProviders
     PAID_KEY  = "123"
     WC_LEAGUE = "4429"
 
-    MatchData  = Data.define(:external_id, :external_tsdb_id, :home_team_name,
-                              :away_team_name, :home_team_external_id, :away_team_external_id,
-                              :scheduled_at, :status, :home_score, :away_score,
-                              :group_name, :match_type, :stadium_name,
-                              :thumb_url, :stream_url, :season, :round)
-    TeamData   = Data.define(:external_tsdb_id, :name, :short_name, :country_code,
-                              :flag_url, :logo_url, :primary_color)
-    LeagueData = Data.define(:external_tsdb_id, :name, :country, :sport, :formed_year,
-                              :current_season, :logo_url, :badge_url)
+    # ── Rate-limit constants ─────────────────────────────────────────────
+    # Free plan: 30 req/min. We target 24 req/min (comfortable margin).
+    # 60_000ms / 24 = 2_500ms minimum interval between ANY two requests,
+    # enforced globally across all Sidekiq workers via Redis.
+    MIN_INTERVAL_MS = 2_500
+
+    # Lua script: atomically claims the next available request slot.
+    # Returns 0 if the caller can proceed immediately, or N (ms) to sleep first.
+    # Multiple concurrent workers each get their own slot, queued 2.5s apart.
+    THROTTLE_LUA = <<~LUA.freeze
+      local key      = KEYS[1]
+      local now      = tonumber(ARGV[1])
+      local interval = tonumber(ARGV[2])
+
+      local last = tonumber(redis.call('GET', key)) or 0
+      local next_slot = math.max(last, now - interval)  -- slot just before now if idle
+
+      -- Advance to the next available slot
+      next_slot = next_slot + interval
+      local wait = next_slot - now
+
+      -- Store the slot we just claimed (TTL: 5 min)
+      redis.call('SET', key, next_slot, 'PX', 300000)
+
+      if wait <= 0 then return 0 else return wait end
+    LUA
+
+    # ── HTTP retry constants ─────────────────────────────────────────────
+    MAX_RETRIES  = 3
+    BASE_BACKOFF = 60  # seconds — on 429, wait a full minute before retry
+
+    # ── Data structs ─────────────────────────────────────────────────────
+    MatchData = Data.define(
+      :external_id, :external_tsdb_id,
+      :home_team_name, :away_team_name,
+      :home_team_external_id, :away_team_external_id,
+      :scheduled_at, :status,
+      :home_score, :away_score,
+      :home_score_ht, :away_score_ht,
+      :home_score_et, :away_score_et,
+      :home_score_penalties, :away_score_penalties,
+      :group_name, :match_type,
+      :stadium_name, :city,
+      :thumb_url, :stream_url,
+      :season, :round, :round_number,
+      :referee, :attendance
+    )
+
+    TeamData = Data.define(
+      :external_tsdb_id, :name, :short_name, :country_code,
+      :flag_url, :logo_url, :banner_url, :fanart_url,
+      :primary_color, :secondary_color, :tertiary_color,
+      :formed_year, :stadium_name, :stadium_capacity,
+      :description, :website, :gender
+    )
+
+    LeagueData = Data.define(
+      :external_tsdb_id, :name, :country, :sport,
+      :formed_year, :current_season,
+      :logo_url, :badge_url, :banner_url, :fanart_url, :trophy_url,
+      :description, :gender, :website
+    )
 
     def initialize(api_provider = nil)
       @api_provider = api_provider
-      @api_key = api_provider&.config&.dig("api_key") || PAID_KEY
+      @api_key      = api_provider&.config&.dig("api_key") || PAID_KEY
     end
 
-    # ── League data ──────────────────────────────────────────────────────
+    # ── League ───────────────────────────────────────────────────────────
     def fetch_league(league_id = WC_LEAGUE)
       res = get("lookupleague.php", id: league_id)
       arr = Array(res["leagues"])
@@ -37,6 +90,37 @@ module ApiProviders
     def fetch_matches_for_season(season, league_id = WC_LEAGUE)
       res = get("eventsseason.php", id: league_id, s: season)
       Array(res["events"]).map { |e| parse_match(e) }.compact
+    end
+
+    MAX_CONSECUTIVE_EMPTY = 3
+
+    def fetch_all_matches_by_round(season, league_id = WC_LEAGUE, max_rounds: 60)
+      all               = []
+      consecutive_empty = 0
+      total_rounds      = 0
+      error_rounds      = 0
+
+      (1..max_rounds).each do |round|
+        events = fetch_round("eventsround.php", id: league_id, r: round.to_s, s: season)
+        total_rounds += 1
+
+        if events.nil?
+          error_rounds += 1
+          Rails.logger.warn("TheSportsDB: error on round #{round}, skipping")
+          next
+        end
+
+        if events.empty?
+          consecutive_empty += 1
+          break if consecutive_empty >= MAX_CONSECUTIVE_EMPTY
+        else
+          consecutive_empty = 0
+          all.concat(events.map { |e| parse_match(e) }.compact)
+        end
+      end
+
+      rate_limited = all.empty? && total_rounds > 0 && error_rounds == total_rounds
+      [ all, rate_limited ]
     end
 
     def fetch_live_matches(league_id = WC_LEAGUE)
@@ -62,10 +146,9 @@ module ApiProviders
     end
 
     # ── Teams ────────────────────────────────────────────────────────────
-    def fetch_teams(league_id = WC_LEAGUE)
-      res = get("lookup_all_teams.php", id: league_id)
-      Array(res["teams"]).map { |t| parse_team(t) }.compact
-    end
+    # NOTE: lookup_all_teams.php intentionally NOT exposed as a public method.
+    # It returns wrong data for several leagues. Team IDs must always come from
+    # match data (eventsround / eventsseason), then individual lookupteam.php calls.
 
     def fetch_team(team_id)
       res = get("lookupteam.php", id: team_id)
@@ -88,7 +171,7 @@ module ApiProviders
       when Match
         return [] if schedulable.external_tsdb_id.blank?
         m = fetch_match(schedulable.external_tsdb_id)
-        m ? [m] : []
+        m ? [ m ] : []
       else
         []
       end
@@ -96,25 +179,107 @@ module ApiProviders
 
     private
 
-    # Builds endpoint path with API key injected
+    # ── Rate limiting — token-slot approach ──────────────────────────────
+    # Acquires the next available request slot globally across all Sidekiq workers.
+    # Uses one Redis connection per adapter instance (cached in @redis_conn).
+    # Always uses the `redis` gem's Redis class — avoids redis-client API differences.
+    def throttle!
+      now_ms  = (Time.now.to_f * 1000).to_i
+      wait_ms = redis_conn.eval(
+        THROTTLE_LUA,
+        keys: [ "tsdb:req_slot" ],
+        argv: [ now_ms.to_s, MIN_INTERVAL_MS.to_s ]
+      ).to_i
+
+      if wait_ms > 0
+        wait_sec = (wait_ms / 1000.0).ceil + 0.05
+        Rails.logger.info("TheSportsDB: throttle #{wait_sec.round(1)}s (slot queued)")
+        sleep(wait_sec)
+      end
+    rescue => e
+      Rails.logger.warn("TheSportsDB: throttle fallback — #{e.class}: #{e.message}")
+      sleep(MIN_INTERVAL_MS / 1000.0)
+    end
+
+    # One `Redis` instance per adapter (= per job). Reconnects automatically.
+    # Uses the `redis` gem directly so `.eval(script, keys:, argv:)` works reliably.
+    def redis_conn
+      @redis_conn ||= Redis.new(
+        url:            ENV.fetch("REDIS_URL", "redis://localhost:6379/0"),
+        timeout:        2,
+        reconnect_attempts: 1
+      )
+    end
+
+    # ── HTTP layer ───────────────────────────────────────────────────────
+    # get() throttles BEFORE each attempt (not once before the loop).
+    # On 429: sleeps a full BASE_BACKOFF minute to let the rate-limit window reset.
     def get(endpoint, **params)
       path = "/api/v1/json/#{@api_key}/#{endpoint}"
-      resp = connection.get(path, params)
-      return {} unless resp.success?
-      JSON.parse(resp.body)
-    rescue Faraday::Error, JSON::ParserError => e
-      Rails.logger.error("TheSportsDB error #{endpoint}: #{e.message}")
+
+      MAX_RETRIES.times do |attempt|
+        throttle!
+        resp = connection.get(path, params)
+        return JSON.parse(resp.body) if resp.success?
+
+        if resp.status == 429
+          wait = BASE_BACKOFF * (attempt + 1)  # 60s, 120s, 180s
+          Rails.logger.warn("TheSportsDB: 429 on #{endpoint} (attempt #{attempt + 1}/#{MAX_RETRIES}), sleeping #{wait}s")
+          sleep(wait)
+        else
+          Rails.logger.error("TheSportsDB: HTTP #{resp.status} on #{endpoint}")
+          return {}
+        end
+      end
+
+      Rails.logger.error("TheSportsDB: gave up after #{MAX_RETRIES} attempts on #{endpoint}")
+      {}
+    rescue Faraday::Error => e
+      Rails.logger.error("TheSportsDB connection error on #{endpoint}: #{e.message}")
+      {}
+    rescue JSON::ParserError => e
+      Rails.logger.error("TheSportsDB parse error on #{endpoint}: #{e.message}")
       {}
     end
 
+    # Like get() but returns nil on non-429 errors (so callers distinguish "empty" from "error").
+    def fetch_round(endpoint, **params)
+      path = "/api/v1/json/#{@api_key}/#{endpoint}"
+
+      MAX_RETRIES.times do |attempt|
+        throttle!
+        resp = connection.get(path, params)
+        return Array(JSON.parse(resp.body)["events"]) if resp.success?
+
+        if resp.status == 429
+          wait = BASE_BACKOFF * (attempt + 1)
+          Rails.logger.warn("TheSportsDB: 429 on #{endpoint} (attempt #{attempt + 1}/#{MAX_RETRIES}), sleeping #{wait}s")
+          sleep(wait)
+        else
+          Rails.logger.error("TheSportsDB: HTTP #{resp.status} on #{endpoint}")
+          return nil
+        end
+      end
+
+      Rails.logger.error("TheSportsDB: gave up after #{MAX_RETRIES} attempts on #{endpoint}")
+      nil
+    rescue Faraday::Error, JSON::ParserError => e
+      Rails.logger.error("TheSportsDB fetch_round error: #{e.message}")
+      nil
+    end
+
     def connection
+      # No Faraday retry middleware — our own loop handles all retries with throttling.
       @connection ||= Faraday.new(url: BASE_URL) do |f|
-        f.request :retry, max: 2, interval: 1
+        f.options.timeout      = 30
+        f.options.open_timeout = 10
         f.adapter Faraday.default_adapter
-        f.headers["Accept"] = "application/json"
+        f.headers["Accept"]     = "application/json"
+        f.headers["User-Agent"] = "OpenBolao/1.0"
       end
     end
 
+    # ── Parsers ───────────────────────────────────────────────────────────
     def parse_match(e)
       status = map_status(e["strStatus"], e["strPostponed"])
       MatchData.new(
@@ -128,13 +293,23 @@ module ApiProviders
         status:                  status,
         home_score:              e["intHomeScore"].presence&.to_i,
         away_score:              e["intAwayScore"].presence&.to_i,
+        home_score_ht:           e["intHomeScoreHalf"].presence&.to_i,
+        away_score_ht:           e["intAwayScoreHalf"].presence&.to_i,
+        home_score_et:           e["intHomeScoreExtraTime"].presence&.to_i,
+        away_score_et:           e["intAwayScoreExtraTime"].presence&.to_i,
+        home_score_penalties:    e["intHomeScorePenalty"].presence&.to_i,
+        away_score_penalties:    e["intAwayScorePenalty"].presence&.to_i,
         group_name:              e["strGroup"] || e["strRound"],
-        match_type:              "group",
+        match_type:              map_match_type(e["strRound"]),
         stadium_name:            e["strVenue"],
+        city:                    e["strCity"],
         thumb_url:               e["strThumb"],
         stream_url:              e["strVideo"].presence,
         season:                  e["strSeason"],
-        round:                   e["intRound"]
+        round:                   e["intRound"],
+        round_number:            e["intRound"].presence&.to_i,
+        referee:                 e["strReferee"].presence,
+        attendance:              e["intAttendance"].presence&.to_i
       )
     rescue => ex
       Rails.logger.warn("TheSportsDB parse_match: #{ex.message}")
@@ -143,13 +318,23 @@ module ApiProviders
 
     def parse_team(t)
       TeamData.new(
-        external_tsdb_id: t["idTeam"].to_s,
-        name:             t["strTeam"].to_s.strip,
-        short_name:       t["strTeamShort"],
-        country_code:     t["strCountry"]&.slice(0, 3)&.upcase,
-        flag_url:         nil,
-        logo_url:         t["strBadge"] || t["strLogo"],
-        primary_color:    t["strColour1"]
+        external_tsdb_id:  t["idTeam"].to_s,
+        name:              t["strTeam"].to_s.strip,
+        short_name:        t["strTeamShort"].presence,
+        country_code:      t["strCountry"]&.slice(0, 3)&.upcase,
+        flag_url:          nil,
+        logo_url:          t["strBadge"].presence || t["strLogo"].presence,
+        banner_url:        t["strBanner"].presence,
+        fanart_url:        (t["strFanart1"] || t["strFanart2"] || t["strFanart3"] || t["strFanart4"]).presence,
+        primary_color:     t["strColour1"].presence,
+        secondary_color:   t["strColour2"].presence,
+        tertiary_color:    t["strColour3"].presence,
+        formed_year:       t["intFormedYear"].presence&.to_i,
+        stadium_name:      t["strStadium"].presence,
+        stadium_capacity:  t["intStadiumCapacity"].presence&.to_i,
+        description:       (t["strDescriptionPT"] || t["strDescriptionEN"]).presence,
+        website:           t["strWebsite"].presence,
+        gender:            t["strGender"].presence
       )
     rescue => ex
       Rails.logger.warn("TheSportsDB parse_team: #{ex.message}")
@@ -160,18 +345,23 @@ module ApiProviders
       LeagueData.new(
         external_tsdb_id: l["idLeague"].to_s,
         name:             l["strLeague"].to_s,
-        country:          l["strCountry"],
-        sport:            l["strSport"],
-        formed_year:      l["intFormedYear"]&.to_i,
-        current_season:   l["intCurrentSeason"]&.to_s,
-        logo_url:         l["strLogo"],
-        badge_url:        l["strBadge"]
+        country:          l["strCountry"].presence,
+        sport:            l["strSport"].presence,
+        formed_year:      l["intFormedYear"].presence&.to_i,
+        current_season:   l["strCurrentSeason"].presence || l["intCurrentSeason"]&.to_s,
+        logo_url:         l["strLogo"].presence,
+        badge_url:        l["strBadge"].presence,
+        banner_url:       l["strBanner"].presence,
+        fanart_url:       (l["strFanart1"] || l["strFanart2"] || l["strFanart3"] || l["strFanart4"]).presence,
+        trophy_url:       l["strTrophy"].presence,
+        description:      (l["strDescriptionPT"] || l["strDescriptionEN"]).presence,
+        gender:           l["strGender"].presence,
+        website:          l["strWebsite"].presence
       )
     end
 
     def parse_timestamp(value)
       return nil if value.blank?
-      # TheSportsDB strTimestamp is UTC
       Time.parse("#{value} UTC")
     rescue ArgumentError, TypeError
       nil
@@ -185,6 +375,19 @@ module ApiProviders
       when "PPD"                            then :postponed
       when "CANC"                           then :cancelled
       else :scheduled
+      end
+    end
+
+    def map_match_type(round_str)
+      return "group" if round_str.blank?
+      case round_str.to_s.downcase
+      when /round.*32|32.*round/ then "round_of_32"
+      when /round.*16|16.*round/ then "round_of_16"
+      when /quarter/             then "quarterfinal"
+      when /semi/                then "semifinal"
+      when /third|3rd/           then "third_place"
+      when /final/               then "final"
+      else "group"
       end
     end
   end

@@ -1,5 +1,41 @@
 <div id="ranking-table">
   <% if ranking.any? %>
+
+    <%# ── Podium (top 3) ──────────────────────────────────────────────────── %>
+    <% top3 = ranking.first(3) %>
+    <% if top3.size >= 2 %>
+      <div class="flex items-end justify-center gap-2 mb-8 px-4">
+        <%# Reorder: 2nd, 1st, 3rd %>
+        <% podium_order = [top3[1], top3[0], top3[2]].compact %>
+        <% podium_heights = top3[1] ? ["h-24", "h-32", "h-20"] : ["h-32", "h-24"] %>
+        <% podium_labels  = top3[1] ? ["2º", "1º", "3º"] : ["1º", "2º"] %>
+        <% podium_colors  = ["bg-pitch-200 dark:bg-pitch-700", "bg-neon-400 dark:bg-neon-500", "bg-amber-100 dark:bg-amber-900/40"] %>
+
+        <% podium_order.each_with_index do |pp, idx| %>
+          <% center = (top3[1] ? idx == 1 : idx == 0) %>
+          <div class="flex-1 flex flex-col items-center">
+            <%# Avatar %>
+            <% avatar_size = center ? :md : :sm %>
+            <% avatar_ring = center ? 'ring-2 ring-neon-400 shadow-lg shadow-neon-400/30 mb-1' : 'mb-1' %>
+            <%= user_avatar(pp.user, size: avatar_size, css: avatar_ring) %>
+            <%# Name %>
+            <p class="text-[11px] font-semibold text-pitch-900 dark:text-white truncate w-full text-center mb-1 <%= center ? '' : 'opacity-80' %>">
+              <%= pp.user.display_name.split.first %>
+            </p>
+            <%# Points %>
+            <p class="text-[10px] font-mono font-bold text-pitch-500 dark:text-pitch-300 mb-1.5"><%= pp.total_points %>pts</p>
+            <%# Podium block %>
+            <div class="w-full <%= podium_heights[idx] %> <%= podium_colors[idx] %> rounded-t-xl flex items-start justify-center pt-2">
+              <span class="text-[11px] font-bold <%= center ? 'text-pitch-900' : 'text-pitch-500 dark:text-pitch-400' %>">
+                <%= podium_labels[idx] %>
+              </span>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%# ── Full ranking table ──────────────────────────────────────────────── %>
     <div class="card overflow-hidden">
       <table class="data-table">
         <thead>
@@ -7,25 +43,24 @@
             <th class="w-14">#</th>
             <th><%= t("ranking.player") %></th>
             <th class="text-right"><%= t("ranking.points") %></th>
-            <th class="text-center w-12 hidden sm:table-cell"><%= t("ranking.trend") %></th>
+            <th class="text-center w-10 hidden sm:table-cell"><%= t("ranking.trend") %></th>
           </tr>
         </thead>
         <tbody>
           <% ranking.each do |participant| %>
-            <tr class="<%= 'bg-neon-400/5 dark:bg-neon-400/5' if participant.user_id == current_user.id %>">
+            <tr class="transition-colors <%= 'bg-neon-400/5' if participant.user_id == current_user.id %>">
               <td>
                 <% case participant.rank
                    when 1 then %><span class="rank-1">1</span><%
                    when 2 then %><span class="rank-2">2</span><%
                    when 3 then %><span class="rank-3">3</span><%
+                   when nil then %><span class="rank-n text-pitch-300 dark:text-pitch-600">—</span><%
                    else        %><span class="rank-n"><%= participant.rank %></span><%
                    end %>
               </td>
               <td>
                 <div class="flex items-center gap-2.5">
-                  <div class="avatar-sm bg-pitch-700 dark:bg-pitch-600 text-[11px]">
-                    <%= participant.user.display_name.first.upcase %>
-                  </div>
+                  <%= user_avatar(participant.user) %>
                   <div class="min-w-0">
                     <span class="font-medium text-pitch-900 dark:text-white text-sm block truncate">
                       <%= participant.user.display_name %>
@@ -52,7 +87,9 @@
         </tbody>
       </table>
     </div>
-    <div class="mt-4"><%= render "shared/pagy", pagy: pagy %></div>
+    <% if pagy.present? %>
+      <div class="mt-4"><%= render "shared/pagy", pagy: pagy %></div>
+    <% end %>
   <% else %>
     <div class="card p-12 text-center">
       <div class="text-4xl mb-3">🏆</div>

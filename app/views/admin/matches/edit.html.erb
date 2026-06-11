@@ -1,53 +1,228 @@
-<% content_for :title, "Resultado — #{@match.home_team.name} × #{@match.away_team.name}" %>
-<div class="p-6 max-w-lg">
-  <div class="flex items-center gap-3 mb-6">
-    <%= link_to "← Jogos", admin_pool_matches_path(@pool), class: "text-sm text-gray-500 hover:text-indigo-600" %>
-    <h1 class="text-xl font-bold">Inserir Resultado</h1>
-  </div>
+<% back_path = @pool ? admin_pool_matches_path(@pool) : admin_matches_path %>
+<% content_for :title, "#{@match.home_team.name} × #{@match.away_team.name}" %>
+<% content_for :topbar_back do %>
+  <%= link_to "← Jogos", back_path, class: "text-sm text-pitch-500 hover:text-pitch-700 dark:hover:text-pitch-200 transition-colors shrink-0" %>
+<% end %>
 
-  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-    <div class="text-center mb-6">
-      <p class="text-lg font-bold text-gray-900 dark:text-white">
-        <%= @match.home_team.name %> × <%= @match.away_team.name %>
-      </p>
-      <% if @match.scheduled_at %>
-        <p class="text-sm text-gray-500"><%= l(@match.scheduled_at, format: :default) %></p>
-      <% end %>
-    </div>
+<% content_for :topbar_actions do %>
+  <button type="submit" form="<%= dom_id(@match) %>"
+          class="btn btn-neon btn-sm">Salvar</button>
+<% end %>
 
-    <%= form_with model: [:admin, @pool, @match] do |f| %>
-      <div class="grid grid-cols-3 gap-4 mb-4 items-center">
-        <div class="text-center">
-          <p class="text-sm font-medium mb-2"><%= @match.home_team.name %></p>
-          <%= f.number_field :home_score, min: 0, max: 99, step: 1, value: @match.home_score,
-              class: "w-20 text-center text-2xl font-bold px-3 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 mx-auto block" %>
-        </div>
-        <div class="text-center text-2xl text-gray-300 font-bold">×</div>
-        <div class="text-center">
-          <p class="text-sm font-medium mb-2"><%= @match.away_team.name %></p>
-          <%= f.number_field :away_score, min: 0, max: 99, step: 1, value: @match.away_score,
-              class: "w-20 text-center text-2xl font-bold px-3 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 mx-auto block" %>
-        </div>
-      </div>
+<%= form_with model: @pool ? [:admin, @pool, @match] : [:admin, @match],
+              html: { id: dom_id(@match) } do |f| %>
 
-      <div class="grid grid-cols-2 gap-4 mb-4">
-        <div>
-          <label class="block text-xs text-gray-500 mb-1">Status</label>
-          <%= f.select :status, Match.statuses.keys.map { |s| [s.humanize, s] },
-              { selected: @match.status },
-              class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
-        </div>
-        <div>
-          <label class="block text-xs text-gray-500 mb-1">Local</label>
-          <%= f.text_field :venue, value: @match.venue, placeholder: "Estádio",
-              class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
-        </div>
-      </div>
+  <div class="max-w-4xl mx-auto px-4 py-8 space-y-6">
 
-      <div class="flex justify-end gap-3 mt-4">
-        <%= link_to "Cancelar", admin_pool_matches_path(@pool), class: "px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm" %>
-        <%= f.submit "Salvar Resultado", class: "px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 cursor-pointer" %>
+    <%# Errors %>
+    <% if @match.errors.any? %>
+      <div class="flash-error rounded-xl px-4 py-3 text-sm">
+        <ul class="list-disc list-inside space-y-1">
+          <% @match.errors.full_messages.each do |msg| %>
+            <li><%= msg %></li>
+          <% end %>
+        </ul>
       </div>
     <% end %>
+
+    <%# ── TIMES ──────────────────────────────────────────────────────────── %>
+    <section class="card p-6">
+      <h2 class="font-display font-bold text-sm uppercase tracking-widest text-pitch-400 mb-4">Times</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">Time da casa</label>
+          <%= f.select :home_team_id,
+                options_for_select(@teams.map { |t| [t.name, t.id] }, @match.home_team_id),
+                { include_blank: "— selecione —" },
+                class: "w-full px-3 py-2 rounded-lg border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 text-sm focus:ring-2 focus:ring-neon-400 focus:outline-none" %>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">Time visitante</label>
+          <%= f.select :away_team_id,
+                options_for_select(@teams.map { |t| [t.name, t.id] }, @match.away_team_id),
+                { include_blank: "— selecione —" },
+                class: "w-full px-3 py-2 rounded-lg border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 text-sm focus:ring-2 focus:ring-neon-400 focus:outline-none" %>
+        </div>
+      </div>
+    </section>
+
+    <%# ── TORNEIO & FASE ─────────────────────────────────────────────────── %>
+    <section class="card p-6">
+      <h2 class="font-display font-bold text-sm uppercase tracking-widest text-pitch-400 mb-4">Torneio & Fase</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">Torneio</label>
+          <%= f.select :tournament_id,
+                options_for_select(@tournaments.map { |t| [t.name, t.id] }, @match.tournament_id),
+                { include_blank: "— nenhum —" },
+                class: "w-full px-3 py-2 rounded-lg border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 text-sm focus:ring-2 focus:ring-neon-400 focus:outline-none" %>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">Fase / Grupo</label>
+          <%= f.select :stage_id,
+                options_for_select(@stages.map { |s| [s.name, s.id] }, @match.stage_id),
+                { include_blank: "— nenhuma —" },
+                class: "w-full px-3 py-2 rounded-lg border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 text-sm focus:ring-2 focus:ring-neon-400 focus:outline-none" %>
+        </div>
+      </div>
+    </section>
+
+    <%# ── AGENDAMENTO ────────────────────────────────────────────────────── %>
+    <section class="card p-6">
+      <h2 class="font-display font-bold text-sm uppercase tracking-widest text-pitch-400 mb-4">Agendamento</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">Data e hora (UTC)</label>
+          <%= f.datetime_local_field :scheduled_at,
+                value: @match.scheduled_at&.utc&.strftime("%Y-%m-%dT%H:%M"),
+                class: "w-full px-3 py-2 rounded-lg border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 text-sm focus:ring-2 focus:ring-neon-400 focus:outline-none" %>
+          <p class="text-[11px] text-pitch-400 mt-1">Armazenado em UTC. Exibido para usuários no fuso do bolão.</p>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">Local / Estádio</label>
+          <%= f.text_field :venue, placeholder: "Ex: MetLife Stadium",
+                class: "w-full px-3 py-2 rounded-lg border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 text-sm focus:ring-2 focus:ring-neon-400 focus:outline-none" %>
+        </div>
+      </div>
+    </section>
+
+    <%# ── STATUS & VENCEDOR ──────────────────────────────────────────────── %>
+    <section class="card p-6">
+      <h2 class="font-display font-bold text-sm uppercase tracking-widest text-pitch-400 mb-4">Status & Vencedor</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">Status</label>
+          <%= f.select :status,
+                Match.statuses.keys.map { |s| [s.humanize, s] },
+                { selected: @match.status },
+                class: "w-full px-3 py-2 rounded-lg border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 text-sm focus:ring-2 focus:ring-neon-400 focus:outline-none" %>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">Vencedor</label>
+          <%= f.select :winner_team_id,
+                options_for_select(
+                  [[@match.home_team.name, @match.home_team_id], [@match.away_team.name, @match.away_team_id]],
+                  @match.winner_team_id
+                ),
+                { include_blank: "— empate / não definido —" },
+                class: "w-full px-3 py-2 rounded-lg border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 text-sm focus:ring-2 focus:ring-neon-400 focus:outline-none" %>
+        </div>
+      </div>
+    </section>
+
+    <%# ── PLACAR ──────────────────────────────────────────────────────────── %>
+    <section class="card p-6">
+      <h2 class="font-display font-bold text-sm uppercase tracking-widest text-pitch-400 mb-5">Placar</h2>
+
+      <%# Score row helper %>
+      <% score_input_class = "w-16 text-center font-mono font-bold text-xl px-2 py-2 rounded-lg border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 focus:ring-2 focus:ring-neon-400 focus:outline-none" %>
+
+      <div class="space-y-5">
+        <%# Tempo normal %>
+        <div>
+          <p class="text-xs font-semibold text-pitch-500 uppercase tracking-wide mb-2">Tempo normal</p>
+          <div class="flex items-center gap-4">
+            <span class="text-sm text-pitch-600 dark:text-pitch-300 w-32 truncate text-right"><%= @match.home_team.name %></span>
+            <%= f.number_field :home_score, min: 0, max: 99, step: 1, placeholder: "–",
+                  class: score_input_class %>
+            <span class="text-pitch-400 font-bold">×</span>
+            <%= f.number_field :away_score, min: 0, max: 99, step: 1, placeholder: "–",
+                  class: score_input_class %>
+            <span class="text-sm text-pitch-600 dark:text-pitch-300 w-32 truncate"><%= @match.away_team.name %></span>
+          </div>
+        </div>
+
+        <%# Intervalo %>
+        <div>
+          <p class="text-xs font-semibold text-pitch-500 uppercase tracking-wide mb-2">Intervalo (HT)</p>
+          <div class="flex items-center gap-4">
+            <span class="w-32"></span>
+            <%= f.number_field :home_score_ht, min: 0, max: 99, step: 1, placeholder: "–",
+                  class: score_input_class %>
+            <span class="text-pitch-400 font-bold">×</span>
+            <%= f.number_field :away_score_ht, min: 0, max: 99, step: 1, placeholder: "–",
+                  class: score_input_class %>
+          </div>
+        </div>
+
+        <%# Prorrogação %>
+        <div>
+          <p class="text-xs font-semibold text-pitch-500 uppercase tracking-wide mb-2">Prorrogação (ET)</p>
+          <div class="flex items-center gap-4">
+            <span class="w-32"></span>
+            <%= f.number_field :home_score_et, min: 0, max: 99, step: 1, placeholder: "–",
+                  class: score_input_class %>
+            <span class="text-pitch-400 font-bold">×</span>
+            <%= f.number_field :away_score_et, min: 0, max: 99, step: 1, placeholder: "–",
+                  class: score_input_class %>
+          </div>
+        </div>
+
+        <%# Pênaltis %>
+        <div>
+          <p class="text-xs font-semibold text-pitch-500 uppercase tracking-wide mb-2">Pênaltis</p>
+          <div class="flex items-center gap-4">
+            <span class="w-32"></span>
+            <%= f.number_field :home_score_penalties, min: 0, max: 99, step: 1, placeholder: "–",
+                  class: score_input_class %>
+            <span class="text-pitch-400 font-bold">×</span>
+            <%= f.number_field :away_score_penalties, min: 0, max: 99, step: 1, placeholder: "–",
+                  class: score_input_class %>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <%# ── MÍDIA ───────────────────────────────────────────────────────────── %>
+    <section class="card p-6">
+      <h2 class="font-display font-bold text-sm uppercase tracking-widest text-pitch-400 mb-4">Mídia</h2>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">URL do stream (YouTube / embed)</label>
+          <%= f.url_field :stream_url, placeholder: "https://www.youtube.com/watch?v=...",
+                class: "w-full px-3 py-2 rounded-lg border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 text-sm font-mono focus:ring-2 focus:ring-neon-400 focus:outline-none" %>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">URL da imagem de capa (thumb)</label>
+          <%= f.url_field :thumb_url, placeholder: "https://...",
+                class: "w-full px-3 py-2 rounded-lg border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 text-sm font-mono focus:ring-2 focus:ring-neon-400 focus:outline-none" %>
+          <% if @match.thumb_url.present? %>
+            <div class="mt-2">
+              <img src="<%= @match.thumb_url %>" class="h-20 rounded-lg object-cover border border-pitch-200 dark:border-pitch-700" alt="">
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </section>
+
+    <%# ── IDENTIFICADORES EXTERNOS ───────────────────────────────────────── %>
+    <section class="card p-6">
+      <h2 class="font-display font-bold text-sm uppercase tracking-widest text-pitch-400 mb-4">Identificadores externos</h2>
+      <p class="text-xs text-pitch-400 mb-4">Usados para deduplicação durante sincronizações automáticas. Altere com cuidado.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">ID externo (geral)</label>
+          <%= f.text_field :external_id, placeholder: "ex: 1234567",
+                class: "w-full px-3 py-2 rounded-lg border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 text-sm font-mono focus:ring-2 focus:ring-neon-400 focus:outline-none" %>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">Provedor</label>
+          <%= f.text_field :external_provider_name, placeholder: "ex: thesportsdb",
+                class: "w-full px-3 py-2 rounded-lg border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 text-sm font-mono focus:ring-2 focus:ring-neon-400 focus:outline-none" %>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">ID TheSportsDB</label>
+          <%= f.text_field :external_tsdb_id, placeholder: "ex: 1234567",
+                class: "w-full px-3 py-2 rounded-lg border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 text-sm font-mono focus:ring-2 focus:ring-neon-400 focus:outline-none" %>
+        </div>
+      </div>
+    </section>
+
+    <%# Botões de ação %>
+    <div class="flex items-center justify-between gap-4 pb-8">
+      <%= link_to "Cancelar", back_path, class: "btn btn-ghost" %>
+      <%= f.submit "Salvar jogo", class: "btn btn-neon cursor-pointer" %>
+    </div>
+
   </div>
-</div>
+<% end %>

@@ -19,9 +19,7 @@
           <tr>
             <td class="px-4 py-3">
               <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
-                  <%= user.display_name.first.upcase %>
-                </div>
+                <%= user_avatar(user) %>
                 <div>
                   <p class="font-medium text-gray-900 dark:text-white"><%= user.display_name %></p>
                   <p class="text-xs text-gray-400"><%= user.email %></p>

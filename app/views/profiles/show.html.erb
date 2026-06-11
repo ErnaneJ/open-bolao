@@ -5,7 +5,7 @@
   <div class="card p-6 mb-6">
     <div class="flex items-center gap-5 mb-5">
       <% if @user.avatar.attached? %>
-        <%= image_tag @user.avatar.variant(resize_to_fill: [80, 80]),
+        <%= image_tag @user.avatar,
               class: "w-20 h-20 rounded-2xl object-cover" %>
       <% else %>
         <div class="w-20 h-20 rounded-2xl bg-pitch-900 dark:bg-pitch-600 flex items-center justify-center">
@@ -61,8 +61,7 @@
       </div>
     <% else %>
       <div class="card p-8 text-center">
-        <p class="text-pitch-400 text-sm mb-3">Você ainda não participa de nenhum bolão.</p>
-        <%= link_to pools_path, class: "btn btn-neon btn-sm" do %>Explorar bolões<% end %>
+        <p class="text-pitch-400 text-sm">Você ainda não participa de nenhum bolão. Peça um convite ou crie o seu.</p>
       </div>
     <% end %>
   </section>

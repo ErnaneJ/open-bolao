@@ -18,18 +18,22 @@ RSpec.describe Sync::FetchResultsJob do
       external_id: "ext-123",
       home_team_name: home_team.name,
       away_team_name: away_team.name,
+      home_team_external_id: "ht-1",
+      away_team_external_id: "at-1",
       scheduled_at: match.scheduled_at,
       status: :live,
       home_score: 1,
       away_score: 0,
-      group_name: "Group A"
+      group_name: "Group A",
+      match_type: "group",
+      stadium_name: nil
     )
   end
 
   before do
     match # ensure match exists
     allow_any_instance_of(ApiProviders::Worldcup2026Adapter)
-      .to receive(:fetch_results).and_return([match_data])
+      .to receive(:fetch_results).and_return([ match_data ])
   end
 
   describe "#perform" do
@@ -52,16 +56,22 @@ RSpec.describe Sync::FetchResultsJob do
     end
 
     context "when match finishes" do
+      let!(:pool) { create(:pool, tournament: tournament) }
+
       let(:match_data) do
         ApiProviders::Worldcup2026Adapter::MatchData.new(
           external_id: "ext-123",
           home_team_name: home_team.name,
           away_team_name: away_team.name,
+          home_team_external_id: "ht-1",
+          away_team_external_id: "at-1",
           scheduled_at: match.scheduled_at,
           status: :finished,
           home_score: 2,
           away_score: 1,
-          group_name: nil
+          group_name: nil,
+          match_type: "group",
+          stadium_name: nil
         )
       end
 

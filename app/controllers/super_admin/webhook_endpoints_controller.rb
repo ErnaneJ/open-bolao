@@ -47,8 +47,10 @@ class SuperAdmin::WebhookEndpointsController < SuperAdmin::BaseController
 
   def test
     skip_authorization
-    Webhooks::DispatchJob.perform_later(event_type: "test", payload: { "message" => "Test from Super Admin" })
-    redirect_to super_admin_webhook_endpoints_path, notice: t("super_admin.webhooks.tested")
+    event = params[:event_type].presence || @endpoint.events&.first || "test"
+    Webhooks::TestEndpointJob.perform_later(@endpoint.id, event)
+    redirect_to super_admin_webhook_endpoint_path(@endpoint),
+                notice: "Payload de teste enfileirado para o evento '#{event}'."
   end
 
   private

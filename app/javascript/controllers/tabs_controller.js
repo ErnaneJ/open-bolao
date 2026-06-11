@@ -4,11 +4,15 @@ export default class extends Controller {
   static targets = ["tab", "panel"]
 
   connect() {
-    this.showTab(this.tabTargets[0]?.dataset.tab)
+    const hash = window.location.hash.replace("#", "")
+    const matched = this.tabTargets.find(t => `tab-${t.dataset.tab}` === hash)
+    this.showTab(matched?.dataset.tab || this.tabTargets[0]?.dataset.tab)
   }
 
   show(event) {
-    this.showTab(event.currentTarget.dataset.tab)
+    const tab = event.currentTarget.dataset.tab
+    history.replaceState(null, "", `#tab-${tab}`)
+    this.showTab(tab)
   }
 
   showTab(tabId) {

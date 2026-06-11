@@ -3,7 +3,7 @@ class Admin::LineupController < Admin::BaseController
 
   def index
     skip_authorization
-    @pool_matches = @pool.pool_matches.includes(match: [:home_team, :away_team, :stage])
+    @pool_matches = @pool.pool_matches.includes(match: [ :home_team, :away_team, :stage ])
                          .order("matches.scheduled_at ASC")
     @available_matches = available_matches_for_import
   end

@@ -1,38 +1,95 @@
 <% content_for :title, t("dashboard.title") %>
 
-<div class="max-w-6xl mx-auto px-4 sm:px-6 py-8"
-     data-controller="modal">
+<%# ── Drawer: painel lateral de criação de bolão ────────────────────────── %>
+<div data-controller="drawer"
+     data-action="keydown@window->drawer#keydown">
 
-  <%# Modal de criação de bolão %>
-  <dialog data-modal-target="dialog"
-          data-action="click->modal#backdropClick"
-          class="dark:bg-pitch-800">
-    <%= turbo_frame_tag "new_pool_modal" do %>
-      <%= render "shared/loading_spinner" %>
-    <% end %>
-  </dialog>
+  <%# Backdrop — managed by JS (display:none/block) %>
+  <div data-drawer-target="overlay"
+       data-action="click->drawer#close"
+       style="display:none;position:fixed;inset:0;z-index:40;background:rgba(4,9,26,0.65);backdrop-filter:blur(4px)"></div>
 
-  <%# Header %>
-  <div class="mb-8 flex items-start justify-between gap-4 flex-wrap animate-enter">
-    <div>
-      <p class="text-sm text-pitch-400 mb-1 font-medium uppercase tracking-widest">
-        <%= t("dashboard.welcome_back") %>
-      </p>
-      <h1 class="font-display font-bold text-3xl text-pitch-900 dark:text-white">
-        <%= current_user.display_name.split.first %>
-      </h1>
+  <%# Panel — width/transform/visibility all via inline styles (no CSS build dependency) %>
+  <div data-drawer-target="panel"
+       class="bg-white dark:bg-pitch-900 border-l border-pitch-200 dark:border-pitch-800 overflow-hidden flex flex-col"
+       style="position:fixed;right:0;top:0;bottom:0;z-index:50;width:min(100vw,420px);box-shadow:0 25px 50px rgba(0,0,0,0.25);">
+    <%# Drawer header %>
+    <div class="flex items-center justify-between px-5 py-4 border-b border-pitch-100 dark:border-pitch-800 shrink-0">
+      <div>
+        <h2 class="font-display font-bold text-lg text-pitch-900 dark:text-white">Criar bolão</h2>
+        <p class="text-xs text-pitch-400 mt-0.5">Configure e convide amigos</p>
+      </div>
+      <button data-action="click->drawer#close"
+              class="p-2 rounded-lg text-pitch-400 hover:bg-pitch-100 dark:hover:bg-pitch-700 transition-colors"
+              aria-label="Fechar">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
     </div>
-    <div class="flex items-center gap-2">
-      <% if @participations.any? || @administered_pools.any? %>
-        <%= link_to admin_pools_path, class: "btn btn-ghost btn-sm" do %>Meus bolões<% end %>
-      <% end %>
-      <%= link_to new_my_pool_path,
-            class: "btn btn-neon btn-sm",
-            data: { action: "click->modal#open", turbo_frame: "new_pool_modal" } do %>
-        + Criar bolão
-      <% end %>
+    <%# Content via Turbo Frame (loaded on demand) %>
+    <div class="flex-1 overflow-y-auto">
+      <turbo-frame id="pool_drawer_frame" data-drawer-target="frame" class="block">
+        <%# Empty until drawer opens %>
+      </turbo-frame>
     </div>
   </div>
+
+  <%# ── Conteúdo da página ────────────────────────────────────────────── %>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+
+    <%# Header %>
+    <div class="mb-8 flex items-start justify-between gap-4 flex-wrap animate-enter">
+      <div>
+        <p class="text-sm text-pitch-400 mb-1 font-medium uppercase tracking-widest">
+          <%= t("dashboard.welcome_back") %>
+        </p>
+        <h1 class="font-display font-bold text-3xl text-pitch-900 dark:text-white">
+          <%= current_user.display_name.split.first %>
+        </h1>
+      </div>
+      <div class="flex items-center gap-2 flex-wrap">
+        <% if @participations.any? || @administered_pools.any? %>
+          <%= link_to admin_pools_path, class: "btn btn-ghost btn-sm" do %>Meus bolões<% end %>
+        <% end %>
+
+        <%# Entrar por código — dropdown %>
+        <div class="relative" data-controller="dropdown">
+          <button data-action="click->dropdown#toggle"
+                  class="btn btn-ghost btn-sm gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
+            </svg>
+            Entrar por código
+          </button>
+          <div data-dropdown-target="menu"
+               class="hidden absolute right-0 mt-2 w-72 card shadow-xl shadow-pitch-900/10 dark:shadow-black/40 p-4 z-30 animate-enter">
+              <p class="text-xs font-semibold text-pitch-500 dark:text-pitch-400 uppercase tracking-widest mb-3">Código do bolão</p>
+              <input type="text" id="join_code_input"
+                     placeholder="Ex: H98WAWRT"
+                     class="form-input mb-3 font-mono tracking-widest uppercase"
+                     maxlength="8"
+                     onkeydown="if(event.key==='Enter'){event.preventDefault();const c=this.value.trim().toUpperCase();if(c)window.location.href='/join/'+c;}">
+              <button type="button"
+                      class="w-full btn btn-neon justify-center cursor-pointer"
+                      onclick="const c=document.getElementById('join_code_input').value.trim().toUpperCase();if(c)window.location.href='/join/'+c;">
+                Entrar no bolão
+              </button>
+          </div>
+        </div>
+
+        <%# Botão abre o drawer %>
+        <%= link_to new_my_pool_path,
+              class: "btn btn-neon btn-sm",
+              data: {
+                action: "click->drawer#open",
+                drawer_url_param: new_my_pool_path,
+                turbo_frame: "pool_drawer_frame"
+              } do %>
+          + Criar bolão
+        <% end %>
+      </div>
+    </div>
 
   <%# Ao vivo agora %>
   <% if @live_matches.any? %>
@@ -47,18 +104,20 @@
         <% @live_matches.each do |m| %>
           <%= link_to match_path(m), class: "card p-3 shrink-0 w-44 hover:border-red-400/40 transition-all" do %>
             <div class="flex items-center justify-between mb-2">
-              <% if m.home_team.flag_url.present? %>
-                <img src="<%= m.home_team.flag_url %>" class="w-7 h-5 object-cover rounded" alt="">
+              <% ht_img = m.home_team.display_image_url %>
+              <% if ht_img.present? %>
+                <img src="<%= ht_img %>" class="w-7 h-7 object-contain rounded" alt="" onerror="this.style.display='none'">
               <% else %>
-                <span class="text-lg">🏴</span>
+                <div class="w-7 h-7 rounded bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center text-[9px] font-bold text-pitch-500"><%= m.home_team.initials %></div>
               <% end %>
               <span class="font-mono font-bold text-lg text-red-500">
                 <%= m.home_score %>–<%= m.away_score %>
               </span>
-              <% if m.away_team.flag_url.present? %>
-                <img src="<%= m.away_team.flag_url %>" class="w-7 h-5 object-cover rounded" alt="">
+              <% at_img = m.away_team.display_image_url %>
+              <% if at_img.present? %>
+                <img src="<%= at_img %>" class="w-7 h-7 object-contain rounded" alt="" onerror="this.style.display='none'">
               <% else %>
-                <span class="text-lg">🏴</span>
+                <div class="w-7 h-7 rounded bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center text-[9px] font-bold text-pitch-500"><%= m.away_team.initials %></div>
               <% end %>
             </div>
             <p class="text-[11px] text-pitch-500 dark:text-pitch-400 text-center truncate">
@@ -81,7 +140,6 @@
         <% @participations.each_with_index do |participation, i| %>
           <%= render "dashboard/pool_card", participation: participation, index: i %>
         <% end %>
-        <%# Pools administered but not yet participating %>
         <% @administered_pools.each_with_index do |pool, i| %>
           <%= render "dashboard/admin_pool_card", pool: pool, index: @participations.size + i %>
         <% end %>
@@ -95,27 +153,34 @@
         <p class="text-sm text-pitch-400 mb-6"><%= t("dashboard.no_pools_hint") %></p>
         <%= link_to new_my_pool_path,
               class: "btn btn-neon",
-              data: { action: "click->modal#open", turbo_frame: "new_pool_modal" } do %>
+              data: {
+                action: "click->drawer#open",
+                drawer_url_param: new_my_pool_path,
+                turbo_frame: "pool_drawer_frame"
+              } do %>
           + <%= t("pools.new.create_btn") %>
         <% end %>
       </div>
     <% end %>
   </section>
 
-  <%# Próximos jogos %>
+  <%# Próximos jogos — grid simples %>
   <% if @next_matches.any? %>
     <section>
       <h2 class="font-display font-bold text-lg text-pitch-900 dark:text-white mb-4">
         <%= t("dashboard.upcoming_matches") %>
       </h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <% @next_matches.each do |m| %>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <% @next_matches.first(8).each do |m| %>
           <%= link_to match_path(m),
                 class: "card p-4 hover:border-neon-400/40 transition-all group" do %>
             <div class="flex items-center justify-between gap-2 mb-3">
               <div class="text-center flex-1">
-                <% if m.home_team.flag_url.present? %>
-                  <img src="<%= m.home_team.flag_url %>" class="w-10 h-7 object-cover rounded mx-auto mb-1" alt="">
+                <% ht_img = m.home_team.display_image_url %>
+                <% if ht_img.present? %>
+                  <img src="<%= ht_img %>" class="w-10 h-10 object-contain rounded mx-auto mb-1" alt="" onerror="this.style.display='none'">
+                <% else %>
+                  <div class="w-10 h-10 rounded-lg bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center text-[10px] font-bold text-pitch-500 mx-auto mb-1"><%= m.home_team.initials %></div>
                 <% end %>
                 <p class="text-xs font-semibold text-pitch-700 dark:text-pitch-200 truncate">
                   <%= m.home_team.short_name || m.home_team.name.split.first(2).join(" ") %>
@@ -125,8 +190,11 @@
                 <span class="text-pitch-400 text-sm font-bold">×</span>
               </div>
               <div class="text-center flex-1">
-                <% if m.away_team.flag_url.present? %>
-                  <img src="<%= m.away_team.flag_url %>" class="w-10 h-7 object-cover rounded mx-auto mb-1" alt="">
+                <% at_img = m.away_team.display_image_url %>
+                <% if at_img.present? %>
+                  <img src="<%= at_img %>" class="w-10 h-10 object-contain rounded mx-auto mb-1" alt="" onerror="this.style.display='none'">
+                <% else %>
+                  <div class="w-10 h-10 rounded-lg bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center text-[10px] font-bold text-pitch-500 mx-auto mb-1"><%= m.away_team.initials %></div>
                 <% end %>
                 <p class="text-xs font-semibold text-pitch-700 dark:text-pitch-200 truncate">
                   <%= m.away_team.short_name || m.away_team.name.split.first(2).join(" ") %>
@@ -134,7 +202,7 @@
               </div>
             </div>
             <p class="text-[10px] text-pitch-400 text-center font-mono">
-              <%= m.scheduled_at ? l(m.scheduled_at, format: :short) : "?" %>
+              <%= m.scheduled_at ? m.scheduled_at.in_time_zone("America/Fortaleza").strftime("%d/%m %H:%M") : "?" %>
             </p>
             <% if m.tournament %>
               <p class="text-[10px] text-pitch-400 text-center truncate mt-0.5"><%= m.tournament.name %></p>
@@ -144,4 +212,6 @@
       </div>
     </section>
   <% end %>
-</div>
+
+  </div><%# /max-w-6xl %>
+</div><%# /drawer controller %>

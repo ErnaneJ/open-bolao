@@ -1,0 +1,20 @@
+<div class="space-y-4">
+  <div>
+    <label class="block text-xs font-medium text-pitch-500 mb-1">Nome da fase</label>
+    <%= f.text_field :name, placeholder: "Ex: Grupo A, Oitavas de Final",
+          class: "form-input" %>
+  </div>
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label class="block text-xs font-medium text-pitch-500 mb-1">Tipo</label>
+      <%= f.select :stage_type,
+            Stage.stage_types.keys.map { |t| [t.humanize, t] },
+            {},
+            class: "form-input" %>
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-pitch-500 mb-1">Ordem</label>
+      <%= f.number_field :order_position, min: 0, class: "form-input" %>
+    </div>
+  </div>
+</div>

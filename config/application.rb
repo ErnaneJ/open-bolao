@@ -35,6 +35,9 @@ module OpenBolao
 
     config.active_job.queue_adapter = :sidekiq
 
+    # Use MiniMagick (ImageMagick 7) for image variants — vips not installed
+    config.active_storage.variant_processor = :mini_magick
+
     config.generators do |g|
       g.test_framework :rspec, fixtures: true
       g.fixture_replacement :factory_bot, dir: "spec/factories"

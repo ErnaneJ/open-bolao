@@ -21,3 +21,15 @@ purge_sync_logs:
   class: "Sync::PurgeLogsJob"
   queue: default
   description: "Weekly cleanup of old sync logs"
+
+daily_refresh:
+  cron: "0 6 * * *"
+  class: "Sync::DailyRefreshJob"
+  queue: default
+  description: "Daily 3AM BRT (6 UTC) — refreshes matches and team metadata for all active current-year tournaments"
+
+daily_matches_notification:
+  cron: "0 11 * * *"
+  class: "Webhooks::DailyMatchesNotificationJob"
+  queue: webhooks
+  description: "Daily 8AM BRT (11 UTC) — notifies each active pool's webhooks with today's matches"

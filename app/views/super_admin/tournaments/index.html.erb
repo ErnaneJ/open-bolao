@@ -1,41 +1,110 @@
 <% content_for :title, "Torneios" %>
-<div class="p-6">
-  <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold">Torneios</h1>
-    <%= link_to "Novo Torneio", new_super_admin_tournament_path, class: "px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700" %>
+
+<div class="max-w-6xl">
+  <div class="flex items-start justify-between mb-6 gap-4 flex-wrap">
+    <div>
+      <h1 class="font-display font-bold text-2xl text-pitch-900 dark:text-white">Torneios</h1>
+      <p class="text-sm text-pitch-400 mt-0.5">Gerencie torneios e importe da TheSportsDB.</p>
+    </div>
+    <%= link_to "Novo torneio manual", new_super_admin_tournament_path, class: "btn btn-ghost btn-sm" %>
   </div>
-  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-    <table class="w-full text-sm">
-      <thead class="bg-gray-50 dark:bg-gray-700/50">
-        <tr>
-          <th class="px-4 py-3 text-left font-medium text-gray-500">Torneio</th>
-          <th class="px-4 py-3 text-left font-medium text-gray-500">Temporada</th>
-          <th class="px-4 py-3 text-center font-medium text-gray-500">Status</th>
-          <th class="px-4 py-3 text-right font-medium text-gray-500">Times</th>
-          <th class="px-4 py-3 text-right font-medium text-gray-500">Jogos</th>
-          <th class="px-4 py-3 text-right font-medium text-gray-500">Ações</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-        <% @tournaments.each do |tournament| %>
+
+  <%# Import from TSDB %>
+  <div class="card p-5 mb-6 border-neon-400/20">
+    <div class="flex items-start gap-3 mb-3">
+      <div class="w-8 h-8 rounded-lg bg-neon-400/15 flex items-center justify-center shrink-0">
+        <svg class="w-4 h-4 text-neon-600 dark:text-neon-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+        </svg>
+      </div>
+      <div>
+        <h2 class="font-semibold text-pitch-900 dark:text-white text-sm">Importar do TheSportsDB</h2>
+        <p class="text-xs text-pitch-400 mt-0.5">
+          Cole o ID da liga. Ex: <code class="font-mono bg-pitch-100 dark:bg-pitch-700 px-1 rounded">4351</code> (Brasileirão)
+          ou <code class="font-mono bg-pitch-100 dark:bg-pitch-700 px-1 rounded">4429</code> (Copa do Mundo 2026).
+          Encontre IDs em <a href="https://www.thesportsdb.com" target="_blank" class="text-neon-600 dark:text-neon-300 hover:underline">thesportsdb.com</a>.
+        </p>
+      </div>
+    </div>
+    <%= form_with url: import_from_tsdb_super_admin_tournaments_path, method: :post, local: true, class: "flex items-end gap-3 flex-wrap" do |f| %>
+      <div class="flex-1 min-w-40">
+        <label class="form-label">ID da liga (TheSportsDB)</label>
+        <%= f.text_field :tsdb_id, placeholder: "4351", class: "form-input font-mono" %>
+      </div>
+      <div class="w-28">
+        <label class="form-label">Temporada</label>
+        <%= f.text_field :season, placeholder: Time.current.year.to_s, value: Time.current.year.to_s, class: "form-input" %>
+      </div>
+      <%= f.submit "Importar →", class: "btn btn-neon cursor-pointer self-end" %>
+    <% end %>
+    <p class="text-[11px] text-pitch-400 mt-3">
+      ⚠ Plano gratuito: 30 req/min. Importações grandes podem demorar alguns minutos — o job roda em background.
+    </p>
+  </div>
+
+  <% if @tournaments.any? %>
+    <div class="card overflow-hidden">
+      <table class="data-table">
+        <thead>
           <tr>
-            <td class="px-4 py-3 font-medium">
-              <%= link_to tournament.name, super_admin_tournament_path(tournament), class: "hover:text-indigo-600" %>
-            </td>
-            <td class="px-4 py-3 text-gray-500"><%= tournament.season %></td>
-            <td class="px-4 py-3 text-center"><%= status_badge(tournament.status) %></td>
-            <td class="px-4 py-3 text-right text-gray-500"><%= tournament.tournament_teams.count %></td>
-            <td class="px-4 py-3 text-right text-gray-500"><%= tournament.matches.count %></td>
-            <td class="px-4 py-3 text-right">
-              <div class="flex items-center justify-end gap-2">
-                <%= link_to "Editar", edit_super_admin_tournament_path(tournament), class: "text-xs text-indigo-600 hover:underline" %>
-                <%= button_to "Seed API", seed_from_api_super_admin_tournament_path(tournament), method: :post, class: "text-xs text-green-600 hover:underline" %>
-              </div>
-            </td>
+            <th>Torneio</th>
+            <th class="hidden sm:table-cell">Temporada</th>
+            <th class="text-center">Status</th>
+            <th class="text-right hidden md:table-cell">Times</th>
+            <th class="text-right hidden md:table-cell">Jogos</th>
+            <th class="text-right">Ações</th>
           </tr>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
-  <%= render "shared/pagy", pagy: @pagy %>
+        </thead>
+        <tbody>
+          <% @tournaments.each do |t| %>
+            <tr>
+              <td class="font-medium">
+                <div class="flex items-center gap-3">
+                  <%= tournament_logo(t, size: :xs) %>
+                  <div>
+                    <%= link_to t.name, super_admin_tournament_path(t),
+                          class: "text-pitch-900 dark:text-white hover:text-neon-600 dark:hover:text-neon-300 font-medium" %>
+                    <div class="flex items-center gap-1.5 mt-0.5">
+                      <% if t.provider_thesportsdb? %>
+                        <span class="badge badge-draft text-[9px]">TSDB</span>
+                      <% end %>
+                      <% if t.country.present? %>
+                        <span class="text-[10px] text-pitch-400"><%= t.country %></span>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td class="hidden sm:table-cell text-pitch-400 text-sm font-mono"><%= t.season || "—" %></td>
+              <td class="text-center"><%= status_badge(t.status) %></td>
+              <td class="text-right text-pitch-400 hidden md:table-cell"><%= t.tournament_teams.count %></td>
+              <td class="text-right text-pitch-400 hidden md:table-cell"><%= t.matches.count %></td>
+              <td class="text-right">
+                <div class="flex items-center justify-end gap-1">
+                  <%= link_to "Ver", super_admin_tournament_path(t), class: "btn btn-ghost btn-sm" %>
+                  <%= button_to "Sync", seed_from_api_super_admin_tournament_path(t), method: :post,
+                        data: { turbo_confirm: "Re-importar #{t.name}?" },
+                        class: "btn btn-ghost btn-sm" %>
+                  <%= button_to "Excluir", super_admin_tournament_path(t), method: :delete,
+                        data: { turbo_confirm: "Excluir #{t.name}? Jogos serão apagados, times preservados." },
+                        class: "btn btn-danger btn-sm" %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <%= render "shared/pagy", pagy: @pagy %>
+  <% else %>
+    <div class="card p-12 text-center">
+      <div class="w-16 h-16 rounded-2xl bg-neon-400/10 flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-neon-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0"/>
+        </svg>
+      </div>
+      <p class="font-display font-bold text-lg text-pitch-900 dark:text-white mb-2">Nenhum torneio cadastrado</p>
+      <p class="text-sm text-pitch-400">Use o formulário acima para importar da TheSportsDB.</p>
+    </div>
+  <% end %>
 </div>

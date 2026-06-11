@@ -1,20 +1,88 @@
-<div class="space-y-4">
-  <div>
-    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nome</label>
-    <%= f.text_field :name, class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
-  </div>
-  <div class="grid grid-cols-2 gap-4">
+<div class="space-y-5">
+  <%# Basic info %>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     <div>
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Temporada</label>
-      <%= f.text_field :season, placeholder: "2026", class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+      <label class="form-label">Nome</label>
+      <%= f.text_field :name, class: "form-input" %>
     </div>
     <div>
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
-      <%= f.select :status, Tournament.statuses.keys.map { |s| [s.humanize, s] }, {}, class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+      <label class="form-label">Temporada</label>
+      <%= f.text_field :season, placeholder: Time.current.year.to_s, class: "form-input" %>
     </div>
   </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+    <div>
+      <label class="form-label">Status</label>
+      <%= f.select :status, Tournament.statuses.keys.map { |s| [s.humanize, s] }, {},
+            class: "form-input" %>
+    </div>
+    <div>
+      <label class="form-label">Provedor</label>
+      <%= f.select :external_provider, Tournament.external_providers.keys.map { |p| [p.humanize, p] }, {},
+            class: "form-input" %>
+    </div>
+    <div>
+      <label class="form-label">País</label>
+      <%= f.text_field :country, placeholder: "Brazil", class: "form-input" %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+    <div>
+      <label class="form-label">Gênero</label>
+      <%= f.text_field :gender, placeholder: "Male / Female", class: "form-input" %>
+    </div>
+    <div>
+      <label class="form-label">Ano de fundação</label>
+      <%= f.number_field :formed_year, placeholder: "1930", class: "form-input" %>
+    </div>
+    <div>
+      <label class="form-label">Website</label>
+      <%= f.url_field :website, placeholder: "https://...", class: "form-input font-mono" %>
+    </div>
+  </div>
+
   <div>
-    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Provedor externo</label>
-    <%= f.select :external_provider, Tournament.external_providers.keys.map { |p| [p.humanize, p] }, {}, class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+    <label class="form-label">Descrição</label>
+    <%= f.text_area :description, rows: 3, class: "form-input resize-none" %>
+  </div>
+
+  <%# Images %>
+  <div class="border-t border-pitch-100 dark:border-pitch-700 pt-4">
+    <p class="form-label mb-3">Imagens (URLs do TheSportsDB)</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-[11px] text-pitch-400 mb-1">Logo URL</label>
+        <%= f.url_field :logo_url, placeholder: "https://...", class: "form-input font-mono text-xs" %>
+        <% if f.object.logo_url.present? %>
+          <img src="<%= f.object.logo_url %>" class="h-10 mt-2 object-contain" alt="" onerror="this.style.display='none'">
+        <% end %>
+      </div>
+      <div>
+        <label class="block text-[11px] text-pitch-400 mb-1">Badge URL</label>
+        <%= f.url_field :badge_url, placeholder: "https://...", class: "form-input font-mono text-xs" %>
+        <% if f.object.badge_url.present? %>
+          <img src="<%= f.object.badge_url %>" class="h-10 mt-2 object-contain" alt="" onerror="this.style.display='none'">
+        <% end %>
+      </div>
+      <div>
+        <label class="block text-[11px] text-pitch-400 mb-1">Banner URL</label>
+        <%= f.url_field :banner_url, placeholder: "https://...", class: "form-input font-mono text-xs" %>
+      </div>
+      <div>
+        <label class="block text-[11px] text-pitch-400 mb-1">Trophy URL</label>
+        <%= f.url_field :trophy_url, placeholder: "https://...", class: "form-input font-mono text-xs" %>
+        <% if f.object.trophy_url.present? %>
+          <img src="<%= f.object.trophy_url %>" class="h-10 mt-2 object-contain" alt="" onerror="this.style.display='none'">
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <%# Upload logo (ActiveStorage) %>
+  <div>
+    <label class="form-label">Upload de logo (ActiveStorage)</label>
+    <%= f.file_field :logo, accept: "image/*", class: "text-sm text-pitch-500 file:mr-3 file:btn file:btn-ghost file:btn-sm file:cursor-pointer" %>
   </div>
 </div>

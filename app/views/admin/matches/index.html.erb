@@ -1,9 +1,19 @@
+<div class="max-w-6xl mx-auto">
 <% if @pool %>
   <%# Nested context: enter results for a specific pool %>
   <% content_for :title, "Resultados — #{@pool.name}" %>
-  <div class="flex items-center gap-3 mb-6">
+  <div class="flex items-center gap-3 mb-6 flex-wrap">
     <%= link_to "← #{@pool.name}", admin_pool_path(@pool), class: "text-sm text-pitch-500 hover:text-pitch-700 dark:hover:text-pitch-200" %>
     <h1 class="font-display font-bold text-xl text-pitch-900 dark:text-white flex-1">Inserir Resultados</h1>
+    <% if @pool.tournament_pool? && @pool.tournament.present? %>
+      <%= button_to sync_from_api_admin_pool_matches_path(@pool), method: :post,
+            class: "btn btn-neon btn-sm gap-1.5" do %>
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        Sincronizar da API
+      <% end %>
+    <% end %>
   </div>
   <div class="card overflow-hidden">
     <table class="data-table">
@@ -119,3 +129,4 @@
   </div>
   <div class="mt-4"><%= render "shared/pagy", pagy: @pagy %></div>
 <% end %>
+</div>

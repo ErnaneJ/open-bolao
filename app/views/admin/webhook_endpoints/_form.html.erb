@@ -1,23 +1,28 @@
 <div class="space-y-4">
   <div>
-    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">URL do endpoint</label>
-    <%= f.url_field :url, placeholder: "https://seu-servidor.com/webhook", class: "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" %>
+    <label class="form-label">URL do endpoint</label>
+    <%= f.url_field :url, placeholder: "https://seu-servidor.com/webhook", class: "form-input font-mono" %>
   </div>
   <div>
-    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Eventos</label>
-    <div class="grid grid-cols-2 gap-2">
-      <% %w[goal match_finished rank_changed pool_finished pool_invite test].each do |event| %>
-        <label class="flex items-center gap-2 cursor-pointer">
+    <label class="form-label mb-2">Eventos</label>
+    <div class="grid grid-cols-1 gap-1.5">
+      <% WebhookEndpoint::ALL_EVENTS.each do |event, label| %>
+        <label class="flex items-center gap-3 rounded-xl px-3 py-2 bg-pitch-50 dark:bg-pitch-800/60 cursor-pointer hover:bg-pitch-100 dark:hover:bg-pitch-700/60 transition-colors">
           <input type="checkbox" name="webhook_endpoint[events][]" value="<%= event %>"
                  <%= endpoint.events&.include?(event) ? "checked" : "" %>
-                 class="rounded border-gray-300 text-indigo-600">
-          <span class="text-sm"><%= event.humanize %></span>
+                 class="w-4 h-4 rounded border-pitch-300 dark:border-pitch-600 text-neon-500 focus:ring-neon-400">
+          <div class="min-w-0">
+            <p class="text-sm font-medium text-pitch-900 dark:text-white"><%= label %></p>
+            <p class="text-[11px] font-mono text-pitch-400"><%= event %></p>
+          </div>
         </label>
       <% end %>
     </div>
+    <%# Hidden field ensures empty array is sent when nothing checked %>
+    <input type="hidden" name="webhook_endpoint[events][]" value="">
   </div>
-  <div class="flex items-center justify-between">
-    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Ativo</label>
-    <%= f.check_box :active, class: "rounded border-gray-300 text-indigo-600" %>
+  <div class="flex items-center gap-3">
+    <label class="form-label mb-0">Ativo</label>
+    <%= f.check_box :active, class: "w-4 h-4 rounded border-pitch-300 dark:border-pitch-600 text-neon-500 focus:ring-neon-400" %>
   </div>
 </div>

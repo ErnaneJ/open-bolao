@@ -1,0 +1,194 @@
+<%= turbo_frame_tag "match_panel_frame", class: "flex flex-col h-full" do %>
+
+  <%# ── Header ─────────────────────────────────────────────────────────────── %>
+  <div class="shrink-0 px-5 pt-5 pb-4 border-b border-pitch-100 dark:border-pitch-700/50">
+
+    <%# Stage / round info %>
+    <p class="text-[10px] uppercase tracking-widest font-bold text-pitch-400 mb-5">
+      <%= @match.stage&.name || "Jogo" %>
+      <% if @match.round_number.present? %>
+        · Rodada <%= @match.round_number %>
+      <% end %>
+    </p>
+
+    <%# Teams + score ── central hero %>
+    <div class="flex items-center gap-3 mb-4">
+      <%# Home %>
+      <div class="flex-1 flex flex-col items-center gap-2 text-center min-w-0">
+        <% ht_img = @match.home_team.flag_url.presence || @match.home_team.logo_url.presence %>
+        <% if ht_img.present? %>
+          <img src="<%= ht_img %>" class="w-16 h-16 object-contain rounded-xl" alt="" onerror="this.style.display='none'">
+        <% else %>
+          <div class="w-16 h-16 rounded-xl bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center text-sm font-bold font-mono text-pitch-500">
+            <%= @match.home_team.initials %>
+          </div>
+        <% end %>
+        <p class="text-xs font-semibold text-pitch-900 dark:text-white leading-tight truncate w-full">
+          <%= @match.home_team.short_name || @match.home_team.name %>
+        </p>
+      </div>
+
+      <%# Score / time ── center %>
+      <div class="shrink-0 flex flex-col items-center gap-1 text-center px-2">
+        <% if @match.status_finished? %>
+          <div class="font-mono font-bold text-3xl text-pitch-900 dark:text-white tracking-tight leading-none">
+            <%= @match.home_score %>
+            <span class="text-pitch-500 dark:text-pitch-400 mx-1 font-normal">×</span>
+            <%= @match.away_score %>
+          </div>
+          <span class="text-[10px] uppercase tracking-widest text-pitch-400 font-semibold mt-1">Encerrado</span>
+        <% elsif @match.status_live? %>
+          <div class="font-mono font-bold text-3xl text-red-500 tracking-tight leading-none">
+            <%= @match.home_score %>
+            <span class="text-red-400 mx-1 font-normal">×</span>
+            <%= @match.away_score %>
+          </div>
+          <div class="flex items-center gap-1 mt-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+            <span class="text-[10px] text-red-500 font-bold uppercase tracking-wide">Ao vivo</span>
+          </div>
+        <% elsif @match.scheduled_at %>
+          <div class="font-mono font-bold text-2xl text-pitch-900 dark:text-white leading-none">
+            <%= @match.scheduled_at.in_time_zone("America/Fortaleza").strftime("%H:%M") %>
+          </div>
+          <div class="text-[11px] text-pitch-400 font-mono mt-0.5">
+            <%= @match.scheduled_at.in_time_zone("America/Fortaleza").strftime("%d/%m/%Y") %>
+          </div>
+          <% if @is_locked %>
+            <span class="badge badge-draft text-[9px] mt-1">🔒 Fechado</span>
+          <% end %>
+        <% else %>
+          <span class="text-2xl font-mono font-bold text-pitch-400 dark:text-pitch-500">–</span>
+        <% end %>
+      </div>
+
+      <%# Away %>
+      <div class="flex-1 flex flex-col items-center gap-2 text-center min-w-0">
+        <% at_img = @match.away_team.flag_url.presence || @match.away_team.logo_url.presence %>
+        <% if at_img.present? %>
+          <img src="<%= at_img %>" class="w-16 h-16 object-contain rounded-xl" alt="" onerror="this.style.display='none'">
+        <% else %>
+          <div class="w-16 h-16 rounded-xl bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center text-sm font-bold font-mono text-pitch-500">
+            <%= @match.away_team.initials %>
+          </div>
+        <% end %>
+        <p class="text-xs font-semibold text-pitch-900 dark:text-white leading-tight truncate w-full">
+          <%= @match.away_team.short_name || @match.away_team.name %>
+        </p>
+      </div>
+    </div>
+
+    <%# Match meta: venue, city, referee %>
+    <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-pitch-400 mb-4">
+      <% if @match.venue.present? %>
+        <span>📍 <%= @match.venue %><% if @match.city.present? %>, <%= @match.city %><% end %></span>
+      <% elsif @match.city.present? %>
+        <span>📍 <%= @match.city %></span>
+      <% end %>
+      <% if @match.referee.present? %>
+        <span>👤 <%= @match.referee %></span>
+      <% end %>
+      <% if @match.attendance.present? %>
+        <span>👥 <%= number_with_delimiter(@match.attendance) %></span>
+      <% end %>
+    </div>
+
+    <%# My tip ── central, prominent %>
+    <div class="rounded-2xl text-center py-3 px-4
+                <%= @my_tip&.home_score_tip.present? ? 'bg-neon-400/10 dark:bg-neon-400/10 border border-neon-400/30' : 'bg-pitch-100 dark:bg-pitch-800 border border-pitch-200 dark:border-pitch-700' %>">
+      <p class="text-[10px] uppercase tracking-widest font-bold text-pitch-400 mb-2">Seu palpite</p>
+      <% if @my_tip&.home_score_tip.present? %>
+        <div class="flex items-center justify-center gap-2">
+          <span class="font-mono font-bold text-3xl text-pitch-900 dark:text-white tracking-tight">
+            <%= @my_tip.home_score_tip %>
+            <span class="text-pitch-500 dark:text-pitch-400 mx-1 font-normal text-2xl">×</span>
+            <%= @my_tip.away_score_tip %>
+          </span>
+          <% if @my_tip.scored? %>
+            <% pts = @my_tip.points_earned.to_i %>
+            <span class="font-bold text-base <%= pts > 0 ? 'text-neon-600 dark:text-neon-300' : 'text-pitch-400' %>">
+              <%= pts > 0 ? "+#{pts}pts" : "0pts" %>
+            </span>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-sm text-pitch-400 dark:text-pitch-500 italic">
+          <%= @is_locked ? "Sem palpite registrado" : "Você ainda não palpitou" %>
+        </p>
+      <% end %>
+    </div>
+
+    <%# Link to full match page — breaks out of turbo frame %>
+    <%= link_to match_path(@match),
+          data: { turbo_frame: "_top" },
+          class: "mt-3 flex items-center justify-center gap-1.5 text-xs text-pitch-400 hover:text-neon-600 dark:hover:text-neon-300 transition-colors" do %>
+      Ver página completa da partida
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+      </svg>
+    <% end %>
+  </div>
+
+  <%# ── Participants tips ───────────────────────────────────────────────────── %>
+  <div class="flex-1 overflow-y-auto px-5 py-4">
+    <p class="text-[10px] uppercase tracking-widest font-bold text-pitch-400 mb-3 flex items-center gap-2">
+      Palpites dos participantes
+      <% if !@is_locked %>
+        <span class="text-pitch-300 dark:text-pitch-600 normal-case tracking-normal font-normal">(ocultos até começar)</span>
+      <% end %>
+    </p>
+
+    <% if @participant_tips.any? %>
+      <div class="space-y-1">
+        <% @participant_tips.each do |t| %>
+          <div class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl
+               hover:bg-pitch-50 dark:hover:bg-pitch-700/30 transition-colors
+               <%= t.user_id == current_user.id ? 'bg-pitch-50 dark:bg-pitch-700/50' : '' %>">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <%# Avatar: photo > initials %>
+              <% if t.user.avatar.attached? %>
+                <img src="<%= url_for(t.user.avatar.variant(resize_to_fill: [32, 32])) %>"
+                     class="w-8 h-8 rounded-full object-cover shrink-0"
+                     alt="<%= t.user.display_name %>">
+              <% else %>
+                <div class="w-8 h-8 rounded-full bg-pitch-600 dark:bg-pitch-500 flex items-center justify-center text-[11px] font-bold text-white shrink-0">
+                  <%= t.user.display_name.first.upcase %>
+                </div>
+              <% end %>
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-sm font-medium text-pitch-800 dark:text-pitch-100 truncate">
+                    <%= t.user.display_name %>
+                  </span>
+                  <% if t.user_id == current_user.id %>
+                    <span class="text-[10px] text-pitch-400 font-medium shrink-0">você</span>
+                  <% end %>
+                </div>
+                <span class="text-[10px] text-pitch-400 font-mono">
+                  <%= t.updated_at.in_time_zone("America/Fortaleza").strftime("%d/%m %H:%M") %>
+                </span>
+              </div>
+            </div>
+            <div class="shrink-0 flex items-center gap-2">
+              <% if @is_locked %>
+                <span class="font-mono font-bold text-sm text-pitch-900 dark:text-white">
+                  <%= t.home_score_tip %><span class="text-pitch-300 dark:text-pitch-600 mx-0.5">–</span><%= t.away_score_tip %>
+                </span>
+                <% if t.scored? && t.points_earned.to_i > 0 %>
+                  <span class="text-[11px] text-neon-600 dark:text-neon-300 font-bold">+<%= t.points_earned %>pts</span>
+                <% end %>
+              <% else %>
+                <span class="font-mono text-sm font-bold text-pitch-900 dark:text-white select-none"
+                      style="filter: blur(5px);">
+                  <%= t.home_score_tip.present? ? "#{t.home_score_tip}–#{t.away_score_tip}" : "?–?" %>
+                </span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-sm text-pitch-400 italic text-center py-8">Nenhum palpite ainda.</p>
+    <% end %>
+  </div>
+<% end %>

@@ -1,0 +1,143 @@
+<% content_for :title, "Editar: #{@match.home_team.name} × #{@match.away_team.name}" %>
+<% content_for :topbar_back do %>
+  <%= link_to "← Jogos", super_admin_matches_path, class: "text-sm text-pitch-500 hover:text-pitch-700 dark:hover:text-pitch-200 shrink-0" %>
+<% end %>
+<% content_for :topbar_actions do %>
+  <button type="submit" form="<%= dom_id(@match) %>" class="btn btn-neon btn-sm">Salvar</button>
+<% end %>
+
+<div class="max-w-4xl mx-auto px-4 py-8 space-y-6">
+  <%= render "shared/error_messages", object: @match if @match.errors.any? %>
+
+  <%= form_with model: [:super_admin, @match], html: { id: dom_id(@match) } do |f| %>
+
+    <section class="card p-6">
+      <h2 class="font-display font-bold text-sm uppercase tracking-widest text-pitch-400 mb-4">Times</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">Time da casa</label>
+          <%= f.select :home_team_id,
+                options_for_select(@teams.map { |t| [t.name, t.id] }, @match.home_team_id),
+                { include_blank: "— selecione —" }, class: "form-input" %>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">Time visitante</label>
+          <%= f.select :away_team_id,
+                options_for_select(@teams.map { |t| [t.name, t.id] }, @match.away_team_id),
+                { include_blank: "— selecione —" }, class: "form-input" %>
+        </div>
+      </div>
+    </section>
+
+    <section class="card p-6">
+      <h2 class="font-display font-bold text-sm uppercase tracking-widest text-pitch-400 mb-4">Torneio & Fase</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">Torneio</label>
+          <%= f.select :tournament_id,
+                options_for_select(@tournaments.map { |t| [t.name, t.id] }, @match.tournament_id),
+                { include_blank: "— nenhum —" }, class: "form-input" %>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">Fase</label>
+          <%= f.select :stage_id,
+                options_for_select(@stages.map { |s| [s.name, s.id] }, @match.stage_id),
+                { include_blank: "— nenhuma —" }, class: "form-input" %>
+        </div>
+      </div>
+    </section>
+
+    <section class="card p-6">
+      <h2 class="font-display font-bold text-sm uppercase tracking-widest text-pitch-400 mb-4">Agendamento & Status</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-medium text-pitch-500 mb-1">Data e hora (UTC)</label>
+          <%= f.datetime_local_field :scheduled_at,
+                value: @match.scheduled_at&.utc&.strftime("%Y-%m-%dT%H:%M"), class: "form-input" %>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">Status</label>
+          <%= f.select :status, Match.statuses.keys.map { |s| [s.humanize, s] },
+                { selected: @match.status }, class: "form-input" %>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-medium text-pitch-500 mb-1">Local / Estádio</label>
+          <%= f.text_field :venue, placeholder: "MetLife Stadium", class: "form-input" %>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">Vencedor</label>
+          <%= f.select :winner_team_id,
+                options_for_select(
+                  [[@match.home_team.name, @match.home_team_id], [@match.away_team.name, @match.away_team_id]],
+                  @match.winner_team_id
+                ),
+                { include_blank: "— nenhum —" }, class: "form-input" %>
+        </div>
+      </div>
+    </section>
+
+    <section class="card p-6">
+      <h2 class="font-display font-bold text-sm uppercase tracking-widest text-pitch-400 mb-5">Placar</h2>
+      <% sc = "w-16 text-center font-mono font-bold text-xl px-2 py-2 rounded-lg border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 focus:ring-2 focus:ring-neon-400 focus:outline-none" %>
+      <div class="space-y-4">
+        <% [
+          [:home_score, :away_score, "Tempo normal"],
+          [:home_score_ht, :away_score_ht, "Intervalo (HT)"],
+          [:home_score_et, :away_score_et, "Prorrogação (ET)"],
+          [:home_score_penalties, :away_score_penalties, "Pênaltis"]
+        ].each do |home_f, away_f, label| %>
+          <div>
+            <p class="text-xs font-semibold text-pitch-500 uppercase tracking-wide mb-2"><%= label %></p>
+            <div class="flex items-center gap-4">
+              <span class="text-sm text-pitch-600 dark:text-pitch-300 w-32 text-right truncate"><%= @match.home_team.name %></span>
+              <%= f.number_field home_f, min: 0, max: 99, step: 1, placeholder: "–", class: sc %>
+              <span class="text-pitch-400 font-bold">×</span>
+              <%= f.number_field away_f, min: 0, max: 99, step: 1, placeholder: "–", class: sc %>
+              <span class="text-sm text-pitch-600 dark:text-pitch-300 w-32 truncate"><%= @match.away_team.name %></span>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </section>
+
+    <section class="card p-6">
+      <h2 class="font-display font-bold text-sm uppercase tracking-widest text-pitch-400 mb-4">Mídia</h2>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">URL do stream</label>
+          <%= f.url_field :stream_url, placeholder: "https://www.youtube.com/watch?v=...", class: "form-input font-mono" %>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">URL da imagem (thumb)</label>
+          <%= f.url_field :thumb_url, placeholder: "https://...", class: "form-input font-mono" %>
+          <% if @match.thumb_url.present? %>
+            <img src="<%= @match.thumb_url %>" class="h-16 rounded-lg mt-2 border border-pitch-200 dark:border-pitch-700" alt="">
+          <% end %>
+        </div>
+      </div>
+    </section>
+
+    <section class="card p-6">
+      <h2 class="font-display font-bold text-sm uppercase tracking-widest text-pitch-400 mb-4">Identificadores externos</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">ID externo</label>
+          <%= f.text_field :external_id, class: "form-input font-mono" %>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">Provedor</label>
+          <%= f.text_field :external_provider_name, class: "form-input font-mono" %>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">ID TheSportsDB</label>
+          <%= f.text_field :external_tsdb_id, class: "form-input font-mono" %>
+        </div>
+      </div>
+    </section>
+
+    <div class="flex items-center justify-between pb-8">
+      <%= link_to "Cancelar", super_admin_match_path(@match), class: "btn btn-ghost" %>
+      <%= f.submit "Salvar jogo", class: "btn btn-neon cursor-pointer" %>
+    </div>
+  <% end %>
+</div>

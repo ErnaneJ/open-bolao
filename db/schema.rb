@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_10_224309) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_10_230003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -120,11 +120,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_224309) do
   end
 
   create_table "matches", force: :cascade do |t|
+    t.integer "attendance"
     t.integer "away_score"
     t.integer "away_score_et"
     t.integer "away_score_ht"
     t.integer "away_score_penalties"
     t.bigint "away_team_id", null: false
+    t.string "city"
     t.datetime "created_at", null: false
     t.string "external_id"
     t.string "external_provider_name"
@@ -134,7 +136,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_224309) do
     t.integer "home_score_ht"
     t.integer "home_score_penalties"
     t.bigint "home_team_id", null: false
+    t.string "referee"
+    t.integer "round_number"
     t.datetime "scheduled_at"
+    t.string "season"
     t.bigint "stage_id"
     t.integer "status", default: 0, null: false
     t.string "stream_url"
@@ -288,15 +293,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_224309) do
   end
 
   create_table "teams", force: :cascade do |t|
+    t.string "banner_url"
     t.string "country_code"
     t.datetime "created_at", null: false
     t.bigint "created_by_id"
+    t.text "description"
     t.string "external_provider_id"
     t.string "external_provider_name"
+    t.string "fanart_url"
     t.string "flag_url"
+    t.integer "formed_year"
+    t.string "gender"
+    t.string "logo_url"
     t.string "name", null: false
+    t.string "primary_color"
     t.string "short_name"
+    t.string "stadium_name"
     t.datetime "updated_at", null: false
+    t.string "website"
     t.index ["country_code"], name: "index_teams_on_country_code"
     t.index ["external_provider_id", "external_provider_name"], name: "idx_teams_on_provider", unique: true, where: "(external_provider_id IS NOT NULL)"
     t.index ["name"], name: "index_teams_on_name"
@@ -329,16 +343,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_224309) do
   end
 
   create_table "tournaments", force: :cascade do |t|
+    t.string "badge_url"
+    t.string "banner_url"
+    t.string "country"
     t.datetime "created_at", null: false
     t.bigint "created_by_id", null: false
+    t.text "description"
     t.jsonb "external_config", default: {}
     t.integer "external_provider", default: 0, null: false
+    t.string "fanart_url"
+    t.integer "formed_year"
+    t.string "gender"
+    t.string "logo_url"
     t.string "name", null: false
     t.string "season"
     t.string "slug", null: false
     t.integer "sport", default: 0, null: false
     t.integer "status", default: 0, null: false
+    t.string "trophy_url"
     t.datetime "updated_at", null: false
+    t.string "website"
     t.index ["created_by_id"], name: "index_tournaments_on_created_by_id"
     t.index ["slug"], name: "index_tournaments_on_slug", unique: true
     t.index ["status"], name: "index_tournaments_on_status"

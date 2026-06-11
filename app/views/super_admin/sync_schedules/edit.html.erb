@@ -1,0 +1,48 @@
+<% content_for :title, "Configurar Sync — #{@tournament.name}" %>
+<div class="max-w-lg">
+  <div class="flex items-center gap-3 mb-6">
+    <%= link_to "← Sync", super_admin_tournament_sync_schedule_path(@tournament), class: "text-sm text-pitch-500 hover:text-pitch-700 dark:hover:text-pitch-200" %>
+    <h1 class="font-display font-bold text-xl text-pitch-900 dark:text-white">Configurar Sincronização</h1>
+  </div>
+  <div class="card p-6">
+    <%= form_with model: [:super_admin, @tournament, @schedule], url: super_admin_tournament_sync_schedule_path(@tournament), method: :patch do |f| %>
+      <div class="space-y-4">
+        <div class="flex items-center gap-3">
+          <%= f.check_box :enabled, class: "w-4 h-4 text-neon-400 rounded" %>
+          <label class="text-sm font-medium text-pitch-900 dark:text-white">Ativo</label>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-medium text-pitch-500 mb-1">Provedor API</label>
+            <%= f.select :api_provider_id,
+                  @api_providers.map { |p| [p.name, p.id] },
+                  { selected: @schedule.api_provider_id },
+                  class: "form-input" %>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-pitch-500 mb-1">Intervalo (segundos)</label>
+            <%= f.number_field :interval_seconds, min: 60, class: "form-input" %>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-medium text-pitch-500 mb-1">Janela — início</label>
+            <%= f.time_field :active_from, value: @schedule.active_from&.strftime("%H:%M"), class: "form-input" %>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-pitch-500 mb-1">Janela — fim</label>
+            <%= f.time_field :active_until, value: @schedule.active_until&.strftime("%H:%M"), class: "form-input" %>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <%= f.check_box :run_only_on_match_days, class: "w-4 h-4 text-neon-400 rounded" %>
+          <label class="text-sm text-pitch-700 dark:text-pitch-200">Rodar apenas em dias de jogo</label>
+        </div>
+      </div>
+      <div class="flex justify-end gap-3 mt-5 pt-4 border-t border-pitch-100 dark:border-pitch-700">
+        <%= link_to "Cancelar", super_admin_tournament_sync_schedule_path(@tournament), class: "btn btn-ghost" %>
+        <%= f.submit "Salvar", class: "btn btn-neon cursor-pointer" %>
+      </div>
+    <% end %>
+  </div>
+</div>

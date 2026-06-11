@@ -9,6 +9,14 @@ pt-BR:
       header:
         one: "1 erro impediu que este formulário fosse salvo:"
         other: "%{count} erros impediram que este formulário fosse salvo:"
+      blank: "não pode ficar em branco"
+      must_be_blank: "deve ficar em branco"
+      taken: "já está em uso"
+      too_long: "é muito longo (máximo de %{count} caracteres)"
+      too_short: "é muito curto (mínimo de %{count} caracteres)"
+      invalid: "não é válido"
+      not_a_number: "não é um número"
+      greater_than_or_equal_to: "deve ser maior ou igual a %{count}"
 
   actions:
     save: "Salvar"
@@ -41,29 +49,6 @@ pt-BR:
     find_pool: "Encontrar um bolão"
     upcoming_tips: "Próximos Palpites"
     points: "pts"
-
-  pools:
-    join: "Entrar"
-    leave: "Sair do bolão"
-    leave_confirm: "Tem certeza que deseja sair deste bolão?"
-    joined: "Você entrou no bolão!"
-    already_joined: "Você já participa deste bolão."
-    left: "Você saiu do bolão."
-    invalid_invite_code: "Código de convite inválido ou expirado."
-    cannot_leave_started: "Não é possível sair após o torneio/jogo ter começado."
-    go_to_special_bets: "Ir para palpites especiais →"
-    no_special_bets_single_match: "Palpites especiais não estão disponíveis em bolões de jogo único."
-    index:
-      title: "Bolões"
-      enter_by_code: "Entrar por código"
-      code_placeholder: "Ex: ABC12345"
-      enter: "Entrar"
-      no_pools: "Nenhum bolão público disponível no momento."
-    tabs:
-      tips: "Palpites"
-      ranking: "Ranking"
-      matches: "Jogos"
-      special_bets: "Palpites Especiais"
 
   ranking:
     player: "Participante"
@@ -226,6 +211,27 @@ pt-BR:
     points: "pts"
 
   pools:
+    join: "Entrar"
+    leave: "Sair do bolão"
+    leave_confirm: "Tem certeza que deseja sair deste bolão?"
+    joined: "Você entrou no bolão!"
+    already_joined: "Você já participa deste bolão."
+    left: "Você saiu do bolão."
+    invalid_invite_code: "Código de convite inválido ou expirado."
+    cannot_leave_started: "Não é possível sair após o torneio/jogo ter começado."
+    go_to_special_bets: "Ir para palpites especiais →"
+    no_special_bets_single_match: "Palpites especiais não estão disponíveis em bolões de jogo único."
+    index:
+      title: "Bolões"
+      enter_by_code: "Entrar por código"
+      code_placeholder: "Ex: ABC12345"
+      enter: "Entrar"
+      no_pools: "Nenhum bolão público disponível no momento."
+    tabs:
+      tips: "Palpites"
+      ranking: "Ranking"
+      matches: "Jogos"
+      special_bets: "Palpites Especiais"
     created: "Bolão criado com sucesso!"
     updated: "Bolão atualizado."
     destroyed: "Bolão removido."
@@ -256,29 +262,17 @@ pt-BR:
 
   scoring:
     correct_winner:
-      label: "Vencedor correto"
-      description: "Pontos ganhos ao acertar qual time vai vencer (ou empate)."
+      label: "Acertou o vencedor"
+      description: "Pontos por acertar qual time ganhou (mas errou o placar exato)."
+    correct_score:
+      label: "Acertou o placar exato"
+      description: "Pontos por acertar o placar exato em jogo com vencedor."
     correct_draw:
-      label: "Empate correto"
-      description: "Pontos extras ao prever corretamente um empate."
-    exact_score:
-      label: "Placar exato"
-      description: "Pontos por acertar o placar exato do jogo."
-    correct_goal_difference:
-      label: "Saldo de gols"
-      description: "Pontos por acertar a diferença de gols, mesmo sem o placar exato."
-    correct_total_goals:
-      label: "Total de gols"
-      description: "Pontos por acertar a soma total de gols da partida."
-    knockout_multiplier:
-      label: "Multiplicador mata-mata"
-      description: "Multiplica todos os pontos em jogos das fases eliminatórias."
-    final_multiplier:
-      label: "Multiplicador final"
-      description: "Multiplica todos os pontos no jogo da grande final."
-    no_tip_penalty:
-      label: "Penalidade sem palpite"
-      description: "Pontos negativos descontados quando o jogador não faz um palpite. Use 0 para sem penalidade."
+      label: "Acertou o empate"
+      description: "Pontos por prever corretamente um empate (mas errou o placar)."
+    correct_draw_score:
+      label: "Acertou empate + placar"
+      description: "Pontos por acertar que daria empate E o placar exato."
 
   activerecord:
     attributes:

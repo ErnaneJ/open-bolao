@@ -12,16 +12,9 @@ class PoolPolicy < ApplicationPolicy
 
   class Scope < ApplicationPolicy::Scope
     def resolve
-      if super_admin?
-        scope.all
-      elsif admin?
-        scope.where(admin_id: user.id)
-             .or(scope.joins(:pool_participants).where(pool_participants: { user_id: user.id, status: :active }))
-      else
-        # Regular users: see pools they administer OR participate in
-        scope.where(admin_id: user.id)
-             .or(scope.joins(:pool_participants).where(pool_participants: { user_id: user.id, status: :active }))
-      end
+      return scope.all if super_admin?
+      participating = PoolParticipant.active.where(user_id: user.id).select(:pool_id)
+      scope.where(admin_id: user.id).or(scope.where(id: participating))
     end
   end
 

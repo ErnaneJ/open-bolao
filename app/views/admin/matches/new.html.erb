@@ -1,0 +1,95 @@
+<% back_path = @pool ? admin_pool_matches_path(@pool) : admin_matches_path %>
+<% content_for :title, "Novo Jogo" %>
+<% content_for :topbar_back do %>
+  <%= link_to "← Jogos", back_path, class: "text-sm text-pitch-500 hover:text-pitch-700 dark:hover:text-pitch-200 transition-colors shrink-0" %>
+<% end %>
+<% content_for :topbar_actions do %>
+  <button type="submit" form="new_match_form" class="btn btn-neon btn-sm">Criar jogo</button>
+<% end %>
+
+<div class="max-w-4xl mx-auto px-4 py-8 space-y-6">
+  <%= render "shared/error_messages", object: @match if @match.errors.any? %>
+
+  <%= form_with model: @pool ? [:admin, @pool, @match] : [:admin, @match],
+                html: { id: "new_match_form" } do |f| %>
+
+    <section class="card p-6">
+      <h2 class="font-display font-bold text-sm uppercase tracking-widest text-pitch-400 mb-4">Times</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">Time da casa</label>
+          <%= f.select :home_team_id,
+                options_for_select(@teams.map { |t| [t.name, t.id] }, params[:home_team_id]),
+                { include_blank: "— selecione —" },
+                class: "w-full px-3 py-2 rounded-lg border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 text-sm focus:ring-2 focus:ring-neon-400 focus:outline-none" %>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">Time visitante</label>
+          <%= f.select :away_team_id,
+                options_for_select(@teams.map { |t| [t.name, t.id] }, params[:away_team_id]),
+                { include_blank: "— selecione —" },
+                class: "w-full px-3 py-2 rounded-lg border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 text-sm focus:ring-2 focus:ring-neon-400 focus:outline-none" %>
+        </div>
+      </div>
+    </section>
+
+    <section class="card p-6">
+      <h2 class="font-display font-bold text-sm uppercase tracking-widest text-pitch-400 mb-4">Torneio & Fase</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">Torneio</label>
+          <%= f.select :tournament_id,
+                options_for_select(@tournaments.map { |t| [t.name, t.id] }, @match.tournament_id),
+                { include_blank: "— nenhum —" },
+                class: "w-full px-3 py-2 rounded-lg border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 text-sm focus:ring-2 focus:ring-neon-400 focus:outline-none" %>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">Fase / Grupo</label>
+          <%= f.select :stage_id,
+                options_for_select(@stages.map { |s| [s.name, s.id] }, @match.stage_id),
+                { include_blank: "— nenhuma —" },
+                class: "w-full px-3 py-2 rounded-lg border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 text-sm focus:ring-2 focus:ring-neon-400 focus:outline-none" %>
+        </div>
+      </div>
+    </section>
+
+    <section class="card p-6">
+      <h2 class="font-display font-bold text-sm uppercase tracking-widest text-pitch-400 mb-4">Agendamento</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">Data e hora (UTC)</label>
+          <%= f.datetime_local_field :scheduled_at,
+                value: params[:scheduled_at],
+                class: "w-full px-3 py-2 rounded-lg border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 text-sm focus:ring-2 focus:ring-neon-400 focus:outline-none" %>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">Local / Estádio</label>
+          <%= f.text_field :venue, placeholder: "Ex: MetLife Stadium",
+                class: "w-full px-3 py-2 rounded-lg border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 text-sm focus:ring-2 focus:ring-neon-400 focus:outline-none" %>
+        </div>
+      </div>
+    </section>
+
+    <section class="card p-6">
+      <h2 class="font-display font-bold text-sm uppercase tracking-widest text-pitch-400 mb-4">Mídia</h2>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">URL do stream (YouTube / embed)</label>
+          <%= f.url_field :stream_url, placeholder: "https://www.youtube.com/watch?v=...",
+                class: "w-full px-3 py-2 rounded-lg border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 text-sm font-mono focus:ring-2 focus:ring-neon-400 focus:outline-none" %>
+          <p class="text-[11px] text-pitch-400 mt-1">Deixe vazio para não exibir embed. Preencha quando o jogo estiver disponível.</p>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">URL da imagem de capa</label>
+          <%= f.url_field :thumb_url, placeholder: "https://...",
+                class: "w-full px-3 py-2 rounded-lg border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 text-sm font-mono focus:ring-2 focus:ring-neon-400 focus:outline-none" %>
+        </div>
+      </div>
+    </section>
+
+    <div class="flex items-center justify-between gap-4 pb-8">
+      <%= link_to "Cancelar", back_path, class: "btn btn-ghost" %>
+      <%= f.submit "Criar jogo", class: "btn btn-neon cursor-pointer" %>
+    </div>
+  <% end %>
+</div>

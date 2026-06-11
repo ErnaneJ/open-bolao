@@ -9,6 +9,7 @@ gem "turbo-rails"
 gem "stimulus-rails"
 gem "tailwindcss-rails"
 gem "image_processing", "~> 1.2"
+gem "mini_magick"
 
 # Auth & Authorization
 gem "devise"
@@ -18,12 +19,16 @@ gem "pundit"
 gem "sidekiq", "~> 7.0"
 gem "sidekiq-cron"
 gem "redis", "~> 5.0"
+gem "connection_pool", "~> 2.4"
 
 # Pagination
 gem "pagy", "~> 9.0"
 
 # Analytics
 gem "blazer"
+
+# ERD visualization
+gem "rails-realtime-erd"
 
 # Rate limiting
 gem "rack-attack"

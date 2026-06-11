@@ -23,9 +23,7 @@
             <td class="px-4 py-3 text-gray-500"><%= pp.rank || "—" %></td>
             <td class="px-4 py-3">
               <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs font-bold">
-                  <%= pp.user.display_name.first.upcase %>
-                </div>
+                <%= user_avatar(pp.user) %>
                 <span class="font-medium"><%= pp.user.display_name %></span>
                 <span class="text-xs text-gray-400"><%= pp.user.email %></span>
               </div>

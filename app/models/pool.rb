@@ -3,14 +3,10 @@ class Pool < ApplicationRecord
   friendly_id :name, use: :slugged
 
   SCORING_DEFAULTS = {
-    "correct_winner" => 3,
-    "correct_draw" => 3,
-    "exact_score" => 5,
-    "correct_goal_difference" => 1,
-    "correct_total_goals" => 1,
-    "knockout_multiplier" => 2.0,
-    "final_multiplier" => 3.0,
-    "no_tip_penalty" => 0
+    "correct_winner"     => 3,  # acertou vencedor (mas não o placar)
+    "correct_score"      => 5,  # acertou placar exato (em jogo com vencedor)
+    "correct_draw"       => 3,  # acertou que daria empate (mas não o placar)
+    "correct_draw_score" => 5   # acertou empate + placar exato
   }.freeze
 
 
@@ -22,11 +18,12 @@ class Pool < ApplicationRecord
   belongs_to :tournament, optional: true
 
   has_many :pool_matches, dependent: :destroy
-  has_many :selected_matches, through: :pool_matches, source: :match
+  has_many :selected_matches, -> { distinct }, through: :pool_matches, source: :match
   belongs_to :match, optional: true
   has_many :pool_participants, dependent: :destroy
   has_many :participants, through: :pool_participants, source: :user
   has_many :tips, dependent: :destroy
+  has_many :special_bets, dependent: :destroy
   has_many :webhook_endpoints, as: :owner, dependent: :destroy
 
   validates :name, presence: true, length: { maximum: 200 }
@@ -36,6 +33,7 @@ class Pool < ApplicationRecord
   validates :lock_before_minutes, numericality: { greater_than_or_equal_to: 5 }, allow_nil: false
   validate :scope_reference_consistency
 
+  before_validation :clear_scope_conflicts
   before_validation :set_defaults
   before_create :generate_invite_code
 
@@ -45,7 +43,7 @@ class Pool < ApplicationRecord
   end
 
   scope :open_pools, -> { where(status: :open) }
-  scope :public_or_invite, -> { where(visibility: [:public_pool, :invite_only]) }
+  scope :public_or_invite, -> { where(visibility: [ :public_pool, :invite_only ]) }
 
   def scoring_config_with_defaults
     SCORING_DEFAULTS.merge(scoring_config || {})
@@ -101,6 +99,14 @@ class Pool < ApplicationRecord
   end
 
   private
+
+  def clear_scope_conflicts
+    if pool_scope_tournament?
+      self.match_id = nil
+    elsif pool_scope_single_match?
+      self.tournament_id = nil
+    end
+  end
 
   def set_defaults
     self.scoring_config = scoring_config_with_defaults if scoring_config.blank?

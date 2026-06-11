@@ -69,7 +69,7 @@
     </div>
     <% @pool.pool_participants.active.includes(:user).order(rank: :asc).limit(5).each do |pp| %>
       <div class="flex items-center gap-2 py-1.5">
-        <div class="avatar-sm text-[10px]"><%= pp.user.display_name.first.upcase %></div>
+        <%= user_avatar(pp.user) %>
         <span class="text-sm text-pitch-700 dark:text-pitch-200 flex-1 truncate"><%= pp.user.display_name %></span>
         <% if pp.rank %><span class="text-xs text-pitch-400 font-mono"><%= pp.rank %>º</span><% end %>
       </div>

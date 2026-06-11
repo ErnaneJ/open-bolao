@@ -1,0 +1,135 @@
+<% content_for :title, "Jogos" %>
+
+<div class="max-w-6xl" data-controller="bulk-select">
+
+  <div class="flex items-start justify-between mb-6 gap-4 flex-wrap">
+    <div>
+      <h1 class="font-display font-bold text-2xl text-pitch-900 dark:text-white">Jogos (<%= @pagy.count %>)</h1>
+      <p class="text-sm text-pitch-400 mt-0.5">Todos os jogos cadastrados no sistema.</p>
+    </div>
+  </div>
+
+  <%# Import from TSDB %>
+  <div class="card p-5 mb-6">
+    <h2 class="font-display font-bold text-sm uppercase tracking-widest text-pitch-400 mb-1">Importar jogo do TheSportsDB</h2>
+    <p class="text-xs text-pitch-400 mb-3">
+      ID do evento: <code class="font-mono bg-pitch-100 dark:bg-pitch-700 px-1 rounded">2398371</code>
+      ou <code class="font-mono bg-pitch-100 dark:bg-pitch-700 px-1 rounded">2398371-atletico-vs-bahia</code>.
+      Times são criados automaticamente.
+    </p>
+    <%= form_with url: import_from_tsdb_super_admin_matches_path, method: :post, local: true,
+                  class: "flex items-end gap-3 flex-wrap" do |f| %>
+      <div class="flex-1 min-w-48">
+        <label class="block text-xs font-medium text-pitch-500 mb-1">ID do evento</label>
+        <%= f.text_field :tsdb_id, placeholder: "2398371-atletico-vs-bahia", class: "form-input font-mono" %>
+      </div>
+      <%= f.submit "Importar →", class: "btn btn-neon cursor-pointer self-end" %>
+    <% end %>
+  </div>
+
+  <%# Filters %>
+  <%= form_with url: super_admin_matches_path, method: :get, local: true,
+                class: "flex flex-wrap gap-2 mb-4" do |f| %>
+    <%= f.text_field :q, value: params[:q], placeholder: "Buscar time...", class: "form-input w-40" %>
+    <%= f.select :tournament_id,
+          [["Todos os torneios", ""]] + Tournament.order(:name).map { |t| [t.name, t.id] },
+          { selected: params[:tournament_id] },
+          class: "form-input w-44" %>
+    <%= f.submit "Filtrar", class: "btn btn-ghost btn-sm cursor-pointer" %>
+    <% if params[:q].present? || params[:tournament_id].present? %>
+      <%= link_to "Limpar", super_admin_matches_path, class: "btn btn-ghost btn-sm" %>
+    <% end %>
+  <% end %>
+
+  <%# Bulk action bar — hidden until items selected %>
+  <div data-bulk-select-target="bar" class="hidden mb-4 flex items-center gap-3 p-3 bg-pitch-100 dark:bg-pitch-700/50 rounded-xl">
+    <span class="text-sm font-medium text-pitch-700 dark:text-pitch-200"
+          data-bulk-select-target="counter"></span>
+    <%= form_with url: batch_destroy_super_admin_matches_path, method: :delete, local: true,
+                  data: { bulk_select_target: "form" } do |f| %>
+      <div data-bulk-select-target="ids"></div>
+      <button type="button"
+              data-action="click->bulk-select#destroy"
+              data-confirm="Excluir os jogos selecionados? Esta ação não pode ser desfeita."
+              class="btn btn-danger btn-sm">
+        Excluir selecionados
+      </button>
+    <% end %>
+  </div>
+
+  <% if @matches.any? %>
+    <div class="card overflow-hidden">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th class="w-10">
+              <input type="checkbox"
+                     data-bulk-select-target="toggle"
+                     data-action="change->bulk-select#toggleAll"
+                     class="w-4 h-4 rounded border-pitch-300 dark:border-pitch-600">
+            </th>
+            <th>Jogo</th>
+            <th class="hidden md:table-cell">Torneio</th>
+            <th class="hidden sm:table-cell">Data (Brasília)</th>
+            <th class="text-center">Placar</th>
+            <th class="text-center">Status</th>
+            <th class="text-right">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @matches.each do |m| %>
+            <tr>
+              <td>
+                <input type="checkbox" value="<%= m.id %>"
+                       data-bulk-select-target="checkbox"
+                       data-action="change->bulk-select#update"
+                       class="w-4 h-4 rounded border-pitch-300 dark:border-pitch-600">
+              </td>
+              <td>
+                <div class="flex items-center gap-2">
+                  <% if m.home_team.flag_url.present? %>
+                    <img src="<%= m.home_team.flag_url %>" class="w-5 h-3.5 object-cover rounded shrink-0" alt="">
+                  <% end %>
+                  <span class="font-medium text-pitch-900 dark:text-white text-sm">
+                    <%= m.home_team.name %> × <%= m.away_team.name %>
+                  </span>
+                  <% if m.away_team.flag_url.present? %>
+                    <img src="<%= m.away_team.flag_url %>" class="w-5 h-3.5 object-cover rounded shrink-0" alt="">
+                  <% end %>
+                </div>
+                <% if m.stage.present? %>
+                  <p class="text-[10px] text-pitch-400 mt-0.5"><%= m.stage.name %></p>
+                <% end %>
+              </td>
+              <td class="hidden md:table-cell text-pitch-400 text-xs"><%= m.tournament&.name || "—" %></td>
+              <td class="hidden sm:table-cell text-pitch-400 text-xs font-mono">
+                <%= m.scheduled_at&.in_time_zone("America/Fortaleza")&.strftime("%d/%m/%y %H:%M") || "—" %>
+              </td>
+              <td class="text-center font-mono font-bold text-sm">
+                <% if m.home_score.present? %>
+                  <span class="<%= m.status_live? ? 'text-red-500' : 'text-pitch-900 dark:text-white' %>">
+                    <%= m.home_score %>–<%= m.away_score %>
+                  </span>
+                <% else %>
+                  <span class="text-pitch-300 dark:text-pitch-600">–</span>
+                <% end %>
+              </td>
+              <td class="text-center"><%= status_badge(m.status) %></td>
+              <td class="text-right">
+                <div class="flex items-center justify-end gap-1">
+                  <%= link_to "Editar", edit_super_admin_match_path(m), class: "btn btn-ghost btn-sm" %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <%= render "shared/pagy", pagy: @pagy %>
+  <% else %>
+    <div class="card p-12 text-center">
+      <div class="text-4xl mb-3">⚽</div>
+      <p class="text-pitch-400">Nenhum jogo encontrado.</p>
+    </div>
+  <% end %>
+</div>

@@ -67,15 +67,16 @@
 
       <%# Main content %>
       <main class="flex-1 lg:ml-56 min-w-0 p-6">
-        <% if notice %>
-          <div class="flash-success rounded-xl px-4 py-3 text-sm mb-4 animate-enter"><%= notice %></div>
-        <% end %>
-        <% if alert %>
-          <div class="flash-error rounded-xl px-4 py-3 text-sm mb-4 animate-enter"><%= alert %></div>
-        <% end %>
         <%= yield %>
       </main>
     </div>
 
+    <%# Flash toasts — direct body children to avoid stacking-context traps %>
+    <% if notice %>
+      <div class="flash-toast flash-success" data-controller="flash"><%= notice %></div>
+    <% end %>
+    <% if alert %>
+      <div class="flash-toast flash-error" data-controller="flash"><%= alert %></div>
+    <% end %>
   </body>
 </html>

@@ -1,13 +1,13 @@
 FactoryBot.define do
   factory :pool do
     sequence(:name) { |n| "Pool #{n}" }
-    association :admin, factory: [:user, :admin]
+    association :admin, factory: [ :user, :admin ]
     status { :open }
     visibility { :public_pool }
     pool_scope { :tournament }
     lock_before_minutes { 5 }
     scoring_config { Pool::SCORING_DEFAULTS }
-    special_bets_config { Pool::SPECIAL_BETS_DEFAULTS }
+    special_bets_config { {} }
     association :tournament
 
     trait :single_match do

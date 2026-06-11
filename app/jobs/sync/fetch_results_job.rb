@@ -81,8 +81,16 @@ module Sync
 
     def detect_changes(match, data)
       changes = {}
-      changes[:home_score] = data.home_score if data.home_score != match.home_score
-      changes[:away_score] = data.away_score if data.away_score != match.away_score
+      changes[:home_score]          = data.home_score          if data.home_score != match.home_score
+      changes[:away_score]          = data.away_score          if data.away_score != match.away_score
+      changes[:home_score_ht]       = data.home_score_ht       if data.respond_to?(:home_score_ht) && data.home_score_ht != match.home_score_ht
+      changes[:away_score_ht]       = data.away_score_ht       if data.respond_to?(:away_score_ht) && data.away_score_ht != match.away_score_ht
+      changes[:home_score_et]       = data.home_score_et       if data.respond_to?(:home_score_et) && data.home_score_et != match.home_score_et
+      changes[:away_score_et]       = data.away_score_et       if data.respond_to?(:away_score_et) && data.away_score_et != match.away_score_et
+      changes[:home_score_penalties] = data.home_score_penalties if data.respond_to?(:home_score_penalties) && data.home_score_penalties != match.home_score_penalties
+      changes[:away_score_penalties] = data.away_score_penalties if data.respond_to?(:away_score_penalties) && data.away_score_penalties != match.away_score_penalties
+      changes[:referee]             = data.referee             if data.respond_to?(:referee) && data.referee.present? && data.referee != match.referee
+      changes[:attendance]          = data.attendance          if data.respond_to?(:attendance) && data.attendance.present? && data.attendance != match.attendance
       if data.status && Match.statuses[data.status.to_s] && data.status.to_s != match.status
         changes[:status] = data.status
       end
@@ -117,6 +125,21 @@ module Sync
 
       # Notify all pool participants watching this match
       pools_for_match(match).each do |pool|
+        Webhooks::DispatchJob.perform_later(
+          event_type: "match.goal",
+          payload: {
+            "match" => {
+              "id" => match.id,
+              "home_team" => match.home_team.name,
+              "away_team" => match.away_team.name,
+              "home_score" => match.home_score,
+              "away_score" => match.away_score
+            },
+            "goals_count" => count
+          },
+          owner_ids: pool.id
+        )
+
         pool.pool_participants.active.includes(:user).each do |pp|
           Notifications::BroadcastJob.perform_later(
             user_id: pp.user_id,
@@ -140,6 +163,20 @@ module Sync
       pools_for_match(match).each do |pool|
         # Auto-lock tips for this match in this pool
         pool.tips.where(match: match, locked_at: nil).update_all(locked_at: Time.current)
+
+        Webhooks::DispatchJob.perform_later(
+          event_type: "match.live",
+          payload: {
+            "match" => {
+              "id" => match.id,
+              "home_team" => match.home_team.name,
+              "away_team" => match.away_team.name,
+              "home_score" => match.home_score,
+              "away_score" => match.away_score
+            }
+          },
+          owner_ids: pool.id
+        )
 
         pool.pool_participants.active.each do |pp|
           Notifications::BroadcastJob.perform_later(
@@ -167,6 +204,20 @@ module Sync
       })
 
       pools_for_match(match).each do |pool|
+        Webhooks::DispatchJob.perform_later(
+          event_type: "match.finished",
+          payload: {
+            "match" => {
+              "id" => match.id,
+              "home_team" => match.home_team.name,
+              "away_team" => match.away_team.name,
+              "home_score" => match.home_score,
+              "away_score" => match.away_score
+            }
+          },
+          owner_ids: pool.id
+        )
+
         pool.pool_participants.active.each do |pp|
           Notifications::BroadcastJob.perform_later(
             user_id: pp.user_id,
@@ -194,6 +245,17 @@ module Sync
       return unless pool.status_open? || pool.status_locked?
 
       pool.update!(status: :finished)
+
+      Webhooks::DispatchJob.perform_later(
+        event_type: "pool.finished",
+        payload: {
+          "pool" => {
+            "id" => pool.id,
+            "name" => pool.name
+          }
+        },
+        owner_ids: pool.id
+      )
 
       # Broadcast final ranking
       ActionCable.server.broadcast("ranking_pool_#{pool.id}", { event: "pool_finished" })

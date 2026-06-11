@@ -1,0 +1,48 @@
+<% content_for :title, "Novo Webhook" %>
+
+<div class="max-w-2xl">
+  <div class="flex items-center gap-3 mb-6">
+    <%= link_to "← Webhooks", super_admin_webhook_endpoints_path, class: "text-sm text-pitch-500 hover:text-pitch-700 dark:hover:text-pitch-200" %>
+    <h1 class="font-display font-bold text-2xl text-pitch-900 dark:text-white">Novo Webhook</h1>
+  </div>
+
+  <div class="card p-6">
+    <%= form_with model: [:super_admin, @endpoint] do |f| %>
+      <div class="space-y-5">
+
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-1">URL do endpoint</label>
+          <%= f.url_field :url, placeholder: "https://meusite.com/webhook",
+                class: "w-full px-3 py-2 rounded-lg border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 text-sm font-mono focus:ring-2 focus:ring-neon-400 focus:outline-none" %>
+          <p class="text-[11px] text-pitch-400 mt-1">O sistema enviará um POST com HMAC-SHA256 para esta URL.</p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-pitch-500 mb-2">Eventos</label>
+          <div class="grid grid-cols-2 gap-2">
+            <% %w[match.finished match.live match.goal pool.ranking_updated tip.scored].each do |event| %>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" name="webhook_endpoint[events][]" value="<%= event %>"
+                       class="w-4 h-4 text-neon-400 border-pitch-300 dark:border-pitch-600 rounded focus:ring-neon-400"
+                       <%= @endpoint.events&.include?(event) ? "checked" : "" %>>
+                <span class="text-sm text-pitch-700 dark:text-pitch-200 font-mono text-xs"><%= event %></span>
+              </label>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <%= f.check_box :active, class: "w-4 h-4 text-neon-400 border-pitch-300 rounded focus:ring-neon-400" %>
+            <span class="text-sm text-pitch-700 dark:text-pitch-200">Ativo</span>
+          </label>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-2 border-t border-pitch-100 dark:border-pitch-700">
+          <%= link_to "Cancelar", super_admin_webhook_endpoints_path, class: "btn btn-ghost" %>
+          <%= f.submit "Criar webhook", class: "btn btn-neon cursor-pointer" %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

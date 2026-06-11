@@ -1,4 +1,5 @@
 <% matches_by_stage = matches.group_by(&:stage) %>
+<% _next_match = local_assigns[:next_match] %>
 <% if matches.empty? %>
   <div class="card p-12 text-center">
     <div class="text-4xl mb-3">📅</div>
@@ -23,7 +24,8 @@
             <%= turbo_frame_tag "tip_#{match.id}" do %>
               <%= render "tips/tip", match: match, tip: tip, pool: pool,
                     participant_tips_by_match: (defined?(participant_tips_by_match) ? participant_tips_by_match : {}),
-                    tip_counts_by_match: (defined?(tip_counts_by_match) ? tip_counts_by_match : {}) %>
+                    tip_counts_by_match: (defined?(tip_counts_by_match) ? tip_counts_by_match : {}),
+                    is_next: (match == _next_match) %>
             <% end %>
           <% end %>
         </div>

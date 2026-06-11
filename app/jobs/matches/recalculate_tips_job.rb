@@ -11,8 +11,21 @@ module Matches
         pool = Pool.find_by(id: pool_id)
         next unless pool
 
-        pool.tips.where(match: match).find_each do |tip|
-          Tips::ScoringService.call(tip: tip, match: match, pool: pool)
+        pool.tips.where(match: match).includes(:user).find_each do |tip|
+          points = Tips::ScoringService.call(tip: tip, match: match, pool: pool)
+
+          Webhooks::DispatchJob.perform_later(
+            event_type: "tip.scored",
+            payload: {
+              "tip" => {
+                "user" => tip.user.display_name,
+                "home_score_tip" => tip.home_score_tip,
+                "away_score_tip" => tip.away_score_tip,
+                "points_earned" => points
+              }
+            },
+            owner_ids: pool_id
+          )
         end
 
         Rankings::UpdatePoolRankingJob.perform_later(pool_id)

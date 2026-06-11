@@ -117,14 +117,21 @@
     @apply block text-xs font-semibold uppercase tracking-widest text-pitch-400 dark:text-pitch-300 mb-1.5;
   }
 
-  /* Score input */
+  /* Score input — hide native number spinners for symmetric alignment */
   .score-input {
     @apply text-center rounded-xl font-bold text-lg outline-none transition-all;
     @apply bg-transparent border-0 text-pitch-900 dark:text-white;
     @apply focus:ring-0;
     font-family: var(--font-mono);
-    width: 44px;
+    width: 40px;
     padding: 0;
+    appearance: textfield;
+    -moz-appearance: textfield;
+  }
+  .score-input::-webkit-outer-spin-button,
+  .score-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
   }
 
   /* ── Badges ── */
@@ -211,9 +218,6 @@
   }
 
   /* ── Flash ── */
-  .flash-success { @apply bg-grass-500/10 border border-grass-500/30 text-grass-600 dark:text-grass-400; }
-  .flash-error   { @apply bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400; }
-  .flash-notice  { @apply bg-pitch-800/10 dark:bg-pitch-50/10 border border-pitch-200 dark:border-pitch-600 text-pitch-700 dark:text-pitch-200; }
 }
 
 @layer utilities {
@@ -254,20 +258,28 @@
 /* ── Modal/Dialog ── */
 dialog {
   @apply rounded-2xl border border-pitch-200 dark:border-pitch-700 bg-white dark:bg-pitch-800 text-pitch-900 dark:text-pitch-50 p-0 shadow-2xl;
-  max-width: min(90vw, 580px);
-  width: 100%;
+  /* translate-based centering works across all browsers for top-layer dialogs */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  width: min(92vw, 540px);
+  max-height: 90dvh;
+  overflow-y: auto;
 }
 dialog::backdrop {
   background: rgba(4, 9, 26, 0.7);
   backdrop-filter: blur(4px);
 }
 dialog[open] {
-  animation: dialog-enter 0.2s ease both;
+  animation: dialog-enter 0.22s ease both;
 }
 @keyframes dialog-enter {
-  from { opacity: 0; transform: translateY(-12px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.95) translateY(8px); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1)    translateY(0); }
 }
+
 
 /* ── Turbo ── */
 .turbo-progress-bar {

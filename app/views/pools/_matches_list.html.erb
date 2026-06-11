@@ -1,28 +1,215 @@
-<% matches_by_date = matches.group_by { |m| m.scheduled_at&.to_date } %>
-<% matches_by_date.each do |date, day_matches| %>
-  <div class="mb-4">
-    <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
-      <%= date ? l(date, format: :long) : t("matches.no_date") %>
-    </h3>
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700 overflow-hidden">
-      <% day_matches.each do |match| %>
-        <div class="px-4 py-3 flex items-center gap-4">
-          <div class="flex-1 flex items-center justify-between gap-2 min-w-0">
-            <span class="font-medium text-sm truncate"><%= match.home_team.name %></span>
-            <% if match.status_finished? %>
-              <span class="font-bold text-gray-900 dark:text-white whitespace-nowrap"><%= match.home_score %> – <%= match.away_score %></span>
-            <% elsif match.status_live? %>
-              <span class="font-bold text-red-600 whitespace-nowrap animate-pulse">AO VIVO</span>
+<%# Matches tab — three view modes: table (default), grid, calendar %>
+<% view_mode = local_assigns[:view_mode] || "table" %>
+<% now = Time.current %>
+
+<% if matches.empty? %>
+  <div class="card p-12 text-center">
+    <div class="text-4xl mb-3">📅</div>
+    <p class="text-pitch-400 font-medium">Nenhum jogo configurado.</p>
+  </div>
+
+<% elsif view_mode == "grid" %>
+  <%# Determine next upcoming match %>
+  <% next_match = matches.select { |m|
+       !m.status_finished? && !m.status_live? && !m.status_cancelled? &&
+       m.scheduled_at.present? && m.scheduled_at > now
+     }.min_by(&:scheduled_at) %>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+    <% matches.each do |m| %>
+      <% is_past = m.status_finished? || m.status_cancelled? %>
+      <% is_live = m.status_live? %>
+      <% is_next = m == next_match %>
+
+      <div class="card p-3 text-center transition-all duration-200
+                  <%= is_live ? 'border-red-400/50 dark:border-red-500/40 shadow-sm shadow-red-500/10' : '' %>
+                  <%= is_next ? 'border-neon-400/40 dark:border-neon-400/30 shadow-md shadow-neon-400/10' : '' %>
+                  <%= is_past ? 'opacity-50' : 'hover:shadow-md hover:-translate-y-px hover:border-pitch-300/60 dark:hover:border-pitch-600' %>">
+
+        <% if is_next %>
+          <div class="text-[9px] font-bold uppercase tracking-widest text-neon-600 dark:text-neon-300 mb-2">
+            Próximo
+          </div>
+        <% end %>
+
+        <div class="flex items-center justify-between gap-1 mb-2">
+          <%# Home team %>
+          <div class="flex-1 flex flex-col items-center gap-1">
+            <% ht_img = m.home_team.flag_url.presence || m.home_team.logo_url.presence %>
+            <% if ht_img.present? %>
+              <img src="<%= ht_img %>" class="w-10 h-7 object-cover rounded-md mx-auto shadow-sm" alt="" onerror="this.style.display='none'">
             <% else %>
-              <span class="text-xs text-gray-400 whitespace-nowrap">
-                <%= match.scheduled_at ? l(match.scheduled_at, format: :short) : "—" %>
+              <div class="w-10 h-7 rounded-md bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center mx-auto">
+                <span class="text-[8px] font-bold text-pitch-500"><%= m.home_team.initials %></span>
+              </div>
+            <% end %>
+            <p class="text-[10px] font-semibold text-pitch-700 dark:text-pitch-200 mt-0.5 leading-tight truncate w-full">
+              <%= m.home_team.short_name || m.home_team.name.split.first %>
+            </p>
+          </div>
+
+          <%# Score / Time %>
+          <div class="shrink-0 px-1 flex flex-col items-center">
+            <% if m.status_finished? %>
+              <span class="font-mono font-bold text-base text-pitch-900 dark:text-white leading-none">
+                <%= m.home_score %><span class="text-pitch-300 dark:text-pitch-600 mx-0.5">–</span><%= m.away_score %>
+              </span>
+            <% elsif m.status_live? %>
+              <span class="font-mono font-bold text-base text-red-500 leading-none">
+                <%= m.home_score %><span class="text-red-300/60 mx-0.5">–</span><%= m.away_score %>
+              </span>
+              <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse mt-1 block mx-auto"></span>
+            <% else %>
+              <span class="text-[11px] font-mono font-bold text-pitch-500 dark:text-pitch-400 leading-none">
+                <%= m.scheduled_at ? m.scheduled_at.in_time_zone("America/Fortaleza").strftime("%H:%M") : "–" %>
+              </span>
+              <span class="text-[9px] text-pitch-400 font-mono mt-0.5">
+                <%= m.scheduled_at ? m.scheduled_at.in_time_zone("America/Fortaleza").strftime("%d/%m") : "" %>
               </span>
             <% end %>
-            <span class="font-medium text-sm truncate text-right"><%= match.away_team.name %></span>
           </div>
-          <%= status_badge(match.status) %>
+
+          <%# Away team %>
+          <div class="flex-1 flex flex-col items-center gap-1">
+            <% at_img = m.away_team.flag_url.presence || m.away_team.logo_url.presence %>
+            <% if at_img.present? %>
+              <img src="<%= at_img %>" class="w-10 h-7 object-cover rounded-md mx-auto shadow-sm" alt="" onerror="this.style.display='none'">
+            <% else %>
+              <div class="w-10 h-7 rounded-md bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center mx-auto">
+                <span class="text-[8px] font-bold text-pitch-500"><%= m.away_team.initials %></span>
+              </div>
+            <% end %>
+            <p class="text-[10px] font-semibold text-pitch-700 dark:text-pitch-200 mt-0.5 leading-tight truncate w-full">
+              <%= m.away_team.short_name || m.away_team.name.split.first %>
+            </p>
+          </div>
         </div>
-      <% end %>
-    </div>
+
+        <%= status_badge(m.status) %>
+      </div>
+    <% end %>
+  </div>
+
+<% elsif view_mode == "calendar" %>
+  <%# Calendar: grouped by date %>
+  <% matches_by_date = matches.group_by { |m| m.scheduled_at&.in_time_zone("America/Fortaleza")&.to_date } %>
+  <div class="space-y-8">
+    <% matches_by_date.sort_by { |d, _| d || Date::Infinity }.each do |date, day_matches| %>
+      <div>
+        <%# Date header %>
+        <div class="flex items-center gap-4 mb-4">
+          <div class="shrink-0 text-center bg-pitch-900 dark:bg-pitch-700 text-white rounded-2xl w-14 py-2">
+            <div class="text-[9px] uppercase tracking-widest font-bold opacity-60 leading-tight">
+              <%= date ? I18n.l(date, format: "%b") : "?" %>
+            </div>
+            <div class="font-display font-bold text-2xl leading-none">
+              <%= date ? date.day : "?" %>
+            </div>
+          </div>
+          <div>
+            <p class="font-semibold text-pitch-800 dark:text-pitch-100 text-sm">
+              <%= date ? I18n.l(date, format: :long) : "Sem data" %>
+            </p>
+            <p class="text-[11px] text-pitch-400 mt-0.5"><%= day_matches.size %> jogo<%= day_matches.size > 1 ? "s" : "" %></p>
+          </div>
+        </div>
+        <%# Matches for this day %>
+        <div class="card overflow-hidden divide-y divide-pitch-100 dark:divide-pitch-700/30">
+          <% day_matches.sort_by { |m| m.scheduled_at || Time::INFINITY }.each do |m| %>
+            <div class="flex items-center gap-4 px-5 py-4">
+              <%# Home %>
+              <div class="flex items-center gap-2.5 flex-1 min-w-0">
+                <% if m.home_team.flag_url.present? %>
+                  <img src="<%= m.home_team.flag_url %>" class="w-8 h-6 object-cover rounded-md shrink-0 shadow-sm" alt="">
+                <% end %>
+                <span class="text-sm font-semibold text-pitch-900 dark:text-white truncate">
+                  <%= m.home_team.name %>
+                </span>
+              </div>
+              <%# Score / time %>
+              <div class="text-center shrink-0 min-w-[72px]">
+                <% if m.status_finished? %>
+                  <span class="font-mono font-bold text-base text-pitch-900 dark:text-white">
+                    <%= m.home_score %>–<%= m.away_score %>
+                  </span>
+                <% elsif m.status_live? %>
+                  <span class="font-mono font-bold text-base text-red-500 animate-pulse">
+                    <%= m.home_score %>–<%= m.away_score %>
+                  </span>
+                <% else %>
+                  <span class="text-sm font-mono font-bold text-pitch-500 dark:text-pitch-400">
+                    <%= m.scheduled_at ? m.scheduled_at.in_time_zone("America/Fortaleza").strftime("%H:%M") : "–" %>
+                  </span>
+                <% end %>
+                <div class="mt-1"><%= status_badge(m.status) %></div>
+              </div>
+              <%# Away %>
+              <div class="flex items-center gap-2.5 flex-1 justify-end min-w-0">
+                <span class="text-sm font-semibold text-pitch-900 dark:text-white truncate text-right">
+                  <%= m.away_team.name %>
+                </span>
+                <% if m.away_team.flag_url.present? %>
+                  <img src="<%= m.away_team.flag_url %>" class="w-8 h-6 object-cover rounded-md shrink-0 shadow-sm" alt="">
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+<% else %>
+  <%# Table: default %>
+  <div class="card overflow-hidden">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Jogo</th>
+          <th class="hidden sm:table-cell">Data</th>
+          <th class="text-center">Placar</th>
+          <th class="text-center">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% matches.each do |m| %>
+          <tr>
+            <td>
+              <div class="flex items-center gap-2 flex-wrap">
+                <% if m.home_team.flag_url.present? %>
+                  <img src="<%= m.home_team.flag_url %>" class="w-5 h-3.5 object-cover rounded shrink-0" alt="">
+                <% end %>
+                <span class="font-medium text-pitch-900 dark:text-white text-sm">
+                  <%= m.home_team.name %>
+                </span>
+                <span class="text-pitch-300 dark:text-pitch-600">×</span>
+                <span class="font-medium text-pitch-900 dark:text-white text-sm">
+                  <%= m.away_team.name %>
+                </span>
+                <% if m.away_team.flag_url.present? %>
+                  <img src="<%= m.away_team.flag_url %>" class="w-5 h-3.5 object-cover rounded shrink-0" alt="">
+                <% end %>
+              </div>
+              <% if m.stage %>
+                <span class="text-[10px] text-pitch-400"><%= m.stage.name %></span>
+              <% end %>
+            </td>
+            <td class="hidden sm:table-cell text-pitch-400 text-xs font-mono">
+              <%= m.scheduled_at ? m.scheduled_at.in_time_zone("America/Fortaleza").strftime("%d/%m %H:%M") : "—" %>
+            </td>
+            <td class="text-center font-mono font-bold text-sm">
+              <% if m.status_finished? %>
+                <span class="text-pitch-900 dark:text-white"><%= m.home_score %>–<%= m.away_score %></span>
+              <% elsif m.status_live? %>
+                <span class="text-red-500"><%= m.home_score %>–<%= m.away_score %></span>
+              <% else %>
+                <span class="text-pitch-300 dark:text-pitch-600">–</span>
+              <% end %>
+            </td>
+            <td class="text-center"><%= status_badge(m.status) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
   </div>
 <% end %>

@@ -22,12 +22,12 @@ class ApplicationController < ActionController::Base
     redirect_back_or_to root_path
   end
 
-  def after_sign_in_path_for(_resource)
-    dashboard_path
+  def after_sign_in_path_for(resource)
+    resource.role_super_admin? ? super_admin_users_path : dashboard_path
   end
 
   def configure_permitted_parameters
-    devise_parameter_sanitizer.permit(:sign_up, keys: [:name])
-    devise_parameter_sanitizer.permit(:account_update, keys: [:name, :locale, :time_zone])
+    devise_parameter_sanitizer.permit(:sign_up, keys: [ :name ])
+    devise_parameter_sanitizer.permit(:account_update, keys: [ :name, :locale, :time_zone ])
   end
 end

@@ -1,37 +1,328 @@
-<% content_for :title, @tournament.name %>
-<div class="p-6">
-  <div class="flex items-center gap-3 mb-6 flex-wrap">
-    <%= link_to "← Torneios", super_admin_tournaments_path, class: "text-sm text-gray-500 hover:text-indigo-600" %>
-    <h1 class="text-2xl font-bold flex-1"><%= @tournament.name %> <span class="text-gray-400 text-lg font-normal"><%= @tournament.season %></span></h1>
-    <%= status_badge(@tournament.status) %>
+<% content_for :title, "#{@tournament.name} #{@tournament.season}" %>
+<% matches  = @tournament.matches.includes(:home_team, :away_team, :stage).order(:scheduled_at) %>
+<% teams    = @tournament.tournament_teams.includes(:team).order("teams.name") %>
+<% stages   = @tournament.stages.order(:order_position) %>
+<% schedule = @tournament.sync_schedule %>
+
+<div class="max-w-6xl">
+  <%# Header %>
+  <div class="flex items-start justify-between gap-4 mb-6 flex-wrap">
+    <div class="flex items-center gap-4">
+      <%= link_to "← Torneios", super_admin_tournaments_path, class: "text-sm text-pitch-500 hover:text-pitch-700 dark:hover:text-pitch-200 shrink-0" %>
+      <%= tournament_logo(@tournament, size: :lg) %>
+      <div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <h1 class="font-display font-bold text-2xl text-pitch-900 dark:text-white"><%= @tournament.name %></h1>
+          <% if @tournament.season.present? %>
+            <span class="text-pitch-400 font-mono text-sm"><%= @tournament.season %></span>
+          <% end %>
+          <%= status_badge(@tournament.status) %>
+          <% if @tournament.provider_thesportsdb? %>
+            <span class="badge badge-draft text-[9px]">TSDB</span>
+          <% end %>
+        </div>
+        <div class="flex items-center gap-3 mt-1 flex-wrap">
+          <% if @tournament.country.present? %>
+            <p class="text-xs text-pitch-400"><%= @tournament.country %></p>
+          <% end %>
+          <% if @tournament.gender.present? %>
+            <p class="text-xs text-pitch-400"><%= @tournament.gender %></p>
+          <% end %>
+          <% if @tournament.formed_year.present? %>
+            <p class="text-xs text-pitch-400">Fundado em <%= @tournament.formed_year %></p>
+          <% end %>
+          <p class="text-xs text-pitch-400"><%= @tournament.sport.humanize %> · por <%= @tournament.created_by&.display_name %></p>
+        </div>
+        <% if @tournament.description.present? %>
+          <p class="text-xs text-pitch-400 mt-1 max-w-xl line-clamp-2"><%= @tournament.description %></p>
+        <% end %>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 flex-wrap">
+      <%= link_to "Editar", edit_super_admin_tournament_path(@tournament), class: "btn btn-ghost btn-sm" %>
+      <%= button_to "Excluir", super_admin_tournament_path(@tournament), method: :delete,
+            data: { turbo_confirm: "Excluir #{@tournament.name}? Todos os jogos serão apagados. Os times são preservados." },
+            class: "btn btn-danger btn-sm" %>
+    </div>
   </div>
 
-  <div class="flex flex-wrap gap-2 mb-6">
-    <%= link_to "Editar", edit_super_admin_tournament_path(@tournament), class: "px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700" %>
-    <%= link_to "Times", super_admin_tournament_teams_path(@tournament), class: "px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700" %>
-    <%= link_to "Jogos", super_admin_tournament_matches_path(@tournament), class: "px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700" %>
-    <%= link_to "Fases", super_admin_tournament_stages_path(@tournament), class: "px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700" %>
-    <%= link_to "Sync", super_admin_tournament_sync_schedule_path(@tournament), class: "px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700" %>
-    <%= button_to "Seed via API", seed_from_api_super_admin_tournament_path(@tournament), method: :post, class: "px-3 py-1.5 bg-green-100 text-green-800 rounded-lg text-sm hover:bg-green-200" %>
-    <%= button_to "Sync agora", sync_super_admin_tournament_path(@tournament), method: :post, class: "px-3 py-1.5 bg-indigo-100 text-indigo-800 rounded-lg text-sm hover:bg-indigo-200" %>
+  <%# ── Step-by-step import panel (TheSportsDB only) ──────────────────── %>
+  <% if @tournament.external_config&.dig("tsdb_league_id").present? %>
+    <div class="card p-4 mb-6 border-pitch-200/60 dark:border-pitch-700/60">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-pitch-400 mb-3">TheSportsDB — ações por etapa</p>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <%# Step 1: Sync scores %>
+        <div class="rounded-xl border border-pitch-200 dark:border-pitch-700 p-3 text-center">
+          <p class="text-xs font-semibold text-pitch-900 dark:text-white mb-0.5">1. Placares</p>
+          <p class="text-[10px] text-pitch-400 mb-2">Atualiza status e placar</p>
+          <%= button_to sync_super_admin_tournament_path(@tournament), method: :post,
+                class: "w-full btn btn-ghost btn-sm" do %>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Sync
+          <% end %>
+        </div>
+        <%# Step 2: Import teams %>
+        <div class="rounded-xl border border-pitch-200 dark:border-pitch-700 p-3 text-center">
+          <p class="text-xs font-semibold text-pitch-900 dark:text-white mb-0.5">2. Times</p>
+          <p class="text-[10px] text-pitch-400 mb-2">Atualiza logos e metadata</p>
+          <%= button_to import_teams_super_admin_tournament_path(@tournament), method: :post,
+                class: "w-full btn btn-ghost btn-sm" do %>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/></svg>
+            Importar
+          <% end %>
+        </div>
+        <%# Step 3: Import matches %>
+        <div class="rounded-xl border border-pitch-200 dark:border-pitch-700 p-3 text-center">
+          <p class="text-xs font-semibold text-pitch-900 dark:text-white mb-0.5">3. Jogos</p>
+          <p class="text-[10px] text-pitch-400 mb-2">Busca jogos por rodada</p>
+          <%= button_to import_matches_super_admin_tournament_path(@tournament), method: :post,
+                class: "w-full btn btn-ghost btn-sm" do %>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            Importar
+          <% end %>
+        </div>
+        <%# Step 4: Full re-import %>
+        <div class="rounded-xl border border-red-200 dark:border-red-900/50 p-3 text-center">
+          <p class="text-xs font-semibold text-pitch-900 dark:text-white mb-0.5">4. Re-importar tudo</p>
+          <p class="text-[10px] text-pitch-400 mb-2">Apaga jogos e recria</p>
+          <%= button_to seed_from_api_super_admin_tournament_path(@tournament), method: :post,
+                data: { turbo_confirm: "Re-importar tudo? Os jogos existentes serão apagados e recriados." },
+                class: "w-full btn btn-danger btn-sm" do %>
+            ↺ Full reset
+          <% end %>
+        </div>
+      </div>
+      <p class="text-[10px] text-pitch-400 mt-2">Use as etapas 2 e 3 separadamente se o import parcial perder times ou jogos. Cada etapa roda em background (Sidekiq).</p>
+    </div>
+  <% end %>
+
+  <%# Image banner %>
+  <% if @tournament.banner_url.present? || @tournament.fanart_url.present? %>
+    <div class="rounded-2xl overflow-hidden mb-6 h-36 bg-pitch-800">
+      <img src="<%= @tournament.banner_url.presence || @tournament.fanart_url %>"
+           alt="<%= @tournament.name %>"
+           class="w-full h-full object-cover opacity-80">
+    </div>
+  <% end %>
+
+  <%# Stats %>
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+    <div class="stat-card">
+      <span class="stat-label">Times</span>
+      <span class="stat-value text-neon-600 dark:text-neon-300"><%= teams.count %></span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Jogos</span>
+      <span class="stat-value"><%= matches.count %></span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Bolões</span>
+      <span class="stat-value"><%= @tournament.pools.count %></span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Encerrados</span>
+      <span class="stat-value"><%= matches.count(&:status_finished?) %></span>
+    </div>
   </div>
 
-  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center">
-      <div class="text-3xl font-bold text-indigo-600"><%= @tournament.teams.count %></div>
-      <div class="text-xs text-gray-500 mt-1">Times</div>
+  <%# Tabs %>
+  <div data-controller="tabs">
+    <div class="border-b border-pitch-200 dark:border-pitch-700 mb-6">
+      <nav class="-mb-px flex gap-1 overflow-x-auto">
+        <% [
+          ["matches", "Jogos (#{matches.count})"],
+          ["teams",   "Times (#{teams.count})"],
+          ["stages",  "Fases (#{stages.count})"],
+          ["sync",    "Sincronização"]
+        ].each_with_index do |(id, label), idx| %>
+          <button data-tabs-target="tab" data-action="click->tabs#show" data-tab="<%= id %>"
+                  class="tab-btn <%= idx == 0 ? 'tab-btn-active' : '' %> px-4 whitespace-nowrap">
+            <%= label %>
+          </button>
+        <% end %>
+      </nav>
     </div>
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center">
-      <div class="text-3xl font-bold text-indigo-600"><%= @tournament.matches.count %></div>
-      <div class="text-xs text-gray-500 mt-1">Jogos</div>
+
+    <%# ── Jogos ─────────────────────────────────────────────────────── %>
+    <div id="tab-matches" data-tabs-target="panel">
+      <div class="flex justify-end mb-3">
+        <%= link_to "+ Novo jogo", new_super_admin_tournament_match_path(@tournament), class: "btn btn-ghost btn-sm" %>
+      </div>
+      <% if matches.any? %>
+        <div class="card overflow-hidden">
+          <table class="data-table">
+            <thead><tr>
+              <th>Jogo</th>
+              <th class="hidden sm:table-cell">Fase</th>
+              <th class="hidden sm:table-cell">Data</th>
+              <th class="text-center">Placar</th>
+              <th class="text-center">Status</th>
+              <th class="text-right">Ações</th>
+            </tr></thead>
+            <tbody>
+              <% matches.each do |m| %>
+                <tr>
+                  <td>
+                    <div class="flex items-center gap-2">
+                      <%= team_avatar(m.home_team, size: :xs) %>
+                      <span class="font-medium text-pitch-900 dark:text-white text-sm">
+                        <%= m.home_team.short_name || m.home_team.name %> × <%= m.away_team.short_name || m.away_team.name %>
+                      </span>
+                      <%= team_avatar(m.away_team, size: :xs) %>
+                    </div>
+                  </td>
+                  <td class="hidden sm:table-cell text-pitch-400 text-xs"><%= m.stage&.name || "—" %></td>
+                  <td class="hidden sm:table-cell text-pitch-400 text-xs font-mono">
+                    <%= m.scheduled_at ? m.scheduled_at.in_time_zone("America/Sao_Paulo").strftime("%d/%m %H:%M") : "—" %>
+                  </td>
+                  <td class="text-center font-mono font-bold text-sm">
+                    <% if m.home_score.present? %>
+                      <span class="<%= m.status_live? ? 'text-red-500' : 'text-pitch-900 dark:text-white' %>">
+                        <%= m.home_score %>–<%= m.away_score %>
+                      </span>
+                      <% if m.home_score_ht.present? %>
+                        <span class="text-[10px] text-pitch-400 block">(<%= m.home_score_ht %>–<%= m.away_score_ht %> HT)</span>
+                      <% end %>
+                    <% else %>
+                      <span class="text-pitch-300 dark:text-pitch-600">–</span>
+                    <% end %>
+                  </td>
+                  <td class="text-center"><%= status_badge(m.status) %></td>
+                  <td class="text-right">
+                    <div class="flex items-center justify-end gap-1">
+                      <%= link_to "Editar", edit_super_admin_tournament_match_path(@tournament, m), class: "btn btn-ghost btn-sm" %>
+                      <%= button_to "Excluir", super_admin_match_path(m), method: :delete,
+                            data: { turbo_confirm: "Excluir #{m.home_team.name} × #{m.away_team.name}?" },
+                            class: "btn btn-danger btn-sm" %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="card p-8 text-center">
+          <p class="text-pitch-400 mb-3">Nenhum jogo cadastrado.</p>
+          <%= link_to "+ Novo jogo", new_super_admin_tournament_match_path(@tournament), class: "btn btn-neon btn-sm" %>
+        </div>
+      <% end %>
     </div>
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center">
-      <div class="text-3xl font-bold text-indigo-600"><%= @tournament.pools.count %></div>
-      <div class="text-xs text-gray-500 mt-1">Bolões</div>
+
+    <%# ── Times ──────────────────────────────────────────────────────── %>
+    <div id="tab-teams" data-tabs-target="panel" class="hidden">
+      <div class="flex justify-end mb-3">
+        <%= link_to "Gerenciar times", super_admin_tournament_teams_path(@tournament), class: "btn btn-ghost btn-sm" %>
+      </div>
+      <% if teams.any? %>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          <% teams.each do |tt| %>
+            <div class="card p-3 flex items-center gap-3 hover:border-pitch-300 dark:hover:border-pitch-600 transition-colors">
+              <%= team_avatar(tt.team, size: :md) %>
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-pitch-900 dark:text-white truncate"><%= tt.team.name %></p>
+                <% if tt.group_name.present? %>
+                  <p class="text-[10px] text-pitch-400"><%= tt.group_name %></p>
+                <% elsif tt.team.country_code.present? %>
+                  <p class="text-[10px] text-pitch-400 font-mono uppercase"><%= tt.team.country_code %></p>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="card p-8 text-center">
+          <p class="text-pitch-400">Nenhum time associado ao torneio.</p>
+        </div>
+      <% end %>
     </div>
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center">
-      <div class="text-3xl font-bold text-indigo-600"><%= @tournament.matches.finished.count %></div>
-      <div class="text-xs text-gray-500 mt-1">Jogos encerrados</div>
+
+    <%# ── Fases ───────────────────────────────────────────────────────── %>
+    <div id="tab-stages" data-tabs-target="panel" class="hidden">
+      <div class="flex justify-end mb-3">
+        <%= link_to "+ Nova fase", new_super_admin_tournament_stage_path(@tournament), class: "btn btn-ghost btn-sm" %>
+      </div>
+      <% if stages.any? %>
+        <div class="card overflow-hidden divide-y divide-pitch-100 dark:divide-pitch-700/30">
+          <% stages.each do |stage| %>
+            <div class="px-4 py-3 flex items-center justify-between gap-3">
+              <div>
+                <p class="font-medium text-pitch-900 dark:text-white text-sm"><%= stage.name %></p>
+                <p class="text-[11px] text-pitch-400 font-mono"><%= stage.stage_type %> · posição <%= stage.order_position %></p>
+              </div>
+              <div class="flex items-center gap-2">
+                <%= link_to "Editar", edit_super_admin_tournament_stage_path(@tournament, stage), class: "btn btn-ghost btn-sm" %>
+                <%= button_to "Excluir", super_admin_tournament_stage_path(@tournament, stage), method: :delete,
+                      data: { turbo_confirm: "Excluir fase #{stage.name}?" },
+                      class: "btn btn-danger btn-sm" %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="card p-8 text-center">
+          <p class="text-pitch-400 mb-3">Nenhuma fase cadastrada.</p>
+          <%= link_to "+ Nova fase", new_super_admin_tournament_stage_path(@tournament), class: "btn btn-neon btn-sm" %>
+        </div>
+      <% end %>
+    </div>
+
+    <%# ── Sincronização ──────────────────────────────────────────────── %>
+    <div id="tab-sync" data-tabs-target="panel" class="hidden">
+      <% if schedule %>
+        <div class="card p-5 mb-4">
+          <div class="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <div class="flex items-center gap-2 mb-1">
+                <div class="w-2.5 h-2.5 rounded-full <%= schedule.paused_until&.future? ? 'bg-amber-400' : schedule.enabled? ? 'bg-grass-500' : 'bg-pitch-300' %>"></div>
+                <span class="font-semibold text-pitch-900 dark:text-white text-sm">
+                  <%= schedule.paused_until&.future? ? "Pausado" : schedule.enabled? ? "Ativo" : "Desativado" %>
+                </span>
+                <span class="text-xs text-pitch-400">· a cada <%= schedule.interval_seconds / 60 %> min</span>
+              </div>
+              <p class="text-xs text-pitch-400">
+                Janela: <%= schedule.active_from&.strftime("%H:%M") || "—" %> –
+                        <%= schedule.active_until&.strftime("%H:%M") || "—" %>
+              </p>
+              <% if schedule.last_run_at %>
+                <p class="text-xs text-pitch-400">Último sync: <%= time_ago_in_words(schedule.last_run_at) %> atrás</p>
+              <% end %>
+              <% if schedule.last_error_message.present? %>
+                <p class="text-xs text-red-500 mt-1">Último erro: <%= schedule.last_error_message.truncate(100) %></p>
+              <% end %>
+            </div>
+            <div class="flex gap-2">
+              <%= link_to "Configurar", edit_super_admin_tournament_sync_schedule_path(@tournament), class: "btn btn-ghost btn-sm" %>
+              <%= button_to "Forçar sync agora", force_run_super_admin_tournament_sync_schedule_path(@tournament), method: :post, class: "btn btn-neon btn-sm" %>
+            </div>
+          </div>
+          <% recent_logs = schedule.sync_logs.order(started_at: :desc).limit(5) %>
+          <% if recent_logs.any? %>
+            <p class="text-[10px] uppercase tracking-widest font-bold text-pitch-400 mb-2">Últimos registros</p>
+            <div class="space-y-1">
+              <% recent_logs.each do |log| %>
+                <div class="flex items-center gap-2 text-xs">
+                  <span class="<%= log.status_success? ? 'text-grass-500' : 'text-red-500' %>">
+                    <%= log.status_success? ? "✓" : "✗" %>
+                  </span>
+                  <span class="font-mono text-pitch-400"><%= log.started_at.strftime("%d/%m %H:%M") %></span>
+                  <span class="text-pitch-500"><%= log.matches_updated %> atualizados</span>
+                  <% if log.error_message.present? %>
+                    <span class="text-red-400 truncate max-w-48"><%= log.error_message %></span>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="card p-8 text-center">
+          <p class="text-pitch-400 mb-3">Nenhum schedule configurado para este torneio.</p>
+          <% if @tournament.external_config&.dig("tsdb_league_id").present? %>
+            <%= button_to "Re-importar e criar schedule", seed_from_api_super_admin_tournament_path(@tournament), method: :post, class: "btn btn-neon btn-sm" %>
+          <% end %>
+        </div>
+      <% end %>
     </div>
   </div>
 </div>

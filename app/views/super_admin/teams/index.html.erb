@@ -1,42 +1,155 @@
 <% content_for :title, "Times" %>
-<div class="p-6">
+
+<div class="max-w-6xl" data-controller="bulk-select">
+
   <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold">Times (<%= @pagy.count %>)</h1>
-    <%= link_to "Novo Time", new_super_admin_team_path, class: "px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700" %>
+    <div>
+      <h1 class="font-display font-bold text-2xl text-pitch-900 dark:text-white">Times (<%= @pagy.count %>)</h1>
+      <p class="text-sm text-pitch-400 mt-0.5">Times globais compartilhados entre torneios.</p>
+    </div>
+    <%= link_to "Novo time manual", new_super_admin_team_path, class: "btn btn-ghost btn-sm" %>
   </div>
-  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-    <table class="w-full text-sm">
-      <thead class="bg-gray-50 dark:bg-gray-700/50">
-        <tr>
-          <th class="px-4 py-3 text-left font-medium text-gray-500">Time</th>
-          <th class="px-4 py-3 text-left font-medium text-gray-500">País</th>
-          <th class="px-4 py-3 text-right font-medium text-gray-500">Torneios</th>
-          <th class="px-4 py-3 text-right font-medium text-gray-500">Ações</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-        <% @teams.each do |team| %>
+
+  <%# Import from TSDB %>
+  <div class="card p-5 mb-6">
+    <div class="flex items-start gap-3 mb-3">
+      <div class="w-8 h-8 rounded-lg bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center shrink-0">
+        <svg class="w-4 h-4 text-pitch-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+        </svg>
+      </div>
+      <div>
+        <h2 class="font-semibold text-pitch-900 dark:text-white text-sm">Importar time do TheSportsDB</h2>
+        <p class="text-xs text-pitch-400 mt-0.5">
+          Digite o ID, slug ou nome em inglês. Ex:
+          <code class="font-mono bg-pitch-100 dark:bg-pitch-700 px-1 rounded">134299</code> ou
+          <code class="font-mono bg-pitch-100 dark:bg-pitch-700 px-1 rounded">Atletico Mineiro</code>.
+        </p>
+      </div>
+    </div>
+    <%= form_with url: import_from_tsdb_super_admin_teams_path, method: :post, local: true,
+                  class: "flex items-end gap-3 flex-wrap" do |f| %>
+      <div class="flex-1 min-w-48">
+        <label class="form-label">ID ou nome do time</label>
+        <%= f.text_field :tsdb_id, placeholder: "Atletico Mineiro ou 134299", class: "form-input" %>
+      </div>
+      <%= f.submit "Importar →", class: "btn btn-neon cursor-pointer self-end" %>
+    <% end %>
+  </div>
+
+  <%# Filter + bulk action bar %>
+  <div class="flex items-center justify-between gap-3 mb-4 flex-wrap">
+    <%= form_with url: super_admin_teams_path, method: :get, local: true, class: "flex gap-2 flex-wrap" do |f| %>
+      <%= f.text_field :q, value: params[:q], placeholder: "Buscar time...", class: "form-input w-44" %>
+      <%= f.submit "Filtrar", class: "btn btn-ghost btn-sm cursor-pointer" %>
+      <% if params[:q].present? %>
+        <%= link_to "Limpar", super_admin_teams_path, class: "btn btn-ghost btn-sm" %>
+      <% end %>
+    <% end %>
+
+    <div data-bulk-select-target="actions" class="hidden flex items-center gap-2">
+      <span class="text-sm text-pitch-500" data-bulk-select-target="counter"></span>
+      <%= form_with url: batch_destroy_super_admin_teams_path, method: :delete, local: true,
+                    id: "bulk-teams-form", class: "inline" do |f| %>
+        <div id="bulk-teams-ids"></div>
+        <%= f.submit "Excluir selecionados",
+              class: "btn btn-danger btn-sm cursor-pointer",
+              data: { turbo_confirm: "Excluir os times selecionados?" } %>
+      <% end %>
+    </div>
+  </div>
+
+  <% if @teams.any? %>
+    <div class="card overflow-hidden">
+      <table class="data-table">
+        <thead>
           <tr>
-            <td class="px-4 py-3 font-medium">
-              <div class="flex items-center gap-2">
-                <span class="w-8 h-6 rounded text-xs font-bold bg-gray-100 dark:bg-gray-700 flex items-center justify-center uppercase text-gray-600 dark:text-gray-300 font-mono">
-                  <%= team.short_name || team.name.first(3) %>
-                </span>
-                <%= team.name %>
-              </div>
-            </td>
-            <td class="px-4 py-3 text-gray-500 uppercase text-xs font-mono"><%= team.country_code %></td>
-            <td class="px-4 py-3 text-right text-gray-500"><%= team.tournament_teams.count %></td>
-            <td class="px-4 py-3 text-right">
-              <div class="flex items-center justify-end gap-2">
-                <%= link_to "Editar", edit_super_admin_team_path(team), class: "text-xs text-indigo-600 hover:underline" %>
-                <%= button_to "Excluir", super_admin_team_path(team), method: :delete, data: { turbo_confirm: "Excluir #{team.name}?" }, class: "text-xs text-red-600 hover:underline" %>
-              </div>
-            </td>
+            <th class="w-10">
+              <input type="checkbox"
+                     data-bulk-select-target="toggle"
+                     data-action="change->bulk-select#toggleAll"
+                     class="w-4 h-4 rounded border-pitch-300 dark:border-pitch-600 text-neon-400 focus:ring-neon-400">
+            </th>
+            <th>Time</th>
+            <th class="hidden sm:table-cell">País</th>
+            <th class="hidden md:table-cell">Provedor</th>
+            <th class="hidden lg:table-cell">Estádio</th>
+            <th class="text-right hidden lg:table-cell">Torneios</th>
+            <th class="text-right">Ações</th>
           </tr>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
-  <%= render "shared/pagy", pagy: @pagy %>
+        </thead>
+        <tbody>
+          <% @teams.each do |team| %>
+            <tr>
+              <td>
+                <input type="checkbox" value="<%= team.id %>"
+                       data-bulk-select-target="checkbox"
+                       data-action="change->bulk-select#update"
+                       class="w-4 h-4 rounded border-pitch-300 dark:border-pitch-600 text-neon-400 focus:ring-neon-400">
+              </td>
+              <td>
+                <div class="flex items-center gap-3">
+                  <%= team_avatar(team, size: :sm) %>
+                  <div>
+                    <p class="font-medium text-pitch-900 dark:text-white text-sm"><%= team.name %></p>
+                    <div class="flex items-center gap-2 mt-0.5">
+                      <% if team.short_name.present? %>
+                        <span class="text-[10px] text-pitch-400 font-mono"><%= team.short_name %></span>
+                      <% end %>
+                      <% if team.gender.present? %>
+                        <span class="text-[10px] text-pitch-400"><%= team.gender %></span>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td class="hidden sm:table-cell text-pitch-400 uppercase text-xs font-mono"><%= team.country_code || "—" %></td>
+              <td class="hidden md:table-cell">
+                <% if team.external_provider_name.present? %>
+                  <span class="badge badge-draft text-[9px]"><%= team.external_provider_name %></span>
+                  <span class="text-[10px] text-pitch-400 font-mono ml-1"><%= team.external_provider_id %></span>
+                <% else %>
+                  <span class="text-pitch-300 text-xs">manual</span>
+                <% end %>
+              </td>
+              <td class="hidden lg:table-cell text-pitch-400 text-xs"><%= team.stadium_name || "—" %></td>
+              <td class="text-right text-pitch-400 hidden lg:table-cell"><%= team.tournament_teams.count %></td>
+              <td class="text-right">
+                <div class="flex items-center justify-end gap-1">
+                  <%= link_to "Editar", edit_super_admin_team_path(team), class: "btn btn-ghost btn-sm" %>
+                  <%= button_to t("actions.delete"), super_admin_team_path(team), method: :delete,
+                        data: { turbo_confirm: "Excluir #{team.name}?" },
+                        class: "btn btn-danger btn-sm" %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <%= render "shared/pagy", pagy: @pagy %>
+  <% else %>
+    <div class="card p-12 text-center">
+      <div class="text-4xl mb-3">⚽</div>
+      <p class="text-pitch-400">Nenhum time encontrado.</p>
+    </div>
+  <% end %>
 </div>
+
+<script>
+  document.addEventListener('turbo:load', function() {
+    const form = document.getElementById('bulk-teams-form')
+    if (!form) return
+    form.addEventListener('submit', function() {
+      const container = document.getElementById('bulk-teams-ids')
+      container.innerHTML = ''
+      document.querySelectorAll('[data-bulk-select-target="checkbox"]:checked').forEach(cb => {
+        const input = document.createElement('input')
+        input.type  = 'hidden'
+        input.name  = 'ids[]'
+        input.value = cb.value
+        container.appendChild(input)
+      })
+    })
+  })
+</script>

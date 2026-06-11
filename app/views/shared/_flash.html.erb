@@ -1,0 +1,20 @@
+<% notice ||= nil %>
+<% alert  ||= nil %>
+<div id="flash-container" class="fixed bottom-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none" style="min-width:0">
+  <% if notice.present? %>
+    <div id="flash-notice"
+         class="pointer-events-auto flex items-center gap-3 min-w-72 max-w-sm px-4 py-3.5 rounded-xl bg-pitch-900 dark:bg-pitch-800 text-white text-sm font-medium shadow-2xl shadow-black/30 border border-white/10 animate-enter"
+         data-controller="flash">
+      <span class="w-2 h-2 rounded-full bg-neon-400 shrink-0"></span>
+      <%= notice %>
+    </div>
+  <% end %>
+  <% if alert.present? %>
+    <div id="flash-alert"
+         class="pointer-events-auto flex items-center gap-3 min-w-72 max-w-sm px-4 py-3.5 rounded-xl bg-red-600 text-white text-sm font-medium shadow-2xl shadow-black/30 border border-white/10 animate-enter"
+         data-controller="flash">
+      <span class="w-2 h-2 rounded-full bg-white shrink-0"></span>
+      <%= alert %>
+    </div>
+  <% end %>
+</div>

@@ -1,10 +1,16 @@
 import { Controller } from "@hotwired/stimulus"
 
+// Native <dialog> with showModal() goes to the top layer.
+// CSS centering of top-layer elements is inconsistent across browsers
+// when the dialog is a descendant of a positioned/transformed ancestor.
+// Inline style overrides guarantee correct centering everywhere.
 export default class extends Controller {
   static targets = ["dialog"]
 
   open() {
-    this.dialogTarget.showModal()
+    const dialog = this.dialogTarget
+    this._center(dialog)
+    dialog.showModal()
     document.body.style.overflow = "hidden"
   }
 
@@ -15,13 +21,22 @@ export default class extends Controller {
     }
   }
 
-  // Close on backdrop click
   backdropClick(event) {
     if (event.target === this.dialogTarget) this.close()
   }
 
-  // Close on Escape (native dialog handles this, but ensure overflow reset)
   disconnect() {
     document.body.style.overflow = ""
+  }
+
+  _center(dialog) {
+    // Force fixed centering regardless of ancestor transforms / containing blocks
+    Object.assign(dialog.style, {
+      position: "fixed",
+      top:      "50%",
+      left:     "50%",
+      transform: "translate(-50%, -50%)",
+      margin:   "0",
+    })
   }
 }
