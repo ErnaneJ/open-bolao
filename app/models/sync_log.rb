@@ -8,7 +8,7 @@ class SyncLog < ApplicationRecord
   validates :status, presence: true
 
   scope :recent, -> { order(started_at: :desc) }
-  scope :failures, -> { where(status: [:failed, :partial]) }
+  scope :failures, -> { where(status: [ :failed, :partial ]) }
 
   after_create :purge_old_logs
 

@@ -13,7 +13,7 @@ class CreateWebhookEndpoints < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :webhook_endpoints, [:owner_type, :owner_id]
+    add_index :webhook_endpoints, [ :owner_type, :owner_id ]
     add_index :webhook_endpoints, :active
   end
 end

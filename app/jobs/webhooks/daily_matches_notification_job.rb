@@ -63,10 +63,9 @@ module Webhooks
       result = {}
 
       # Active, non-finished pools
-      Pool.where(status: [:open, :locked])
+      Pool.where(status: [ :open, :locked ])
           .includes(:webhook_endpoints)
           .find_each do |pool|
-
         pool_matches = matches_for_pool(pool, todays_matches)
         result[pool] = pool_matches if pool_matches.any?
       end
@@ -80,7 +79,7 @@ module Webhooks
       elsif pool.pool_scope_single_match? && pool.match_id.present?
         # Check if the single match is today
         single = todays_matches.find { |m| m.id == pool.match_id }
-        single ? [single] : []
+        single ? [ single ] : []
       else
         []
       end

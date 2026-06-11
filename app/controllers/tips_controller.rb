@@ -47,10 +47,10 @@ class TipsController < ApplicationController
   def build_matches_with_tips
     matches = if @pool.tournament_pool?
                 @pool.tournament.matches.includes(:home_team, :away_team, :stage).order(:scheduled_at)
-              else
-                [@pool.match]
-              end
+    else
+                [ @pool.match ]
+    end
     tip_map = @tips.index_by(&:match_id)
-    matches.map { |m| [m, tip_map[m.id]] }
+    matches.map { |m| [ m, tip_map[m.id] ] }
   end
 end

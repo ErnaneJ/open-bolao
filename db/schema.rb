@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_10_230003) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_11_143803) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -221,6 +221,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_230003) do
     t.bigint "tournament_id"
     t.datetime "updated_at", null: false
     t.integer "visibility", default: 0, null: false
+    t.boolean "webhook_enabled", default: false, null: false
+    t.jsonb "webhook_metadata", default: {}
     t.index ["admin_id"], name: "index_pools_on_admin_id"
     t.index ["invite_code"], name: "index_pools_on_invite_code", unique: true
     t.index ["match_id"], name: "index_pools_on_match_id"
@@ -414,6 +416,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_230003) do
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.jsonb "events", default: []
+    t.string "http_method", default: "POST", null: false
     t.integer "last_response_code"
     t.datetime "last_triggered_at"
     t.bigint "owner_id", null: false

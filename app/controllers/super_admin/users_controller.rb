@@ -1,6 +1,6 @@
 class SuperAdmin::UsersController < SuperAdmin::BaseController
   include Pagy::Backend
-  before_action :set_user, only: [:show, :edit, :update, :destroy, :impersonate, :ban]
+  before_action :set_user, only: [ :show, :edit, :update, :destroy, :impersonate, :ban ]
 
   def index
     skip_policy_scope

@@ -13,7 +13,7 @@ class CreatePoolParticipants < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :pool_participants, [:pool_id, :user_id], unique: true
+    add_index :pool_participants, [ :pool_id, :user_id ], unique: true
     add_index :pool_participants, :user_id
   end
 end

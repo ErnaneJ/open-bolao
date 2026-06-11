@@ -12,7 +12,7 @@ class CreateSpecialBets < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :special_bets, [:pool_id, :user_id, :bet_type], unique: true
+    add_index :special_bets, [ :pool_id, :user_id, :bet_type ], unique: true
     add_index :special_bets, :user_id
   end
 end

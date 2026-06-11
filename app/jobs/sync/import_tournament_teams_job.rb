@@ -85,7 +85,7 @@ module Sync
       season_matches   = @adapter.fetch_matches_for_season(season, league_id)
 
       (round_matches + season_matches)
-        .flat_map { |md| [md.home_team_external_id, md.away_team_external_id] }
+        .flat_map { |md| [ md.home_team_external_id, md.away_team_external_id ] }
         .uniq.compact.reject(&:blank?)
     end
 

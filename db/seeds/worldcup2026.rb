@@ -56,15 +56,15 @@ begin
   stage_for = lambda do |md|
     type  = md.match_type.to_s
     label = case type
-            when /final.*round|round.*32/ then "Rodada de 32"
-            when /round.*16/              then "Oitavas de Final"
-            when /quarter/                then "Quartas de Final"
-            when /semi/                   then "Semifinal"
-            when /third/                  then "Terceiro Lugar"
-            when "final"                  then "Final"
-            else
+    when /final.*round|round.*32/ then "Rodada de 32"
+    when /round.*16/              then "Oitavas de Final"
+    when /quarter/                then "Quartas de Final"
+    when /semi/                   then "Semifinal"
+    when /third/                  then "Terceiro Lugar"
+    when "final"                  then "Final"
+    else
               md.group_name ? "Grupo #{md.group_name}" : "Fase de Grupos"
-            end
+    end
 
     stage_cache[label] ||= tournament.stages.find_or_create_by!(name: label) do |s|
       s.stage_type     = label.include?("Grupo") ? :group : :round_of_16

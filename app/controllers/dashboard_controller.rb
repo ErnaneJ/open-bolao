@@ -3,7 +3,7 @@ class DashboardController < ApplicationController
     skip_authorization
     @participations = current_user.pool_participants
                                   .active
-                                  .includes(pool: [:tournament, :match])
+                                  .includes(pool: [ :tournament, :match ])
                                   .order(rank: :asc)
     @administered_pools = current_user.administered_pools
                                       .where.not(id: @participations.map(&:pool_id))

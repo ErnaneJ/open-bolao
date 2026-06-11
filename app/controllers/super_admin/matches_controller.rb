@@ -1,5 +1,5 @@
 class SuperAdmin::MatchesController < SuperAdmin::BaseController
-  before_action :set_match, only: [:show, :edit, :update, :destroy]
+  before_action :set_match, only: [ :show, :edit, :update, :destroy ]
 
   def index
     skip_policy_scope
@@ -80,7 +80,7 @@ class SuperAdmin::MatchesController < SuperAdmin::BaseController
     away_team = find_or_import_team(adapter, md.away_team_external_id, md.away_team_name)
 
     unless home_team && away_team
-      missing = [home_team ? nil : md.home_team_name, away_team ? nil : md.away_team_name].compact.join(", ")
+      missing = [ home_team ? nil : md.home_team_name, away_team ? nil : md.away_team_name ].compact.join(", ")
       return redirect_to super_admin_matches_path,
              alert: "Não foi possível importar os times: #{missing}. Verifique os IDs no TheSportsDB."
     end

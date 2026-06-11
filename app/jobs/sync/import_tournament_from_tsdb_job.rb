@@ -85,7 +85,7 @@ module Sync
       # (lookup_all_teams.php returns wrong data for some leagues).
       @team_cache = {}
       team_ids    = matches_data.flat_map { |md|
-        [md.home_team_external_id, md.away_team_external_id]
+        [ md.home_team_external_id, md.away_team_external_id ]
       }.uniq.compact.reject(&:blank?)
 
       Rails.logger.info("ImportTournamentFromTsdb: #{team_ids.size} times únicos, buscando metadados...")

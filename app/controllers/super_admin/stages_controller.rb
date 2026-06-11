@@ -1,6 +1,6 @@
 class SuperAdmin::StagesController < SuperAdmin::BaseController
   before_action :set_tournament
-  before_action :set_stage, only: [:edit, :update, :destroy]
+  before_action :set_stage, only: [ :edit, :update, :destroy ]
 
   def index
     skip_authorization

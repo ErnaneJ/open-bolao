@@ -34,11 +34,11 @@ class Rack::Attack
     retry_after = match_data[:period] - (now % match_data[:period])
 
     if req.env["HTTP_ACCEPT"]&.include?("application/json")
-      [429, { "Content-Type" => "application/json", "Retry-After" => retry_after.to_s },
-       [{ error: "Too many requests" }.to_json]]
+      [ 429, { "Content-Type" => "application/json", "Retry-After" => retry_after.to_s },
+       [ { error: "Too many requests" }.to_json ] ]
     else
-      [429, { "Content-Type" => "text/html", "Retry-After" => retry_after.to_s },
-       ["<h1>Too Many Requests</h1><p>Please try again in #{retry_after} seconds.</p>"]]
+      [ 429, { "Content-Type" => "text/html", "Retry-After" => retry_after.to_s },
+       [ "<h1>Too Many Requests</h1><p>Please try again in #{retry_after} seconds.</p>" ] ]
     end
   end
 end

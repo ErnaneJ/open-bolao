@@ -3,7 +3,7 @@ class Tip < ApplicationRecord
   belongs_to :user
   belongs_to :match
 
-  validates :pool_id, uniqueness: { scope: [:user_id, :match_id] }
+  validates :pool_id, uniqueness: { scope: [ :user_id, :match_id ] }
   validate :match_not_locked, on: :create
   validate :match_not_locked, on: :update, if: :scores_changed?
 

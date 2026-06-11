@@ -18,7 +18,7 @@ module Sync
 
       tournaments = Tournament.where(
         external_provider: :thesportsdb,
-        status:            [:draft, :active]
+        status:            [ :draft, :active ]
       ).where(season: current_year)
 
       Rails.logger.info("DailyRefresh: #{tournaments.count} torneio(s) para atualizar (#{current_year})")

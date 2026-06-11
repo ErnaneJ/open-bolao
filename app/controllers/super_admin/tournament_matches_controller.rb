@@ -1,6 +1,6 @@
 class SuperAdmin::TournamentMatchesController < SuperAdmin::BaseController
   before_action :set_tournament
-  before_action :set_match, only: [:show, :edit, :update, :destroy]
+  before_action :set_match, only: [ :show, :edit, :update, :destroy ]
 
   def index
     skip_authorization

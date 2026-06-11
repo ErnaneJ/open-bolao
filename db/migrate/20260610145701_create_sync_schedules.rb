@@ -19,7 +19,7 @@ class CreateSyncSchedules < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :sync_schedules, [:schedulable_type, :schedulable_id], unique: true
+    add_index :sync_schedules, [ :schedulable_type, :schedulable_id ], unique: true
     add_index :sync_schedules, :api_provider_id
     add_index :sync_schedules, :enabled
   end

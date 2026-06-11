@@ -6,6 +6,6 @@ class CreatePoolMatches < ActiveRecord::Migration[8.1]
 
       t.timestamps
     end
-    add_index :pool_matches, [:pool_id, :match_id], unique: true
+    add_index :pool_matches, [ :pool_id, :match_id ], unique: true
   end
 end

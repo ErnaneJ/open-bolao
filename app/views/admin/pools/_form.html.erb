@@ -71,6 +71,41 @@
     <%= f.text_area :prize_description, rows: 2, class: "form-input", placeholder: "Opcional" %>
   </div>
 
+  <%# Webhook -%>
+  <details class="rounded-xl border border-pitch-200 dark:border-pitch-600">
+    <summary class="px-4 py-3 text-sm font-semibold text-pitch-700 dark:text-pitch-200 cursor-pointer select-none">
+      Webhooks
+    </summary>
+    <div class="p-4 space-y-4 border-t border-pitch-200 dark:border-pitch-600">
+
+      <%# Master switch -%>
+      <label class="flex items-center justify-between cursor-pointer">
+        <div>
+          <p class="text-sm font-medium text-pitch-700 dark:text-pitch-200">Ativar webhooks</p>
+          <p class="text-[11px] text-pitch-400">Desabilitado por padrão. Quando desativado nenhum webhook é disparado.</p>
+        </div>
+        <%= f.check_box :webhook_enabled,
+              class: "w-4 h-4 rounded border-pitch-300 dark:border-pitch-600 text-neon-500 focus:ring-neon-400" %>
+      </label>
+
+      <%# Metadata JSON -%>
+      <div>
+        <label class="form-label">Metadados (JSON)</label>
+        <p class="text-[11px] text-pitch-400 mb-2">
+          Enviado no campo <code class="bg-pitch-100 dark:bg-pitch-700 px-1 rounded">pool_metadata</code> de todos os webhooks deste bolão.
+          Use para passar IDs de grupo WhatsApp, tokens, nomes, etc.
+        </p>
+        <%= f.text_area :webhook_metadata,
+              rows: 5,
+              class: "form-input font-mono text-xs resize-y",
+              placeholder: '{"whatsapp_group_id": "120363...", "notify_goals": true}',
+              value: pool.webhook_metadata.present? ? JSON.pretty_generate(pool.webhook_metadata) : "" %>
+        <p class="text-[11px] text-pitch-400 mt-1">Deve ser JSON válido.</p>
+      </div>
+
+    </div>
+  </details>
+
   <%# Scoring config %>
   <details class="rounded-xl border border-pitch-200 dark:border-pitch-600">
     <summary class="px-4 py-3 text-sm font-semibold text-pitch-700 dark:text-pitch-200 cursor-pointer select-none">

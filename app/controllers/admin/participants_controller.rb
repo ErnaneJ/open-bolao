@@ -1,7 +1,7 @@
 class Admin::ParticipantsController < Admin::BaseController
   include Pagy::Backend
   before_action :set_pool
-  before_action :set_participant, only: [:update, :destroy]
+  before_action :set_participant, only: [ :update, :destroy ]
 
   def index
     skip_authorization

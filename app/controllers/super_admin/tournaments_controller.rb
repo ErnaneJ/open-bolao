@@ -1,6 +1,6 @@
 class SuperAdmin::TournamentsController < SuperAdmin::BaseController
   include Pagy::Backend
-  before_action :set_tournament, only: [:show, :edit, :update, :destroy, :sync, :seed_from_api, :import_teams, :import_matches]
+  before_action :set_tournament, only: [ :show, :edit, :update, :destroy, :sync, :seed_from_api, :import_teams, :import_matches ]
 
   def index
     skip_policy_scope

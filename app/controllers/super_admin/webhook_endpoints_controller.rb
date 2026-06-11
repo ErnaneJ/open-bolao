@@ -1,5 +1,5 @@
 class SuperAdmin::WebhookEndpointsController < SuperAdmin::BaseController
-  before_action :set_endpoint, only: [:show, :edit, :update, :destroy, :test]
+  before_action :set_endpoint, only: [ :show, :edit, :update, :destroy, :test ]
 
   def index
     skip_policy_scope

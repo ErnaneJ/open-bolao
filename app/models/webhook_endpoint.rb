@@ -12,8 +12,11 @@ class WebhookEndpoint < ApplicationRecord
   belongs_to :owner, polymorphic: true
   has_many :webhook_deliveries, dependent: :destroy
 
+  HTTP_METHODS = %w[POST GET].freeze
+
   validates :url, presence: true, format: { with: URI::DEFAULT_PARSER.make_regexp(%w[http https]) }
   validates :events, presence: true
+  validates :http_method, inclusion: { in: HTTP_METHODS }
 
   scope :active, -> { where(active: true) }
   scope :for_event, ->(event) { active.where("events @> ?", [ event ].to_json) }

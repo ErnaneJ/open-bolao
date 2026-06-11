@@ -122,9 +122,39 @@
       <h3 class="font-display font-bold text-sm text-pitch-900 dark:text-white">Webhooks</h3>
       <%= link_to "Gerenciar →", admin_pool_webhook_endpoints_path(@pool), class: "text-xs text-neon-600 dark:text-neon-300 hover:underline" %>
     </div>
+
+    <%# Master switch -%>
+    <div class="flex items-center justify-between mb-3 p-2 rounded-lg bg-pitch-50 dark:bg-pitch-800/60">
+      <span class="text-xs font-medium text-pitch-700 dark:text-pitch-200">Webhooks ativos</span>
+      <%= button_to admin_pool_path(@pool),
+            method: :patch,
+            params: { pool: { webhook_enabled: !@pool.webhook_enabled } },
+            class: "relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none #{@pool.webhook_enabled? ? 'bg-neon-500' : 'bg-pitch-300 dark:bg-pitch-600'}" do %>
+        <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform
+                     <%= @pool.webhook_enabled? ? 'translate-x-4' : 'translate-x-1' %>"></span>
+      <% end %>
+    </div>
+
     <p class="stat-value text-2xl"><%= @pool.webhook_endpoints.count %></p>
     <p class="stat-label mt-1">endpoints configurados</p>
     <%= link_to "+ Novo webhook", new_admin_pool_webhook_endpoint_path(@pool), class: "btn btn-ghost btn-sm mt-3 inline-flex" %>
+  </div>
+
+  <%# Metadata JSON do bolão -%>
+  <div class="card p-5 sm:col-span-2 lg:col-span-3">
+    <div class="flex items-center justify-between mb-3">
+      <div>
+        <h3 class="font-display font-bold text-sm text-pitch-900 dark:text-white">Metadados do bolão</h3>
+        <p class="text-[11px] text-pitch-400 mt-0.5">JSON enviado em todos os webhooks deste bolão. Use para passar IDs de grupo, tokens, etc.</p>
+      </div>
+      <%= link_to "Editar", edit_admin_pool_path(@pool), class: "text-xs text-neon-600 dark:text-neon-300 hover:underline" %>
+    </div>
+    <% meta = @pool.webhook_metadata.presence || {} %>
+    <% if meta.any? %>
+      <pre class="text-xs font-mono bg-pitch-50 dark:bg-pitch-800/60 rounded-lg p-3 overflow-x-auto text-pitch-700 dark:text-pitch-200"><%= JSON.pretty_generate(meta) %></pre>
+    <% else %>
+      <p class="text-sm text-pitch-400 italic">Nenhum metadado configurado. <span class="text-pitch-300">{}</span></p>
+    <% end %>
   </div>
 
   <% if @pool.pool_scope_tournament? %>

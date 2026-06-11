@@ -12,7 +12,7 @@ class CreateTips < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :tips, [:pool_id, :user_id, :match_id], unique: true
+    add_index :tips, [ :pool_id, :user_id, :match_id ], unique: true
     add_index :tips, :user_id
     add_index :tips, :match_id
   end

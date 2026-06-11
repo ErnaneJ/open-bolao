@@ -1,6 +1,6 @@
 class Admin::WebhookEndpointsController < Admin::BaseController
   before_action :set_pool
-  before_action :set_endpoint, only: [:edit, :update, :destroy, :test]
+  before_action :set_endpoint, only: [ :edit, :update, :destroy, :test ]
 
   def index
     skip_authorization
@@ -8,7 +8,7 @@ class Admin::WebhookEndpointsController < Admin::BaseController
   end
 
   def new
-    @endpoint = @pool.webhook_endpoints.build
+    @endpoint = @pool.webhook_endpoints.build(http_method: "POST")
     skip_authorization
   end
 
@@ -43,17 +43,20 @@ class Admin::WebhookEndpointsController < Admin::BaseController
 
   def test
     skip_authorization
-    Webhooks::DispatchJob.perform_later(
-      event_type: "test",
-      payload: { "pool_id" => @pool.id, "message" => "Test webhook from Open Bolão" }
-    )
-    redirect_to admin_pool_webhook_endpoints_path(@pool), notice: t("admin.webhooks.tested")
+    event_type = params[:event_type].presence || @endpoint.events&.first || "test"
+    Webhooks::TestEndpointJob.perform_later(@endpoint.id, event_type)
+    redirect_to admin_pool_webhook_endpoints_path(@pool),
+                notice: t("admin.webhooks.tested", event: event_type)
   end
 
   private
 
   def set_pool
-    @pool = current_user.role_super_admin? ? Pool.friendly.find(params[:pool_id]) : current_user.administered_pools.friendly.find(params[:pool_id])
+    @pool = if current_user.role_super_admin?
+      Pool.friendly.find(params[:pool_id])
+    else
+      current_user.administered_pools.friendly.find(params[:pool_id])
+    end
   end
 
   def set_endpoint
@@ -61,6 +64,6 @@ class Admin::WebhookEndpointsController < Admin::BaseController
   end
 
   def endpoint_params
-    params.require(:webhook_endpoint).permit(:url, :active, events: [])
+    params.require(:webhook_endpoint).permit(:url, :active, :http_method, events: [])
   end
 end

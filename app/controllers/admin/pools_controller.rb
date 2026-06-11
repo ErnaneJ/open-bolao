@@ -1,6 +1,6 @@
 class Admin::PoolsController < Admin::BaseController
   include Pagy::Backend
-  before_action :set_pool, only: [:show, :edit, :update, :destroy, :recalculate, :transition]
+  before_action :set_pool, only: [ :show, :edit, :update, :destroy, :recalculate, :transition ]
 
   def index
     skip_policy_scope
@@ -72,12 +72,24 @@ class Admin::PoolsController < Admin::BaseController
   end
 
   def pool_params
+    p = params.require(:pool).permit(
+      :name, :description, :pool_scope, :tournament_id, :match_id,
+      :status, :visibility, :entry_fee, :prize_description, :max_participants,
+      :allow_late_entries, :lock_before_minutes, :starts_at, :ends_at,
+      :webhook_enabled, :webhook_metadata,
+      scoring_config: Pool::SCORING_DEFAULTS.keys
+    )
+    if p[:webhook_metadata].is_a?(String) && p[:webhook_metadata].present?
+      p[:webhook_metadata] = JSON.parse(p[:webhook_metadata])
+    end
+    p
+  rescue JSON::ParserError
     params.require(:pool).permit(
       :name, :description, :pool_scope, :tournament_id, :match_id,
       :status, :visibility, :entry_fee, :prize_description, :max_participants,
       :allow_late_entries, :lock_before_minutes, :starts_at, :ends_at,
-      scoring_config: Pool::SCORING_DEFAULTS.keys
-    )
+      :webhook_enabled, scoring_config: Pool::SCORING_DEFAULTS.keys
+    ).tap { |h| h[:webhook_metadata] = {} }
   end
 
   def recalculate_all_tips

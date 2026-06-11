@@ -1,5 +1,5 @@
 class SuperAdmin::ApiProvidersController < SuperAdmin::BaseController
-  before_action :set_provider, only: [:show, :edit, :update, :destroy, :test_connection]
+  before_action :set_provider, only: [ :show, :edit, :update, :destroy, :test_connection ]
 
   def index
     skip_policy_scope

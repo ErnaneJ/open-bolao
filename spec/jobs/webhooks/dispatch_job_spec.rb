@@ -6,7 +6,7 @@ RSpec.describe Webhooks::DispatchJob do
   subject(:job) { described_class.new }
 
   let!(:pool) { create(:pool) }
-  let!(:endpoint) { create(:webhook_endpoint, owner: pool, events: ["goal"], active: true) }
+  let!(:endpoint) { create(:webhook_endpoint, owner: pool, events: [ "goal" ], active: true) }
   let(:payload) { { "match" => { "id" => 1, "home_score" => 1, "away_score" => 0 } } }
 
   describe "#perform" do

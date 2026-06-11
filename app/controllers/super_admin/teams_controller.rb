@@ -1,5 +1,5 @@
 class SuperAdmin::TeamsController < SuperAdmin::BaseController
-  before_action :set_team, only: [:show, :edit, :update, :destroy]
+  before_action :set_team, only: [ :show, :edit, :update, :destroy ]
 
   def index
     skip_policy_scope

@@ -1,8 +1,23 @@
-<div class="space-y-4">
+<div class="space-y-5">
+
+  <%# URL + Método HTTP -%>
   <div>
     <label class="form-label">URL do endpoint</label>
-    <%= f.url_field :url, placeholder: "https://seu-servidor.com/webhook", class: "form-input font-mono" %>
+    <div class="flex gap-2">
+      <%= f.select :http_method,
+            WebhookEndpoint::HTTP_METHODS.map { |m| [m, m] },
+            {},
+            class: "form-input w-24 font-mono font-bold text-center shrink-0" %>
+      <%= f.url_field :url,
+            placeholder: "https://seu-servidor.com/webhook",
+            class: "form-input font-mono flex-1" %>
+    </div>
+    <p class="text-[11px] text-pitch-400 mt-1">
+      POST envia JSON no body · GET envia o payload como <code class="bg-pitch-100 dark:bg-pitch-700 px-1 rounded">?payload=</code>
+    </p>
   </div>
+
+  <%# Eventos -%>
   <div>
     <label class="form-label mb-2">Eventos</label>
     <div class="grid grid-cols-1 gap-1.5">
@@ -11,18 +26,20 @@
           <input type="checkbox" name="webhook_endpoint[events][]" value="<%= event %>"
                  <%= endpoint.events&.include?(event) ? "checked" : "" %>
                  class="w-4 h-4 rounded border-pitch-300 dark:border-pitch-600 text-neon-500 focus:ring-neon-400">
-          <div class="min-w-0">
+          <div class="min-w-0 flex-1">
             <p class="text-sm font-medium text-pitch-900 dark:text-white"><%= label %></p>
             <p class="text-[11px] font-mono text-pitch-400"><%= event %></p>
           </div>
         </label>
       <% end %>
     </div>
-    <%# Hidden field ensures empty array is sent when nothing checked %>
     <input type="hidden" name="webhook_endpoint[events][]" value="">
   </div>
-  <div class="flex items-center gap-3">
-    <label class="form-label mb-0">Ativo</label>
+
+  <%# Ativo -%>
+  <label class="flex items-center gap-3 cursor-pointer">
     <%= f.check_box :active, class: "w-4 h-4 rounded border-pitch-300 dark:border-pitch-600 text-neon-500 focus:ring-neon-400" %>
-  </div>
+    <span class="form-label mb-0">Ativo</span>
+  </label>
+
 </div>
