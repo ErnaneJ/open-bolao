@@ -34,7 +34,7 @@ services:
       redis:
         condition: service_healthy
     ports:
-      - "${APP_PORT:-3000}:3000"
+      - "${APP_PORT:-39217}:3000"
     environment:
       DATABASE_URL: postgresql://bolao:${POSTGRES_PASSWORD}@db/bolao_production
       REDIS_URL: redis://redis:6379/0
@@ -42,7 +42,7 @@ services:
       RAILS_ENV: production
       RAILS_LOG_TO_STDOUT: "1"
       RAILS_SERVE_STATIC_FILES: "1"
-      APP_HOST: ${APP_HOST:-localhost:3000}
+      APP_HOST: ${APP_HOST:-localhost:39217}
       SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@bolao.local}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-changeme123!}
     volumes:
