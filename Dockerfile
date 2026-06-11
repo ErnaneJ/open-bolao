@@ -1,32 +1,25 @@
 # syntax=docker/dockerfile:1
 
-# Stage 1: assets (Node.js para Tailwind build)
-FROM node:20-slim AS assets
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --if-present || true
-COPY . .
-# Tailwind é gerenciado pela gem, não pelo npm — apenas copiamos os assets
-RUN mkdir -p public/assets
+# ── Stage 1: build gems ──────────────────────────────────────────────────────
+FROM ruby:4.0.5-slim AS gems
 
-# Stage 2: gems (Ruby build environment)
-FROM ruby:3.3-slim AS gems
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y \
-      build-essential git libpq-dev libyaml-dev pkg-config \
-      libvips curl && \
+      build-essential git libpq-dev libyaml-dev pkg-config curl && \
     rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 COPY Gemfile Gemfile.lock ./
-RUN bundle install --jobs 4 --retry 3 && \
+RUN bundle config set --local without 'development test' && \
+    bundle install --jobs 4 --retry 3 && \
     bundle exec bootsnap precompile --gemfile
 
-# Stage 3: final runtime
-FROM ruby:3.3-slim AS runtime
+# ── Stage 2: runtime ─────────────────────────────────────────────────────────
+FROM ruby:4.0.5-slim
 
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y \
-      libpq5 libvips curl imagemagick && \
+      libpq5 imagemagick curl && \
     rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --system --gid 1000 rails && \
@@ -37,12 +30,16 @@ WORKDIR /app
 COPY --from=gems /usr/local/bundle /usr/local/bundle
 COPY --chown=rails:rails . .
 
-RUN bundle exec bootsnap precompile app/ lib/
-
 ENV RAILS_ENV=production \
     RAILS_LOG_TO_STDOUT=1 \
     RAILS_SERVE_STATIC_FILES=1 \
     BUNDLE_PATH=/usr/local/bundle
+
+RUN bundle exec bootsnap precompile app/ lib/
+
+# Compile Tailwind CSS + fingerprint all assets at build time.
+# SECRET_KEY_BASE_DUMMY=1 tells Rails to skip real credentials during precompile.
+RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile
 
 USER 1000:1000
 
