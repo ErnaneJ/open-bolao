@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# ── Stage 1: build gems ──────────────────────────────────────────────────────
+# ── Stage 1: instala gems ─────────────────────────────────────────────────────
 FROM ruby:4.0.5-slim AS gems
 
 RUN apt-get update -qq && \
@@ -8,10 +8,14 @@ RUN apt-get update -qq && \
       build-essential git libpq-dev libyaml-dev pkg-config curl && \
     rm -rf /var/lib/apt/lists/*
 
+# BUNDLE_PATH garante que bundle install e o stage de runtime usem o mesmo dir.
+# BUNDLE_WITHOUT evita instalar gems de dev/test.
+ENV BUNDLE_PATH=/usr/local/bundle \
+    BUNDLE_WITHOUT=development:test
+
 WORKDIR /app
 COPY Gemfile Gemfile.lock ./
-RUN bundle config set --local without 'development test' && \
-    bundle install --jobs 4 --retry 3 && \
+RUN bundle install --jobs 4 --retry 3 && \
     bundle exec bootsnap precompile --gemfile
 
 # ── Stage 2: runtime ─────────────────────────────────────────────────────────
@@ -33,12 +37,12 @@ COPY --chown=rails:rails . .
 ENV RAILS_ENV=production \
     RAILS_LOG_TO_STDOUT=1 \
     RAILS_SERVE_STATIC_FILES=1 \
-    BUNDLE_PATH=/usr/local/bundle
+    BUNDLE_PATH=/usr/local/bundle \
+    BUNDLE_WITHOUT=development:test
 
 RUN bundle exec bootsnap precompile app/ lib/
 
-# Compile Tailwind CSS + fingerprint all assets at build time.
-# SECRET_KEY_BASE_DUMMY=1 tells Rails to skip real credentials during precompile.
+# Compila Tailwind CSS + fingerprinta assets no build (não em runtime).
 RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile
 
 USER 1000:1000
