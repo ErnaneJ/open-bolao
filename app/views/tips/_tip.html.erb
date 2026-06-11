@@ -54,10 +54,10 @@
         <% elsif is_locked %>
           <% if match.scheduled_at %>
             <div class="text-xs font-mono font-bold text-pitch-600 dark:text-pitch-300">
-              <%= match.scheduled_at.in_time_zone("America/Fortaleza").strftime("%H:%M") %>
+              <%= match.scheduled_at.in_time_zone("America/Sao_Paulo").strftime("%H:%M") %>
             </div>
             <div class="text-[10px] text-pitch-400">
-              <%= match.scheduled_at.in_time_zone("America/Fortaleza").strftime("%d/%m") %>
+              <%= match.scheduled_at.in_time_zone("America/Sao_Paulo").strftime("%d/%m") %>
             </div>
           <% end %>
           <span class="badge badge-draft text-[9px] mt-0.5">🔒 Fechado</span>
@@ -83,7 +83,7 @@
           <% end %>
           <% if match.scheduled_at %>
             <div class="text-[10px] text-pitch-400 font-mono">
-              <%= match.scheduled_at.in_time_zone("America/Fortaleza").strftime("%H:%M") %>
+              <%= match.scheduled_at.in_time_zone("America/Sao_Paulo").strftime("%H:%M") %>
             </div>
           <% end %>
         <% end %>
@@ -139,7 +139,7 @@
           </span>
         <% elsif match.scheduled_at && !match.status_finished? && !match.status_live? && !is_locked %>
           <span class="text-[10px] text-pitch-400 font-mono">
-            <%= match.scheduled_at.in_time_zone("America/Fortaleza").strftime("%d/%m") %>
+            <%= match.scheduled_at.in_time_zone("America/Sao_Paulo").strftime("%d/%m") %>
           </span>
         <% end %>
       </div>

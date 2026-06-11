@@ -61,10 +61,10 @@
               <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse mt-1 block mx-auto"></span>
             <% else %>
               <span class="text-[11px] font-mono font-bold text-pitch-500 dark:text-pitch-400 leading-none">
-                <%= m.scheduled_at ? m.scheduled_at.in_time_zone("America/Fortaleza").strftime("%H:%M") : "–" %>
+                <%= m.scheduled_at ? m.scheduled_at.in_time_zone("America/Sao_Paulo").strftime("%H:%M") : "–" %>
               </span>
               <span class="text-[9px] text-pitch-400 font-mono mt-0.5">
-                <%= m.scheduled_at ? m.scheduled_at.in_time_zone("America/Fortaleza").strftime("%d/%m") : "" %>
+                <%= m.scheduled_at ? m.scheduled_at.in_time_zone("America/Sao_Paulo").strftime("%d/%m") : "" %>
               </span>
             <% end %>
           </div>
@@ -92,7 +92,7 @@
 
 <% elsif view_mode == "calendar" %>
   <%# Calendar: grouped by date %>
-  <% matches_by_date = matches.group_by { |m| m.scheduled_at&.in_time_zone("America/Fortaleza")&.to_date } %>
+  <% matches_by_date = matches.group_by { |m| m.scheduled_at&.in_time_zone("America/Sao_Paulo")&.to_date } %>
   <div class="space-y-8">
     <% matches_by_date.sort_by { |d, _| d || Date::Infinity }.each do |date, day_matches| %>
       <div>
@@ -138,7 +138,7 @@
                   </span>
                 <% else %>
                   <span class="text-sm font-mono font-bold text-pitch-500 dark:text-pitch-400">
-                    <%= m.scheduled_at ? m.scheduled_at.in_time_zone("America/Fortaleza").strftime("%H:%M") : "–" %>
+                    <%= m.scheduled_at ? m.scheduled_at.in_time_zone("America/Sao_Paulo").strftime("%H:%M") : "–" %>
                   </span>
                 <% end %>
                 <div class="mt-1"><%= status_badge(m.status) %></div>
@@ -195,7 +195,7 @@
               <% end %>
             </td>
             <td class="hidden sm:table-cell text-pitch-400 text-xs font-mono">
-              <%= m.scheduled_at ? m.scheduled_at.in_time_zone("America/Fortaleza").strftime("%d/%m %H:%M") : "—" %>
+              <%= m.scheduled_at ? m.scheduled_at.in_time_zone("America/Sao_Paulo").strftime("%d/%m %H:%M") : "—" %>
             </td>
             <td class="text-center font-mono font-bold text-sm">
               <% if m.status_finished? %>

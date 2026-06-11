@@ -1,6 +1,15 @@
 module ApplicationHelper
   include Pagy::Frontend
 
+  # Single source of truth for the app's display timezone.
+  # All user-facing datetimes must go through brt_time() or in_time_zone(BRT).
+  BRT = "America/Sao_Paulo"
+
+  # Returns a TimeWithZone in Brasília time, safe to pass to l() or strftime.
+  def brt_time(datetime)
+    datetime&.in_time_zone(BRT)
+  end
+
   def flash_class(type)
     case type.to_sym
     when :notice  then "bg-green-500"

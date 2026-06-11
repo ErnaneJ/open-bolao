@@ -103,7 +103,7 @@
               </td>
               <td class="hidden md:table-cell text-pitch-400 text-xs"><%= m.tournament&.name || "—" %></td>
               <td class="hidden sm:table-cell text-pitch-400 text-xs font-mono">
-                <%= m.scheduled_at&.in_time_zone("America/Fortaleza")&.strftime("%d/%m/%y %H:%M") || "—" %>
+                <%= m.scheduled_at&.in_time_zone("America/Sao_Paulo")&.strftime("%d/%m/%y %H:%M") || "—" %>
               </td>
               <td class="text-center font-mono font-bold text-sm">
                 <% if m.home_score.present? %>

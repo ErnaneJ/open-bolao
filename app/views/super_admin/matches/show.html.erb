@@ -27,7 +27,7 @@
         <%= status_badge(@match.status) %>
         <% if @match.scheduled_at %>
           <p class="text-xs text-pitch-400 mt-1 font-mono">
-            <%= @match.scheduled_at.in_time_zone("America/Fortaleza").strftime("%d/%m/%Y %H:%M") %>
+            <%= @match.scheduled_at.in_time_zone("America/Sao_Paulo").strftime("%d/%m/%Y %H:%M") %>
           </p>
         <% end %>
       </div>

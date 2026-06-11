@@ -128,13 +128,7 @@ module Sync
         Webhooks::DispatchJob.perform_later(
           event_type: "match.goal",
           payload: {
-            "match" => {
-              "id" => match.id,
-              "home_team" => match.home_team.name,
-              "away_team" => match.away_team.name,
-              "home_score" => match.home_score,
-              "away_score" => match.away_score
-            },
+            "match" => match_payload(match),
             "goals_count" => count
           },
           owner_ids: pool.id
@@ -166,15 +160,7 @@ module Sync
 
         Webhooks::DispatchJob.perform_later(
           event_type: "match.live",
-          payload: {
-            "match" => {
-              "id" => match.id,
-              "home_team" => match.home_team.name,
-              "away_team" => match.away_team.name,
-              "home_score" => match.home_score,
-              "away_score" => match.away_score
-            }
-          },
+          payload: { "match" => match_payload(match) },
           owner_ids: pool.id
         )
 
@@ -206,15 +192,7 @@ module Sync
       pools_for_match(match).each do |pool|
         Webhooks::DispatchJob.perform_later(
           event_type: "match.finished",
-          payload: {
-            "match" => {
-              "id" => match.id,
-              "home_team" => match.home_team.name,
-              "away_team" => match.away_team.name,
-              "home_score" => match.home_score,
-              "away_score" => match.away_score
-            }
-          },
+          payload: { "match" => match_payload(match) },
           owner_ids: pool.id
         )
 
@@ -271,6 +249,24 @@ module Sync
           notifiable_id: pool.id
         )
       end
+    end
+
+    # ── Payload builder ──────────────────────────────────────────────────
+    # scheduled_at is always sent in Brasília time (ISO 8601 with -03:00 offset)
+    # so consumers never need to guess the timezone.
+    BRT = "America/Sao_Paulo"
+
+    def match_payload(match)
+      {
+        "id"           => match.id,
+        "home_team"    => match.home_team.name,
+        "away_team"    => match.away_team.name,
+        "home_score"   => match.home_score,
+        "away_score"   => match.away_score,
+        "status"       => match.status,
+        "scheduled_at" => match.scheduled_at&.in_time_zone(BRT)&.iso8601,
+        "venue"        => match.venue
+      }
     end
 
     # ── Helpers ─────────────────────────────────────────────────────────

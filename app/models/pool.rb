@@ -38,7 +38,7 @@ class Pool < ApplicationRecord
   before_create :generate_invite_code
 
   after_initialize do
-    self.timezone     ||= "America/Fortaleza"
+    self.timezone     ||= "America/Sao_Paulo"
     self.lock_before_minutes ||= 5
   end
 

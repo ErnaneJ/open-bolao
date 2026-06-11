@@ -83,7 +83,7 @@
             <label class="form-label"><%= t("pools.fields.timezone") %></label>
             <%= f.select :timezone,
                   ActiveSupport::TimeZone.all.map { |tz| [tz.to_s, tz.name] },
-                  { selected: @pool.timezone || "America/Fortaleza" },
+                  { selected: @pool.timezone || "America/Sao_Paulo" },
                   class: "form-input" %>
           </div>
         </div>

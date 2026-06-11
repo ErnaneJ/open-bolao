@@ -96,10 +96,10 @@
           <% else %>
             <div>
               <p class="font-mono font-bold text-3xl sm:text-4xl text-pitch-900 dark:text-white">
-                <%= @match.scheduled_at ? l(@match.scheduled_at.in_time_zone("America/Fortaleza"), format: :time_only) : "–:–" %>
+                <%= @match.scheduled_at ? l(@match.scheduled_at.in_time_zone("America/Sao_Paulo"), format: :time_only) : "–:–" %>
               </p>
               <p class="text-sm text-pitch-400 mt-1">
-                <%= @match.scheduled_at ? l(@match.scheduled_at.in_time_zone("America/Fortaleza"), format: :date_short) : "" %>
+                <%= @match.scheduled_at ? l(@match.scheduled_at.in_time_zone("America/Sao_Paulo"), format: :date_short) : "" %>
               </p>
               <p class="text-xs text-pitch-300 dark:text-pitch-500 mt-0.5">Horário de Brasília</p>
             </div>

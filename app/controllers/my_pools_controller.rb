@@ -2,7 +2,7 @@ class MyPoolsController < ApplicationController
   before_action :set_pool, only: [ :edit, :update, :destroy ]
 
   def new
-    @pool = Pool.new(lock_before_minutes: 5, timezone: "America/Fortaleza",
+    @pool = Pool.new(lock_before_minutes: 5, timezone: "America/Sao_Paulo",
                      visibility: :invite_only)
     authorize @pool
     @tournaments = Tournament.order(:name)

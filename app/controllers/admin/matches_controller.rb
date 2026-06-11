@@ -33,7 +33,7 @@ class Admin::MatchesController < Admin::BaseController
               label: "#{m.home_team.name} × #{m.away_team.name}",
               home_flag: m.home_team.flag_url,
               away_flag: m.away_team.flag_url,
-              date: m.scheduled_at ? m.scheduled_at.in_time_zone("America/Fortaleza").strftime("%d/%m %H:%M") : nil
+              date: m.scheduled_at ? m.scheduled_at.in_time_zone("America/Sao_Paulo").strftime("%d/%m %H:%M") : nil
             }
           }
         end
