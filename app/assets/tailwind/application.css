@@ -68,6 +68,9 @@
   }
 
   form { background: transparent; }
+
+  summary { list-style: none; }
+  summary::-webkit-details-marker { display: none; }
 }
 
 @layer components {
@@ -134,11 +137,6 @@
   .score-input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
-  }
-
-  /* ── Details/summary — remove native triangle marker ── */
-  summary {
-    list-style: none;
   }
 
   /* ── Badges ── */
