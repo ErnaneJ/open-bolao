@@ -23,7 +23,7 @@ class ApplicationController < ActionController::Base
   end
 
   def after_sign_in_path_for(resource)
-    resource.role_super_admin? ? super_admin_users_path : dashboard_path
+    dashboard_path
   end
 
   def configure_permitted_parameters
