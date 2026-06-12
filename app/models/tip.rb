@@ -3,6 +3,8 @@ class Tip < ApplicationRecord
   belongs_to :user
   belongs_to :match
 
+  attr_accessor :skip_lock_validation
+
   validates :pool_id, uniqueness: { scope: [ :user_id, :match_id ] }
   validate :match_not_locked, on: :create
   validate :match_not_locked, on: :update, if: :scores_changed?
@@ -40,6 +42,7 @@ class Tip < ApplicationRecord
   end
 
   def match_not_locked
+    return if skip_lock_validation
     errors.add(:base, :tip_locked) if effectively_locked?
   end
 end

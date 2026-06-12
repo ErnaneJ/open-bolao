@@ -15,6 +15,7 @@ class Admin::PoolTipsController < Admin::BaseController
     tip = Tip.find_or_initialize_by(pool: @pool, user: user, match: match)
     tip.home_score_tip = tip_params[:home_score_tip]
     tip.away_score_tip = tip_params[:away_score_tip]
+    tip.skip_lock_validation = true
 
     if tip.save
       redirect_to new_admin_pool_tip_path(@pool),
