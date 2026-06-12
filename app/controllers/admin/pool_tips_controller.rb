@@ -4,7 +4,7 @@ class Admin::PoolTipsController < Admin::BaseController
   def new
     skip_authorization
     @tip = Tip.new
-    @participants = @pool.pool_participants.active.includes(:user).order("users.display_name")
+    @participants = @pool.pool_participants.active.includes(:user).order("users.name ASC, users.email ASC")
     @matches = @pool.active_matches.includes(:home_team, :away_team, :stage).order(:scheduled_at)
   end
 
@@ -21,7 +21,7 @@ class Admin::PoolTipsController < Admin::BaseController
       redirect_to new_admin_pool_tip_path(@pool),
         notice: "Palpite de #{user.display_name} salvo: #{tip.home_score_tip}×#{tip.away_score_tip}"
     else
-      @participants = @pool.pool_participants.active.includes(:user).order("users.display_name")
+      @participants = @pool.pool_participants.active.includes(:user).order("users.name ASC, users.email ASC")
       @matches = @pool.active_matches.includes(:home_team, :away_team, :stage).order(:scheduled_at)
       render :new, status: :unprocessable_entity
     end
