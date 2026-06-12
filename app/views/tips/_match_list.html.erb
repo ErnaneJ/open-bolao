@@ -8,12 +8,11 @@
 <div data-controller="match-filter">
 
   <%# ── Filter bar ─────────────────────────────────────────────────────────── %>
-  <div class="flex items-center gap-2 mb-5 flex-wrap">
+  <div class="flex items-center gap-2 mb-5">
     <% [
-      ["all",      "Todos"],
+      ["upcoming", "Próximos"],
       ["finished", "Encerrados"],
-      ["live",     "🔴 Ao vivo"],
-      ["range",    "📅 Por período"]
+      ["all",      "Todos"]
     ].each_with_index do |(filter, label), i| %>
       <button data-match-filter-target="btn"
               data-filter="<%= filter %>"
@@ -22,26 +21,6 @@
         <%= label %>
       </button>
     <% end %>
-  </div>
-
-  <%# ── Date range picker (hidden by default) ──────────────────────────────── %>
-  <div data-match-filter-target="dateRange" class="hidden mb-5">
-    <div class="flex items-center gap-3 flex-wrap p-4 rounded-2xl bg-pitch-50 dark:bg-pitch-800/50 border border-pitch-200 dark:border-pitch-700">
-      <div class="flex items-center gap-2">
-        <label class="text-xs font-semibold text-pitch-500 dark:text-pitch-400 uppercase tracking-wider whitespace-nowrap">De</label>
-        <input type="date"
-               data-match-filter-target="startDate"
-               data-action="change->match-filter#applyFilter"
-               class="rounded-xl border border-pitch-200 dark:border-pitch-600 bg-white dark:bg-pitch-700 text-pitch-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neon-400 focus:border-transparent">
-      </div>
-      <div class="flex items-center gap-2">
-        <label class="text-xs font-semibold text-pitch-500 dark:text-pitch-400 uppercase tracking-wider whitespace-nowrap">Até</label>
-        <input type="date"
-               data-match-filter-target="endDate"
-               data-action="change->match-filter#applyFilter"
-               class="rounded-xl border border-pitch-200 dark:border-pitch-600 bg-white dark:bg-pitch-700 text-pitch-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neon-400 focus:border-transparent">
-      </div>
-    </div>
   </div>
 
   <%# ── Days ───────────────────────────────────────────────────────────────── %>
