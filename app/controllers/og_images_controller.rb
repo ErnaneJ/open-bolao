@@ -2,29 +2,24 @@ class OgImagesController < ApplicationController
   skip_before_action :authenticate_user!
   skip_before_action :verify_authenticity_token
 
-  before_action :set_cache_headers
-
   def home
-    render layout: false, content_type: "image/svg+xml"
+    png = OgImageService.home
+    send_data png, type: "image/png", disposition: "inline"
   end
 
   def pool
     @pool = Pool.friendly.find(params[:slug])
-    render layout: false, content_type: "image/svg+xml"
+    png = OgImageService.pool(@pool)
+    send_data png, type: "image/png", disposition: "inline"
   rescue ActiveRecord::RecordNotFound
-    render layout: false, content_type: "image/svg+xml", template: "og_images/home"
+    redirect_to og_home_path
   end
 
   def match
     @match = Match.includes(:home_team, :away_team, :stage, :tournament).find(params[:id])
-    render layout: false, content_type: "image/svg+xml"
+    png = OgImageService.match(@match)
+    send_data png, type: "image/png", disposition: "inline"
   rescue ActiveRecord::RecordNotFound
-    render layout: false, content_type: "image/svg+xml", template: "og_images/home"
-  end
-
-  private
-
-  def set_cache_headers
-    expires_in 10.minutes, public: true
+    redirect_to og_home_path
   end
 end

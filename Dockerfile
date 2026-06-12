@@ -23,7 +23,7 @@ FROM ruby:4.0.5-slim
 
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y \
-      libpq5 imagemagick curl && \
+      libpq5 imagemagick curl fonts-liberation && \
     rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --system --gid 1000 rails && \
