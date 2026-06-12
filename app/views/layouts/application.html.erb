@@ -7,8 +7,8 @@
     <%
       _title       = content_for(:title).presence || t("app.name")
       _description = content_for(:meta_description).presence || "Bolão de futebol online — faça seus palpites, convide amigos e dispute o ranking da Copa do Mundo 2026."
-      _og_image    = content_for(:og_image_url).presence || "#{request.base_url}#{og_home_path}"
-      _card_type   = content_for(:twitter_card_type).presence || "summary_large_image"
+      _og_image    = "#{request.base_url}/og.png"
+      _card_type   = "summary_large_image"
       _og_url      = content_for(:og_url).presence || request.url
     %>
     <meta name="description" content="<%= _description %>">
