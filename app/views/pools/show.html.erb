@@ -99,8 +99,7 @@
         <nav class="-mb-px flex gap-1 overflow-x-auto">
           <% [
             ["tips",    "⚽ Palpites"],
-            ["ranking", "🏆 Ranking"],
-            ["matches", "📅 Jogos"]
+            ["ranking", "🏆 Ranking"]
           ].each_with_index do |(id, label), idx| %>
             <button data-tabs-target="tab"
                     data-action="click->tabs#show"
@@ -142,20 +141,6 @@
         <%= render "pools/ranking", pool: @pool, ranking: @ranking, pagy: @pagy_ranking %>
       </div>
 
-      <%# ── Jogos tab ────────────────────────────────────────────────────────── %>
-      <div id="tab-matches" data-tabs-target="panel" class="hidden">
-        <%# View toggle %>
-        <div class="flex items-center justify-end gap-1 mb-4">
-          <% [["table", "≡ Tabela"], ["grid", "⊞ Grid"], ["calendar", "📅 Calendário"]].each do |mode, label| %>
-            <%= link_to pool_path(@pool, match_view: mode, anchor: "tab-matches"),
-                  class: "btn btn-sm #{match_view == mode ? 'btn-primary' : 'btn-ghost'}",
-                  data: { turbo: false } do %>
-              <%= label %>
-            <% end %>
-          <% end %>
-        </div>
-        <%= render "pools/matches_list", matches: @matches, view_mode: match_view %>
-      </div>
 
     </div>
   </div>
