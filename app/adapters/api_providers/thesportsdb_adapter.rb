@@ -420,11 +420,14 @@ module ApiProviders
       team_name    = t["strTeam"].to_s.strip
       # National teams often have strCountry = "International"; fall back to team name
       iso2         = COUNTRY_ISO2[country_name] || COUNTRY_ISO2[team_name]
+      # iso2 may be a BCP-47 region tag with subtag (e.g. "gb-eng") — split to get
+      # just the base country code for the DB column (max 3 chars)
+      country_code = iso2 ? iso2.split("-").first.upcase : country_name.slice(0, 3).upcase.presence
       TeamData.new(
         external_tsdb_id:  t["idTeam"].to_s,
         name:              team_name,
         short_name:        t["strTeamShort"].presence,
-        country_code:      iso2&.upcase || country_name.slice(0, 3).upcase.presence,
+        country_code:      country_code,
         flag_url:          iso2 ? "https://flagcdn.com/w160/#{iso2}.png" : nil,
         logo_url:          t["strBadge"].presence || t["strLogo"].presence,
         banner_url:        t["strBanner"].presence,
