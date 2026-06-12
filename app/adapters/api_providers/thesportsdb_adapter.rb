@@ -417,10 +417,12 @@ module ApiProviders
 
     def parse_team(t)
       country_name = t["strCountry"].to_s.strip
-      iso2         = COUNTRY_ISO2[country_name]
+      team_name    = t["strTeam"].to_s.strip
+      # National teams often have strCountry = "International"; fall back to team name
+      iso2         = COUNTRY_ISO2[country_name] || COUNTRY_ISO2[team_name]
       TeamData.new(
         external_tsdb_id:  t["idTeam"].to_s,
-        name:              t["strTeam"].to_s.strip,
+        name:              team_name,
         short_name:        t["strTeamShort"].presence,
         country_code:      iso2&.upcase || country_name.slice(0, 3).upcase.presence,
         flag_url:          iso2 ? "https://flagcdn.com/w160/#{iso2}.png" : nil,

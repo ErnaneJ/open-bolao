@@ -1,5 +1,17 @@
 <% _next_match = local_assigns[:next_match] %>
-<% matches_by_date = matches.group_by { |m| m.scheduled_at&.in_time_zone("America/Sao_Paulo")&.to_date } %>
+<%
+  matches_by_date = matches.group_by { |m| m.scheduled_at&.in_time_zone("America/Sao_Paulo")&.to_date }
+  upcoming_days   = []
+  past_days       = []
+
+  matches_by_date.sort_by { |d, _| d || Date::Infinity }.each do |date, day_matches|
+    if day_matches.all? { |m| m.status_finished? || m.status_cancelled? }
+      past_days << [ date, day_matches ]
+    else
+      upcoming_days << [ date, day_matches ]
+    end
+  end
+%>
 
 <% if matches.empty? %>
   <div class="card p-12 text-center">
@@ -8,50 +20,58 @@
   </div>
 <% else %>
   <div class="space-y-8">
-    <% matches_by_date.sort_by { |d, _| d || Date::Infinity }.each do |date, day_matches| %>
-      <%# A day is open if any match is NOT finished/cancelled %>
-      <% day_open = day_matches.any? { |m| !m.status_finished? && !m.status_cancelled? } %>
-      <details <%= day_open ? "open" : "" %> class="group/day">
+
+    <%# ── Upcoming days (default view) ────────────────────────────────── %>
+    <% if upcoming_days.any? %>
+      <% upcoming_days.each do |date, day_matches| %>
+        <%= render "tips/match_day",
+              date: date, day_matches: day_matches,
+              pool: pool, tips_map: tips_map,
+              participant_tips_by_match: (defined?(participant_tips_by_match) ? participant_tips_by_match : {}),
+              tip_counts_by_match: (defined?(tip_counts_by_match) ? tip_counts_by_match : {}),
+              next_match: _next_match,
+              default_open: true %>
+      <% end %>
+    <% else %>
+      <div class="card p-10 text-center">
+        <div class="text-3xl mb-2">✅</div>
+        <p class="text-pitch-400 font-medium text-sm">Todos os jogos foram encerrados.</p>
+      </div>
+    <% end %>
+
+    <%# ── Past days — collapsed by default ────────────────────────────── %>
+    <% if past_days.any? %>
+      <details class="group/past">
         <summary class="list-none cursor-pointer [&::-webkit-details-marker]:hidden [&::marker]:hidden">
-          <%# Date header — same style as dashboard calendar %>
-          <div class="flex items-center gap-4 mb-4">
-            <div class="shrink-0 text-center bg-pitch-900 dark:bg-pitch-700 text-white rounded-2xl w-14 py-2">
-              <div class="text-[9px] uppercase tracking-widest font-bold opacity-60 leading-tight">
-                <%= date ? I18n.l(date, format: "%b") : "?" %>
-              </div>
-              <div class="font-display font-bold text-2xl leading-none">
-                <%= date ? date.day : "?" %>
-              </div>
-            </div>
+          <div class="flex items-center gap-3 py-2 px-3 rounded-xl hover:bg-pitch-50 dark:hover:bg-pitch-800/50 transition-colors">
             <div class="flex-1">
-              <p class="font-semibold text-pitch-800 dark:text-pitch-100 text-sm">
-                <%= date ? I18n.l(date, format: :long) : "Sem data" %>
-              </p>
-              <p class="text-[11px] text-pitch-400 mt-0.5">
-                <%= day_matches.size %> jogo<%= day_matches.size > 1 ? "s" : "" %>
-              </p>
+              <span class="text-xs font-semibold text-pitch-400 uppercase tracking-wider">
+                Jogos encerrados
+              </span>
+              <span class="ml-2 text-xs text-pitch-300 dark:text-pitch-600">
+                (<%= past_days.sum { |_, ms| ms.size } %> jogos em <%= past_days.size %> dia<%= past_days.size > 1 ? "s" : "" %>)
+              </span>
             </div>
-            <%# Chevron indicator — rotates when open %>
-            <svg class="w-4 h-4 text-pitch-400 shrink-0 transition-transform duration-200 group-open/day:rotate-180"
+            <svg class="w-4 h-4 text-pitch-400 shrink-0 transition-transform duration-200 group-open/past:rotate-180"
                  fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
             </svg>
           </div>
         </summary>
 
-        <%# Tip cards grid %>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <% day_matches.sort_by { |m| m.scheduled_at || Time::INFINITY }.each do |match| %>
-            <% tip = tips_map[match.id] %>
-            <%= turbo_frame_tag "tip_#{match.id}" do %>
-              <%= render "tips/tip", match: match, tip: tip, pool: pool,
-                    participant_tips_by_match: (defined?(participant_tips_by_match) ? participant_tips_by_match : {}),
-                    tip_counts_by_match: (defined?(tip_counts_by_match) ? tip_counts_by_match : {}),
-                    is_next: (match == _next_match) %>
-            <% end %>
+        <div class="space-y-8 mt-4">
+          <% past_days.each do |date, day_matches| %>
+            <%= render "tips/match_day",
+                  date: date, day_matches: day_matches,
+                  pool: pool, tips_map: tips_map,
+                  participant_tips_by_match: (defined?(participant_tips_by_match) ? participant_tips_by_match : {}),
+                  tip_counts_by_match: (defined?(tip_counts_by_match) ? tip_counts_by_match : {}),
+                  next_match: _next_match,
+                  default_open: false %>
           <% end %>
         </div>
       </details>
     <% end %>
+
   </div>
 <% end %>
