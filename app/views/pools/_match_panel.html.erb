@@ -98,19 +98,11 @@
                 <%= @my_tip&.home_score_tip.present? ? 'bg-neon-400/10 dark:bg-neon-400/10 border border-neon-400/30' : 'bg-pitch-100 dark:bg-pitch-800 border border-pitch-200 dark:border-pitch-700' %>">
       <p class="text-[10px] uppercase tracking-widest font-bold text-pitch-400 mb-2">Seu palpite</p>
       <% if @my_tip&.home_score_tip.present? %>
-        <div class="flex items-center justify-center gap-2">
-          <span class="font-mono font-bold text-3xl text-pitch-900 dark:text-white tracking-tight">
-            <%= @my_tip.home_score_tip %>
-            <span class="text-pitch-500 dark:text-pitch-400 mx-1 font-normal text-2xl">×</span>
-            <%= @my_tip.away_score_tip %>
-          </span>
-          <% if @my_tip.scored? %>
-            <% pts = @my_tip.points_earned.to_i %>
-            <span class="font-bold text-base <%= pts > 0 ? 'text-neon-600 dark:text-neon-300' : 'text-pitch-400' %>">
-              <%= pts > 0 ? "+#{pts}pts" : "0pts" %>
-            </span>
-          <% end %>
-        </div>
+        <span class="font-mono font-bold text-3xl text-pitch-900 dark:text-white tracking-tight">
+          <%= @my_tip.home_score_tip %>
+          <span class="text-pitch-500 dark:text-pitch-400 mx-1 font-normal text-2xl">×</span>
+          <%= @my_tip.away_score_tip %>
+        </span>
       <% else %>
         <p class="text-sm text-pitch-400 dark:text-pitch-500 italic">
           <%= @is_locked ? "Sem palpite registrado" : "Você ainda não palpitou" %>
