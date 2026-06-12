@@ -27,17 +27,15 @@
 
       <div>
         <%= label_tag :tip_match_id, "Jogo", class: "block text-xs font-semibold text-pitch-700 dark:text-pitch-300 uppercase tracking-wider mb-1.5" %>
-        <% grouped = @matches.group_by { |m| m.scheduled_at&.in_time_zone("America/Sao_Paulo")&.to_date } %>
-        <%= f.select :match_id,
-              grouped.sort_by { |d, _| d || Date::Infinity }.flat_map do |date, day_matches|
-                label = date ? I18n.l(date, format: :long) : "Sem data"
-                day_matches.sort_by { |m| m.scheduled_at || Time::INFINITY }.map do |m|
-                  time_str = m.scheduled_at ? m.scheduled_at.in_time_zone("America/Sao_Paulo").strftime("%H:%M") : "--:--"
-                  stage_str = m.stage ? " (#{m.stage.name})" : ""
-                  option_label = "#{label} #{time_str} — #{m.home_team.short_name || m.home_team.name} × #{m.away_team.short_name || m.away_team.name}#{stage_str}"
-                  [ option_label, m.id ]
-                end
-              end,
+        <%
+          match_options = @matches.sort_by { |m| m.scheduled_at || Time::INFINITY }.map do |m|
+            date_str  = m.scheduled_at ? m.scheduled_at.in_time_zone("America/Sao_Paulo").strftime("%d/%m %H:%M") : "--/-- --:--"
+            stage_str = m.stage ? " (#{m.stage.name})" : ""
+            label     = "#{date_str} — #{m.home_team.short_name || m.home_team.name} × #{m.away_team.short_name || m.away_team.name}#{stage_str}"
+            [ label, m.id ]
+          end
+        %>
+        <%= f.select :match_id, match_options,
               { prompt: "Selecione o jogo..." },
               class: "w-full rounded-xl border border-pitch-200 dark:border-pitch-600 bg-white dark:bg-pitch-800 text-pitch-900 dark:text-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-neon-400 focus:border-transparent" %>
       </div>
