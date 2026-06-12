@@ -18,9 +18,11 @@ class MatchesController < ApplicationController
     @user_pools = user_pools_for_match
     @tips_by_pool = current_user.tips.where(match: @match, pool_id: @user_pools.map(&:id)).index_by(&:pool_id)
     @is_locked = @user_pools.all? { |p| p.tips_locked_for?(@match) }
-    existing = @tips_by_pool.values.first
-    @consensus_home = existing&.home_score_tip
-    @consensus_away = existing&.away_score_tip
+    tips = @tips_by_pool.values
+    home_scores = tips.map(&:home_score_tip).uniq.compact
+    away_scores = tips.map(&:away_score_tip).uniq.compact
+    @consensus_home = home_scores.size == 1 ? home_scores.first : nil
+    @consensus_away = away_scores.size == 1 ? away_scores.first : nil
     render partial: "matches/dashboard_panel"
   end
 
@@ -43,8 +45,11 @@ class MatchesController < ApplicationController
     @user_pools = user_pools_for_match
     @tips_by_pool = current_user.tips.where(match: @match, pool_id: @user_pools.map(&:id)).index_by(&:pool_id)
     @is_locked = @user_pools.all? { |p| p.tips_locked_for?(@match) }
-    @consensus_home = home_score
-    @consensus_away = away_score
+    tips = @tips_by_pool.values
+    home_scores = tips.map(&:home_score_tip).uniq.compact
+    away_scores = tips.map(&:away_score_tip).uniq.compact
+    @consensus_home = home_scores.size == 1 ? home_scores.first : nil
+    @consensus_away = away_scores.size == 1 ? away_scores.first : nil
     @saved_count = saved
 
     render partial: "matches/dashboard_panel"
