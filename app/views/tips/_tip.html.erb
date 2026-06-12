@@ -6,12 +6,13 @@
 
 <div class="card overflow-hidden cursor-pointer group transition-all duration-200
             hover:shadow-lg hover:-translate-y-px
-            <%= match.status_live? ? 'border-red-400/50 dark:border-red-500/40 shadow-sm shadow-red-500/10' :
+            <%= match.status_finished? ? 'opacity-60 hover:opacity-90' :
+                match.status_live? ? 'border-red-400/50 dark:border-red-500/40 shadow-sm shadow-red-500/10' :
                 is_next ? 'border-neon-400/50 dark:border-neon-400/40 shadow-md shadow-neon-400/10' :
                 'hover:border-neon-400/30 dark:hover:border-neon-400/20' %>"
      data-match-id="<%= match.id %>"
-     data-action="click->match-panel#open"
-     data-match-panel-url-param="<%= match_panel_pool_path(pool, match_id: match.id) %>">
+     data-action="click->drawer#open"
+     data-drawer-url-param="<%= match_panel_pool_path(pool, match_id: match.id) %>">
 
   <%# ── Teams + Score ──────────────────────────────────────────────────────── %>
   <div class="p-4">
@@ -22,22 +23,28 @@
         <% ht_img = match.home_team.display_image_url %>
         <% if ht_img.present? %>
           <img src="<%= ht_img %>"
-               class="w-12 h-12 object-contain rounded-lg shadow-sm transition-transform group-hover:scale-105"
+               class="w-14 h-14 object-cover rounded-xl transition-transform group-hover:scale-105"
                alt="<%= match.home_team.name %>"
                onerror="this.style.display='none'">
         <% else %>
-          <div class="w-12 h-12 rounded-lg bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center text-xs font-bold font-mono text-pitch-500 transition-transform group-hover:scale-105">
+          <div class="w-14 h-14 rounded-xl bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center text-xs font-bold font-mono text-pitch-500 transition-transform group-hover:scale-105">
             <%= match.home_team.initials %>
           </div>
         <% end %>
-        <p class="text-[11px] font-semibold text-pitch-800 dark:text-pitch-100 truncate w-full text-center leading-tight">
-          <%= match.home_team.short_name || match.home_team.name.split.first %>
+        <% ht_short = match.home_team.short_name %>
+        <p class="text-[11px] font-bold text-pitch-800 dark:text-pitch-100 truncate w-full text-center leading-tight">
+          <%= ht_short || match.home_team.name.split.first %>
         </p>
+        <% if ht_short.present? %>
+          <p class="text-[9px] text-pitch-400 truncate w-full text-center leading-tight mt-0.5">
+            <%= match.home_team.name %>
+          </p>
+        <% end %>
       </div>
 
       <%# Center: status / score / inputs — fixed width keeps layout symmetric %>
       <div class="w-28 shrink-0 flex flex-col items-center gap-1"
-           data-action="click->match-panel#stop">
+           data-action="click->drawer#stop">
         <% if match.status_finished? %>
           <div class="font-mono font-bold text-xl text-pitch-900 dark:text-white leading-none">
             <%= match.home_score %><span class="text-pitch-300 dark:text-pitch-600 mx-1">–</span><%= match.away_score %>
@@ -70,15 +77,17 @@
                         class: "flex items-center gap-1" do |f| %>
             <%= f.hidden_field :match_id, value: match.id %>
             <div class="flex items-center gap-1 bg-white dark:bg-pitch-800 rounded-xl border-2 border-pitch-200 dark:border-pitch-600 focus-within:border-neon-400 dark:focus-within:border-neon-400 transition-colors px-2 py-1.5">
-              <%= f.number_field :home_score_tip,
-                    value: tip&.home_score_tip, min: 0, max: 99, step: 1, placeholder: "–",
+              <%= f.text_field :home_score_tip,
+                    value: tip&.home_score_tip, placeholder: "–",
+                    inputmode: "numeric", pattern: "[0-9]*", autocomplete: "off",
                     class: "score-input w-8 text-center",
-                    data: { action: "change->tip#autoSubmit", tip_target: "home" } %>
+                    data: { action: "change->tip#autoSubmit keydown->tip#blockInvalid input->tip#clamp", tip_target: "home" } %>
               <span class="text-pitch-300 dark:text-pitch-500 font-bold text-sm select-none">×</span>
-              <%= f.number_field :away_score_tip,
-                    value: tip&.away_score_tip, min: 0, max: 99, step: 1, placeholder: "–",
+              <%= f.text_field :away_score_tip,
+                    value: tip&.away_score_tip, placeholder: "–",
+                    inputmode: "numeric", pattern: "[0-9]*", autocomplete: "off",
                     class: "score-input w-8 text-center",
-                    data: { action: "change->tip#autoSubmit", tip_target: "away" } %>
+                    data: { action: "change->tip#autoSubmit keydown->tip#blockInvalid input->tip#clamp", tip_target: "away" } %>
             </div>
           <% end %>
           <% if match.scheduled_at %>
@@ -94,17 +103,23 @@
         <% at_img = match.away_team.display_image_url %>
         <% if at_img.present? %>
           <img src="<%= at_img %>"
-               class="w-12 h-12 object-contain rounded-lg shadow-sm transition-transform group-hover:scale-105"
+               class="w-14 h-14 object-cover rounded-xl transition-transform group-hover:scale-105"
                alt="<%= match.away_team.name %>"
                onerror="this.style.display='none'">
         <% else %>
-          <div class="w-12 h-12 rounded-lg bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center text-xs font-bold font-mono text-pitch-500 transition-transform group-hover:scale-105">
+          <div class="w-14 h-14 rounded-xl bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center text-xs font-bold font-mono text-pitch-500 transition-transform group-hover:scale-105">
             <%= match.away_team.initials %>
           </div>
         <% end %>
-        <p class="text-[11px] font-semibold text-pitch-800 dark:text-pitch-100 truncate w-full text-center leading-tight">
-          <%= match.away_team.short_name || match.away_team.name.split.first %>
+        <% at_short = match.away_team.short_name %>
+        <p class="text-[11px] font-bold text-pitch-800 dark:text-pitch-100 truncate w-full text-center leading-tight">
+          <%= at_short || match.away_team.name.split.first %>
         </p>
+        <% if at_short.present? %>
+          <p class="text-[9px] text-pitch-400 truncate w-full text-center leading-tight mt-0.5">
+            <%= match.away_team.name %>
+          </p>
+        <% end %>
       </div>
     </div>
 
@@ -126,7 +141,7 @@
             </span>
           <% end %>
         <% elsif match.stage %>
-          <span class="text-[10px] text-pitch-400 uppercase tracking-wide truncate"><%= match.stage.name %></span>
+          <span class="text-[10px] text-pitch-400 uppercase tracking-wide truncate"><%= match.stage.name.sub(/\ARodada /, "Grupo ") %></span>
         <% else %>
           <span></span>
         <% end %>
@@ -146,11 +161,4 @@
     </div>
   </div>
 
-  <%# Participants tips (after match starts) %>
-  <% if defined?(participant_tips_by_match) && defined?(tip_counts_by_match) %>
-    <%= render "tips/participants_tips",
-          match: match, pool: pool,
-          participant_tips_by_match: participant_tips_by_match,
-          tip_counts_by_match: tip_counts_by_match %>
-  <% end %>
 </div>

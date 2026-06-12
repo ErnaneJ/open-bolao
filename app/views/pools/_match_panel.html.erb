@@ -1,11 +1,11 @@
-<%= turbo_frame_tag "match_panel_frame", class: "flex flex-col h-full" do %>
+<%= turbo_frame_tag "match_panel_frame" do %>
 
   <%# ── Header ─────────────────────────────────────────────────────────────── %>
   <div class="shrink-0 px-5 pt-5 pb-4 border-b border-pitch-100 dark:border-pitch-700/50">
 
     <%# Stage / round info %>
     <p class="text-[10px] uppercase tracking-widest font-bold text-pitch-400 mb-5">
-      <%= @match.stage&.name || "Jogo" %>
+      <%= @match.stage&.name&.sub(/\ARodada /, "Grupo ") || "Jogo" %>
       <% if @match.round_number.present? %>
         · Rodada <%= @match.round_number %>
       <% end %>
@@ -130,7 +130,7 @@
   </div>
 
   <%# ── Participants tips ───────────────────────────────────────────────────── %>
-  <div class="flex-1 overflow-y-auto px-5 py-4">
+  <div class="px-5 py-4 pb-8">
     <p class="text-[10px] uppercase tracking-widest font-bold text-pitch-400 mb-3 flex items-center gap-2">
       Palpites dos participantes
       <% if !@is_locked %>
@@ -156,12 +156,18 @@
                 </div>
               <% end %>
               <div class="min-w-0">
-                <div class="flex items-center gap-1.5">
+                <div class="flex items-center gap-1.5 flex-wrap">
                   <span class="text-sm font-medium text-pitch-800 dark:text-pitch-100 truncate">
                     <%= t.user.display_name %>
                   </span>
                   <% if t.user_id == current_user.id %>
                     <span class="text-[10px] text-pitch-400 font-medium shrink-0">você</span>
+                  <% end %>
+                  <% if @is_locked && t.points_earned.present? %>
+                    <% pts = t.points_earned.to_i %>
+                    <span class="text-[10px] font-bold shrink-0 <%= pts > 0 ? 'text-neon-600 dark:text-neon-300' : 'text-pitch-400' %>">
+                      <%= pts > 0 ? "+#{pts}pts" : "0pts" %>
+                    </span>
                   <% end %>
                 </div>
                 <span class="text-[10px] text-pitch-400 font-mono">

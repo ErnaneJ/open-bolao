@@ -12,7 +12,7 @@
         <% if stage %>
           <div class="flex items-center gap-3 mb-4">
             <span class="text-[10px] font-bold uppercase tracking-widest text-pitch-400 dark:text-pitch-500">
-              <%= stage.name %>
+              <%= stage.name.sub(/\ARodada /, "Grupo ") %>
             </span>
             <div class="flex-1 h-px bg-pitch-100 dark:bg-pitch-700/50"></div>
             <span class="text-[10px] text-pitch-400"><%= stage_matches.size %> jogo<%= stage_matches.size > 1 ? "s" : "" %></span>

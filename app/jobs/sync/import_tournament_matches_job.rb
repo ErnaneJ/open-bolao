@@ -105,9 +105,9 @@ module Sync
           schedulable:            @tournament,
           api_provider:           provider,
           enabled:                true,
-          interval_seconds:       300,
-          active_from:            Time.current.change(hour: 12),
-          active_until:           Time.current.change(hour: 23, min: 59),
+          interval_seconds:       90,
+          active_from:            nil,
+          active_until:           nil,
           run_only_on_match_days: false
         )
       end

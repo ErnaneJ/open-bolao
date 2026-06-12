@@ -1,0 +1,163 @@
+<%= turbo_frame_tag "match_dashboard_frame" do %>
+  <%# ── Match header ──────────────────────────────────────────────────────── %>
+  <div class="px-5 pt-5 pb-4 border-b border-pitch-100 dark:border-pitch-800">
+    <p class="text-[10px] uppercase tracking-widest font-bold text-pitch-400 mb-4">
+      <%= @match.stage&.name&.sub(/\ARodada /, "Grupo ") || @match.tournament&.name || "Jogo" %>
+    </p>
+
+    <div class="flex items-center gap-3 mb-4">
+      <%# Home %>
+      <div class="flex-1 flex flex-col items-center gap-1.5 text-center min-w-0">
+        <% ht_img = @match.home_team.display_image_url %>
+        <% if ht_img.present? %>
+          <img src="<%= ht_img %>" class="w-16 h-16 object-cover rounded-xl" alt="" onerror="this.style.display='none'">
+        <% else %>
+          <div class="w-16 h-16 rounded-xl bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center text-sm font-bold font-mono text-pitch-500">
+            <%= @match.home_team.initials %>
+          </div>
+        <% end %>
+        <% if @match.home_team.short_name.present? %>
+          <p class="text-xs font-bold text-pitch-900 dark:text-white truncate w-full"><%= @match.home_team.short_name %></p>
+          <p class="text-[9px] text-pitch-400 truncate w-full"><%= @match.home_team.name %></p>
+        <% else %>
+          <p class="text-xs font-semibold text-pitch-900 dark:text-white truncate w-full"><%= @match.home_team.name %></p>
+        <% end %>
+      </div>
+
+      <%# Center: score or time %>
+      <div class="shrink-0 text-center px-2">
+        <% if @match.status_finished? %>
+          <div class="font-mono font-bold text-2xl text-pitch-900 dark:text-white">
+            <%= @match.home_score %><span class="text-pitch-400 mx-1">×</span><%= @match.away_score %>
+          </div>
+          <span class="text-[9px] uppercase tracking-widest text-pitch-400 font-semibold">Encerrado</span>
+        <% elsif @match.status_live? %>
+          <div class="font-mono font-bold text-2xl text-red-500">
+            <%= @match.home_score %><span class="text-red-300 mx-1">×</span><%= @match.away_score %>
+          </div>
+          <div class="flex items-center gap-1 justify-center">
+            <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+            <span class="text-[9px] text-red-500 font-bold uppercase">Ao vivo</span>
+          </div>
+        <% elsif @match.scheduled_at %>
+          <div class="font-mono font-bold text-xl text-pitch-900 dark:text-white">
+            <%= @match.scheduled_at.in_time_zone("America/Sao_Paulo").strftime("%H:%M") %>
+          </div>
+          <div class="text-[10px] text-pitch-400 font-mono">
+            <%= @match.scheduled_at.in_time_zone("America/Sao_Paulo").strftime("%d/%m") %>
+          </div>
+        <% end %>
+      </div>
+
+      <%# Away %>
+      <div class="flex-1 flex flex-col items-center gap-1.5 text-center min-w-0">
+        <% at_img = @match.away_team.display_image_url %>
+        <% if at_img.present? %>
+          <img src="<%= at_img %>" class="w-16 h-16 object-cover rounded-xl" alt="" onerror="this.style.display='none'">
+        <% else %>
+          <div class="w-16 h-16 rounded-xl bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center text-sm font-bold font-mono text-pitch-500">
+            <%= @match.away_team.initials %>
+          </div>
+        <% end %>
+        <% if @match.away_team.short_name.present? %>
+          <p class="text-xs font-bold text-pitch-900 dark:text-white truncate w-full"><%= @match.away_team.short_name %></p>
+          <p class="text-[9px] text-pitch-400 truncate w-full"><%= @match.away_team.name %></p>
+        <% else %>
+          <p class="text-xs font-semibold text-pitch-900 dark:text-white truncate w-full"><%= @match.away_team.name %></p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <%# ── Tip form (broadcast to all pools) ────────────────────────────────── %>
+  <div class="px-5 py-4 border-b border-pitch-100 dark:border-pitch-800">
+    <% if @is_locked %>
+      <div class="rounded-2xl bg-pitch-100 dark:bg-pitch-800 border border-pitch-200 dark:border-pitch-700 text-center py-3 px-4">
+        <p class="text-[10px] uppercase tracking-widest font-bold text-pitch-400 mb-1">Seu palpite</p>
+        <% existing = @tips_by_pool.values.first %>
+        <% if existing&.home_score_tip.present? %>
+          <span class="font-mono font-bold text-2xl text-pitch-900 dark:text-white">
+            <%= existing.home_score_tip %><span class="text-pitch-400 mx-1">×</span><%= existing.away_score_tip %>
+          </span>
+        <% else %>
+          <p class="text-sm text-pitch-400 italic">Sem palpite registrado</p>
+        <% end %>
+        <p class="text-[10px] text-amber-500 mt-1">🔒 Palpites fechados</p>
+      </div>
+    <% else %>
+      <%= form_with url: bulk_tip_match_path(@match), method: :post,
+            data: { controller: "tip", tip_target: "form", turbo_stream: true } do |f| %>
+        <p class="text-[10px] uppercase tracking-widest font-bold text-pitch-400 mb-3">
+          Seu palpite — todos os bolões
+        </p>
+        <div class="flex items-center justify-center gap-3">
+          <span class="text-xs text-pitch-500 truncate max-w-[80px] text-right">
+            <%= @match.home_team.short_name || @match.home_team.name.split.first %>
+          </span>
+          <div class="flex items-center gap-1 bg-white dark:bg-pitch-800 rounded-xl border-2 border-pitch-200 dark:border-pitch-600 focus-within:border-neon-400 transition-colors px-3 py-2">
+            <%= f.text_field :home_score_tip,
+                  value: @consensus_home, placeholder: "–",
+                  inputmode: "numeric", pattern: "[0-9]*", autocomplete: "off",
+                  class: "score-input w-10 text-center text-lg",
+                  data: { action: "change->tip#autoSubmit keydown->tip#blockInvalid input->tip#clamp", tip_target: "home" } %>
+            <span class="text-pitch-300 dark:text-pitch-500 font-bold mx-1">×</span>
+            <%= f.text_field :away_score_tip,
+                  value: @consensus_away, placeholder: "–",
+                  inputmode: "numeric", pattern: "[0-9]*", autocomplete: "off",
+                  class: "score-input w-10 text-center text-lg",
+                  data: { action: "change->tip#autoSubmit keydown->tip#blockInvalid input->tip#clamp", tip_target: "away" } %>
+          </div>
+          <span class="text-xs text-pitch-500 truncate max-w-[80px]">
+            <%= @match.away_team.short_name || @match.away_team.name.split.first %>
+          </span>
+        </div>
+        <p class="text-[10px] text-pitch-400 text-center mt-2">
+          Propagado para <%= @user_pools.size %> bolão<%= @user_pools.size > 1 ? "s" : "" %>
+        </p>
+        <% if defined?(@saved_count) && @saved_count.present? %>
+          <p class="text-[10px] text-neon-600 dark:text-neon-300 text-center mt-1 font-semibold">
+            ✓ Palpite salvo em <%= @saved_count %> bolão<%= @saved_count > 1 ? "s" : "" %>
+          </p>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <%# ── Pools list ─────────────────────────────────────────────────────────── %>
+  <div class="px-5 py-4 pb-8">
+    <p class="text-[10px] uppercase tracking-widest font-bold text-pitch-400 mb-3">
+      Seus bolões com este jogo
+    </p>
+    <% if @user_pools.any? %>
+      <div class="space-y-2">
+        <% @user_pools.each do |pool| %>
+          <% tip = @tips_by_pool[pool.id] %>
+          <%= link_to pool_path(pool, anchor: "tab-tips"),
+                data: { turbo_frame: "_top" },
+                class: "flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl border border-pitch-100 dark:border-pitch-700 hover:border-neon-400/50 transition-colors group" do %>
+            <div class="min-w-0">
+              <p class="text-sm font-semibold text-pitch-900 dark:text-white truncate"><%= pool.name %></p>
+              <p class="text-[10px] text-pitch-400">
+                <%= pool.tips_locked_for?(@match) ? "🔒 Fechado" : "Aberto" %>
+              </p>
+            </div>
+            <div class="shrink-0 flex items-center gap-2">
+              <% if tip&.home_score_tip.present? %>
+                <span class="font-mono text-sm font-bold text-pitch-900 dark:text-white">
+                  <%= tip.home_score_tip %>–<%= tip.away_score_tip %>
+                </span>
+              <% else %>
+                <span class="text-[10px] text-pitch-400 italic">sem palpite</span>
+              <% end %>
+              <svg class="w-3.5 h-3.5 text-pitch-400 group-hover:text-neon-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+              </svg>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-sm text-pitch-400 italic text-center py-4">Nenhum bolão com este jogo.</p>
+    <% end %>
+  </div>
+<% end %>

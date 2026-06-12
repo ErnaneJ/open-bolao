@@ -45,6 +45,10 @@ export default class extends Controller {
     }, 300)
   }
 
+  stop(event) {
+    event.stopPropagation()
+  }
+
   keydown(event) {
     if (event.key === "Escape") this.close()
   }

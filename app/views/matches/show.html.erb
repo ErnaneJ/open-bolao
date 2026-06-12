@@ -45,26 +45,25 @@
       <div class="flex items-center justify-center gap-4 sm:gap-12">
 
         <%# Home Team %>
-        <div class="text-center flex-1 max-w-36">
+        <div class="text-center flex-1 min-w-0">
           <% ht = @match.home_team %>
           <% ht_img = ht.display_image_url %>
           <% if ht_img.present? %>
-            <div class="w-24 h-24 sm:w-36 sm:h-36 mx-auto mb-3 flex items-center justify-center">
+            <div class="w-full max-w-[96px] sm:max-w-[144px] aspect-square mx-auto mb-3 flex items-center justify-center">
               <img src="<%= ht_img %>" alt="<%= ht.name %>"
-                   style="max-width:100%;max-height:100%;object-fit:contain;display:block"
-                   class="drop-shadow-md"
-                   onerror="this.parentElement.innerHTML='<div class=\'w-24 h-24 rounded-xl bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center text-2xl font-display font-bold text-pitch-500\'><%= ht.initials %></div>'">
+                   class="w-full h-full object-contain drop-shadow-md"
+                   onerror="this.parentElement.innerHTML='<div class=\'w-full h-full rounded-xl bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center text-2xl font-display font-bold text-pitch-500\'><%= ht.initials %></div>'">
             </div>
           <% else %>
-            <div class="w-24 h-24 sm:w-36 sm:h-36 rounded-xl bg-pitch-100 dark:bg-pitch-700 mx-auto mb-3 flex items-center justify-center text-2xl font-display font-bold text-pitch-500">
+            <div class="w-full max-w-[96px] sm:max-w-[144px] aspect-square rounded-xl bg-pitch-100 dark:bg-pitch-700 mx-auto mb-3 flex items-center justify-center text-2xl font-display font-bold text-pitch-500">
               <%= ht.initials %>
             </div>
           <% end %>
-          <p class="font-display font-bold text-base sm:text-xl text-pitch-900 dark:text-white leading-tight">
-            <%= ht.name %>
-          </p>
-          <% if ht.country_code.present? %>
-            <p class="text-xs text-pitch-400 mt-1"><%= ht.country_code %></p>
+          <% if ht.short_name.present? %>
+            <p class="font-display font-bold text-lg sm:text-2xl text-pitch-900 dark:text-white leading-tight"><%= ht.short_name %></p>
+            <p class="text-xs text-pitch-400 mt-0.5 truncate"><%= ht.name %></p>
+          <% else %>
+            <p class="font-display font-bold text-base sm:text-xl text-pitch-900 dark:text-white leading-tight truncate"><%= ht.name %></p>
           <% end %>
           <%# Group info — find from TournamentTeam %>
           <% if @match.tournament %>
@@ -107,26 +106,25 @@
         </div>
 
         <%# Away Team %>
-        <div class="text-center flex-1 max-w-36">
+        <div class="text-center flex-1 min-w-0">
           <% at = @match.away_team %>
           <% at_img = at.display_image_url %>
           <% if at_img.present? %>
-            <div class="w-24 h-24 sm:w-36 sm:h-36 mx-auto mb-3 flex items-center justify-center">
+            <div class="w-full max-w-[96px] sm:max-w-[144px] aspect-square mx-auto mb-3 flex items-center justify-center">
               <img src="<%= at_img %>" alt="<%= at.name %>"
-                   style="max-width:100%;max-height:100%;object-fit:contain;display:block"
-                   class="drop-shadow-md"
-                   onerror="this.parentElement.innerHTML='<div class=\'w-24 h-24 rounded-xl bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center text-2xl font-display font-bold text-pitch-500\'><%= at.initials %></div>'">
+                   class="w-full h-full object-contain drop-shadow-md"
+                   onerror="this.parentElement.innerHTML='<div class=\'w-full h-full rounded-xl bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center text-2xl font-display font-bold text-pitch-500\'><%= at.initials %></div>'">
             </div>
           <% else %>
-            <div class="w-24 h-24 sm:w-36 sm:h-36 rounded-xl bg-pitch-100 dark:bg-pitch-700 mx-auto mb-3 flex items-center justify-center text-2xl font-display font-bold text-pitch-500">
+            <div class="w-full max-w-[96px] sm:max-w-[144px] aspect-square rounded-xl bg-pitch-100 dark:bg-pitch-700 mx-auto mb-3 flex items-center justify-center text-2xl font-display font-bold text-pitch-500">
               <%= at.initials %>
             </div>
           <% end %>
-          <p class="font-display font-bold text-base sm:text-xl text-pitch-900 dark:text-white leading-tight">
-            <%= at.name %>
-          </p>
-          <% if at.country_code.present? %>
-            <p class="text-xs text-pitch-400 mt-1"><%= at.country_code %></p>
+          <% if at.short_name.present? %>
+            <p class="font-display font-bold text-lg sm:text-2xl text-pitch-900 dark:text-white leading-tight"><%= at.short_name %></p>
+            <p class="text-xs text-pitch-400 mt-0.5 truncate"><%= at.name %></p>
+          <% else %>
+            <p class="font-display font-bold text-base sm:text-xl text-pitch-900 dark:text-white leading-tight truncate"><%= at.name %></p>
           <% end %>
           <% if @match.tournament %>
             <% tt = @match.tournament.tournament_teams.find_by(team: at) %>

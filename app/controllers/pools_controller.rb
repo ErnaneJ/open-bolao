@@ -84,6 +84,11 @@ class PoolsController < ApplicationController
 
   def recalculate_ranking
     authorize @pool, :manage?
+    @pool.active_matches.where(status: :finished).each do |match|
+      @pool.tips.where(match: match).find_each do |tip|
+        Tips::ScoringService.call(tip: tip, match: match, pool: @pool)
+      end
+    end
     @ranking = Rankings::UpdatePoolRankingService.call(pool: @pool)
     @ranking = @pool.pool_participants.active.includes(:user)
                     .order(Arel.sql("rank ASC NULLS LAST, total_points DESC"))

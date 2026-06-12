@@ -96,9 +96,13 @@ class Admin::MatchesController < Admin::BaseController
 
   def update
     skip_authorization
-    was_finished = @match.status_finished?
+    was_finished   = @match.status_finished?
+    prev_home      = @match.home_score
+    prev_away      = @match.away_score
     if @match.update(match_params)
-      if @match.status_finished? && !was_finished
+      score_corrected = @match.status_finished? && was_finished &&
+                        (@match.home_score != prev_home || @match.away_score != prev_away)
+      if (@match.status_finished? && !was_finished) || score_corrected
         recalculate_tips_for_match if @pool
         pools_for_match(@match).each do |pool|
           Rankings::UpdatePoolRankingService.call(pool: pool)

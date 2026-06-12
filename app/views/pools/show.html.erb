@@ -2,31 +2,31 @@
 <% match_view = params[:match_view] || "table" %>
 <% tip_view   = params[:tip_view]   || "grid" %>
 
-<%# ── Wrap the whole page in the match-panel controller ───────────────────── %>
-<div data-controller="match-panel" class="relative">
+<%# ── Wrap the whole page in the drawer controller ────────────────────────── %>
+<div data-controller="drawer"
+     data-action="keydown@window->drawer#keydown">
 
-  <%# ── Overlay (mobile) ──────────────────────────────────────────────────── %>
-  <div data-match-panel-target="overlay"
-       data-action="click->match-panel#close"
-       class="hidden fixed inset-0 z-30 bg-pitch-950/50 backdrop-blur-sm"></div>
+  <%# ── Overlay ────────────────────────────────────────────────────────────── %>
+  <div data-drawer-target="overlay"
+       data-action="click->drawer#close"
+       style="display:none;position:fixed;inset:0;z-index:40;background:rgba(4,9,26,0.65);backdrop-filter:blur(4px)"></div>
 
-  <%# ── Bottom sheet panel ─────────────────────────────────────────────── %>
-  <div data-match-panel-target="panel"
-       class="fixed bottom-0 left-0 right-0 z-40 max-h-[90vh] bg-white dark:bg-pitch-900 rounded-t-2xl border-t border-pitch-200 dark:border-pitch-800 shadow-2xl shadow-black/30 transition-transform duration-300 flex flex-col">
-    <%# Drag handle + close — always in DOM, never inside turbo frame %>
-    <div class="shrink-0 flex items-center justify-between px-5 pt-3 pb-2">
-      <div class="w-10 h-1 rounded-full bg-pitch-200 dark:bg-pitch-600 mx-auto absolute left-1/2 -translate-x-1/2 top-3"></div>
-      <div class="flex-1"></div>
+  <%# ── Side panel (right drawer) ─────────────────────────────────────────── %>
+  <div data-drawer-target="panel"
+       class="bg-white dark:bg-pitch-900 border-l border-pitch-200 dark:border-pitch-800"
+       style="position:fixed;right:0;top:0;bottom:0;z-index:50;width:min(100vw,480px);box-shadow:0 25px 50px rgba(0,0,0,0.25);overflow-y:auto;">
+    <%# Close button — sticky so it stays visible while scrolling %>
+    <div class="sticky top-0 bg-white dark:bg-pitch-900 flex items-center justify-end px-4 py-3 border-b border-pitch-100 dark:border-pitch-800 z-10">
       <button type="button"
-              data-action="click->match-panel#close"
-              class="p-1.5 rounded-lg text-pitch-400 hover:bg-pitch-100 dark:hover:bg-pitch-700 transition-colors">
+              data-action="click->drawer#close"
+              class="p-1.5 rounded-lg text-pitch-400 hover:bg-pitch-100 dark:hover:bg-pitch-700 transition-colors"
+              aria-label="Fechar">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
         </svg>
       </button>
     </div>
-    <turbo-frame id="match_panel_frame" data-match-panel-target="frame"
-                 class="flex-1 overflow-y-auto flex flex-col min-h-0">
+    <turbo-frame id="match_panel_frame" data-drawer-target="frame" class="block">
       <%# Loaded on demand %>
     </turbo-frame>
   </div>
@@ -52,7 +52,7 @@
             <p class="text-sm text-pitch-500 dark:text-pitch-300 mt-1.5"><%= @pool.description %></p>
           <% end %>
           <% if current_user == @pool.admin || current_user.role_super_admin? %>
-            <div class="flex items-center gap-2 mt-3">
+            <div class="flex items-center gap-2 mt-3 flex-wrap">
               <code class="text-xs font-mono text-pitch-400 bg-pitch-50 dark:bg-pitch-700/60 px-2.5 py-1 rounded-lg truncate max-w-xs">
                 <%= join_pool_by_code_url(invite_code: @pool.invite_code) %>
               </code>
@@ -60,6 +60,7 @@
                       data-clipboard-text-value="<%= join_pool_by_code_url(invite_code: @pool.invite_code) %>"
                       data-action="click->clipboard#copy"
                       class="btn btn-ghost btn-sm shrink-0">Copiar link</button>
+              <%= link_to "Gerenciar", admin_pool_path(@pool), class: "btn btn-ghost btn-sm shrink-0" %>
             </div>
           <% end %>
         </div>
@@ -87,10 +88,6 @@
             <%= button_to join_pool_path(@pool), class: "btn btn-neon" do %>
               Entrar no bolão
             <% end %>
-          <% end %>
-
-          <% if current_user == @pool.admin || current_user.role_super_admin? %>
-            <%= link_to "Gerenciar", admin_pool_path(@pool), class: "btn btn-ghost btn-sm" %>
           <% end %>
         </div>
       </div>

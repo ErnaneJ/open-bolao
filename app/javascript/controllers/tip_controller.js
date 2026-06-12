@@ -3,14 +3,26 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = ["form", "indicator"]
 
-  // Fire on change (fires after blur if value changed)
   autoSubmit() {
-    const inputs = this.element.querySelectorAll("input[type='number']")
-    const allFilled = Array.from(inputs).every(i => i.value !== "")
+    const inputs = this.element.querySelectorAll("input.score-input")
+    const allFilled = Array.from(inputs).every(i => /^\d+$/.test(i.value.trim()))
     if (allFilled) {
       this.formTarget?.requestSubmit()
       this.showIndicator()
     }
+  }
+
+  blockInvalid(event) {
+    const allowed = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"]
+    if (allowed.includes(event.key)) return
+    if (!/^\d$/.test(event.key)) event.preventDefault()
+  }
+
+  clamp(event) {
+    const input = event.target
+    input.value = input.value.replace(/[^\d]/g, "")
+    const val = parseInt(input.value, 10)
+    if (!isNaN(val) && val > 99) input.value = "99"
   }
 
   showIndicator() {

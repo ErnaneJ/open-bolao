@@ -92,6 +92,7 @@
 
 <% elsif view_mode == "calendar" %>
   <%# Calendar: grouped by date %>
+  <% row_drawer = local_assigns.fetch(:row_drawer_action, false) %>
   <% matches_by_date = matches.group_by { |m| m.scheduled_at&.in_time_zone("America/Sao_Paulo")&.to_date } %>
   <div class="space-y-8">
     <% matches_by_date.sort_by { |d, _| d || Date::Infinity }.each do |date, day_matches| %>
@@ -116,18 +117,34 @@
         <%# Matches for this day %>
         <div class="card overflow-hidden divide-y divide-pitch-100 dark:divide-pitch-700/30">
           <% day_matches.sort_by { |m| m.scheduled_at || Time::INFINITY }.each do |m| %>
-            <div class="flex items-center gap-4 px-5 py-4">
+            <% if row_drawer %>
+            <div class="flex items-center gap-3 px-4 py-3.5 cursor-pointer hover:bg-pitch-100/60 dark:hover:bg-pitch-700/40 transition-colors"
+                 data-action="click->drawer#open"
+                 data-drawer-url-param="<%= dashboard_panel_match_path(m) %>">
+            <% else %>
+            <div class="flex items-center gap-3 px-4 py-3.5">
+            <% end %>
               <%# Home %>
-              <div class="flex items-center gap-2.5 flex-1 min-w-0">
-                <% if m.home_team.flag_url.present? %>
-                  <img src="<%= m.home_team.flag_url %>" class="w-8 h-6 object-cover rounded-md shrink-0 shadow-sm" alt="">
+              <div class="flex items-center gap-2 flex-1 min-w-0">
+                <% ht_img = m.home_team.display_image_url %>
+                <% if ht_img.present? %>
+                  <img src="<%= ht_img %>" class="w-10 h-10 object-cover rounded-lg shrink-0" alt="" onerror="this.style.display='none'">
+                <% else %>
+                  <div class="w-10 h-10 rounded-lg bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center shrink-0">
+                    <span class="text-[9px] font-bold text-pitch-500"><%= m.home_team.initials %></span>
+                  </div>
                 <% end %>
-                <span class="text-sm font-semibold text-pitch-900 dark:text-white truncate">
-                  <%= m.home_team.name %>
-                </span>
+                <div class="min-w-0">
+                  <span class="text-sm font-semibold text-pitch-900 dark:text-white truncate block">
+                    <%= m.home_team.short_name || m.home_team.name %>
+                  </span>
+                  <% if m.home_team.short_name.present? %>
+                    <span class="text-[10px] text-pitch-400 truncate block"><%= m.home_team.name %></span>
+                  <% end %>
+                </div>
               </div>
               <%# Score / time %>
-              <div class="text-center shrink-0 min-w-[72px]">
+              <div class="text-center shrink-0 min-w-[64px]">
                 <% if m.status_finished? %>
                   <span class="font-mono font-bold text-base text-pitch-900 dark:text-white">
                     <%= m.home_score %>–<%= m.away_score %>
@@ -144,12 +161,22 @@
                 <div class="mt-1"><%= status_badge(m.status) %></div>
               </div>
               <%# Away %>
-              <div class="flex items-center gap-2.5 flex-1 justify-end min-w-0">
-                <span class="text-sm font-semibold text-pitch-900 dark:text-white truncate text-right">
-                  <%= m.away_team.name %>
-                </span>
-                <% if m.away_team.flag_url.present? %>
-                  <img src="<%= m.away_team.flag_url %>" class="w-8 h-6 object-cover rounded-md shrink-0 shadow-sm" alt="">
+              <div class="flex items-center gap-2 flex-1 justify-end min-w-0">
+                <div class="min-w-0 text-right">
+                  <span class="text-sm font-semibold text-pitch-900 dark:text-white truncate block">
+                    <%= m.away_team.short_name || m.away_team.name %>
+                  </span>
+                  <% if m.away_team.short_name.present? %>
+                    <span class="text-[10px] text-pitch-400 truncate block"><%= m.away_team.name %></span>
+                  <% end %>
+                </div>
+                <% at_img = m.away_team.display_image_url %>
+                <% if at_img.present? %>
+                  <img src="<%= at_img %>" class="w-10 h-10 object-cover rounded-lg shrink-0" alt="" onerror="this.style.display='none'">
+                <% else %>
+                  <div class="w-10 h-10 rounded-lg bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center shrink-0">
+                    <span class="text-[9px] font-bold text-pitch-500"><%= m.away_team.initials %></span>
+                  </div>
                 <% end %>
               </div>
             </div>

@@ -62,6 +62,12 @@ module Sync
 
         handle_status_change(match, prev_status, changes[:status], schedulable)
 
+        # Re-score tips when a finished match has its score corrected by the API
+        score_changed = changes.key?(:home_score) || changes.key?(:away_score)
+        if score_changed && match.status_finished? && prev_status == "finished"
+          pools_for_match(match).each { Matches::RecalculateTipsJob.perform_later(match.id) }
+        end
+
         if goal_scored?(prev_home, prev_away, match_data)
           new_goals = total_new_goals(prev_home, prev_away, match_data)
           stats[:goals] += new_goals

@@ -10,28 +10,18 @@ class DashboardController < ApplicationController
                                       .includes(:tournament, :match)
                                       .order(created_at: :desc)
                                       .limit(5)
-    @live_matches   = Match.where(status: :live).includes(:home_team, :away_team, :tournament).limit(5)
-    @next_matches   = Match.where(status: :scheduled)
-                           .where("scheduled_at > ?", Time.current)
-                           .order(:scheduled_at)
-                           .includes(:home_team, :away_team, :tournament)
-                           .limit(8)
-    @upcoming_tips  = upcoming_matches_with_tips
-  end
+    @live_matches = Match.where(status: :live).includes(:home_team, :away_team, :tournament).limit(5)
 
-  private
-
-  def upcoming_matches_with_tips
-    pool_ids = @participations.map(&:pool_id)
-    return Match.none if pool_ids.empty?
-    Match.joins(:pool_matches)
-         .where(pool_matches: { pool_id: pool_ids })
-         .where(status: :scheduled)
-         .where("scheduled_at > ?", Time.current)
-         .order(:scheduled_at)
-         .includes(:home_team, :away_team)
-         .limit(5)
-  rescue
-    Match.none
+    pool_ids = (@participations.map(&:pool_id) + @administered_pools.map(&:id)).uniq
+    @next_matches = if pool_ids.any?
+      match_ids = PoolMatch.where(pool_id: pool_ids).select(:match_id)
+      Match.where(id: match_ids)
+           .where(status: :scheduled)
+           .where("scheduled_at > ?", Time.current)
+           .order(:scheduled_at)
+           .includes(:home_team, :away_team, :tournament)
+    else
+      Match.none
+    end
   end
 end

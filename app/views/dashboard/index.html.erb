@@ -106,18 +106,18 @@
             <div class="flex items-center justify-between mb-2">
               <% ht_img = m.home_team.display_image_url %>
               <% if ht_img.present? %>
-                <img src="<%= ht_img %>" class="w-7 h-7 object-contain rounded" alt="" onerror="this.style.display='none'">
+                <img src="<%= ht_img %>" class="w-10 h-7 object-cover rounded shrink-0" alt="" onerror="this.style.display='none'">
               <% else %>
-                <div class="w-7 h-7 rounded bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center text-[9px] font-bold text-pitch-500"><%= m.home_team.initials %></div>
+                <div class="w-10 h-7 rounded bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center text-[9px] font-bold text-pitch-500"><%= m.home_team.initials %></div>
               <% end %>
               <span class="font-mono font-bold text-lg text-red-500">
                 <%= m.home_score %>–<%= m.away_score %>
               </span>
               <% at_img = m.away_team.display_image_url %>
               <% if at_img.present? %>
-                <img src="<%= at_img %>" class="w-7 h-7 object-contain rounded" alt="" onerror="this.style.display='none'">
+                <img src="<%= at_img %>" class="w-10 h-7 object-cover rounded shrink-0" alt="" onerror="this.style.display='none'">
               <% else %>
-                <div class="w-7 h-7 rounded bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center text-[9px] font-bold text-pitch-500"><%= m.away_team.initials %></div>
+                <div class="w-10 h-7 rounded bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center text-[9px] font-bold text-pitch-500"><%= m.away_team.initials %></div>
               <% end %>
             </div>
             <p class="text-[11px] text-pitch-500 dark:text-pitch-400 text-center truncate">
@@ -164,54 +164,41 @@
     <% end %>
   </section>
 
-  <%# Próximos jogos — grid simples %>
+  <%# Próximos jogos dos meus bolões — calendário clicável %>
   <% if @next_matches.any? %>
-    <section>
+    <section data-controller="drawer"
+             data-action="keydown@window->drawer#keydown">
+
+      <%# Overlay %>
+      <div data-drawer-target="overlay"
+           data-action="click->drawer#close"
+           style="display:none;position:fixed;inset:0;z-index:40;background:rgba(4,9,26,0.65);backdrop-filter:blur(4px)"></div>
+
+      <%# Side panel %>
+      <div data-drawer-target="panel"
+           class="bg-white dark:bg-pitch-900 border-l border-pitch-200 dark:border-pitch-800"
+           style="position:fixed;right:0;top:0;bottom:0;z-index:50;width:min(100vw,480px);box-shadow:0 25px 50px rgba(0,0,0,0.25);overflow-y:auto;">
+        <div class="sticky top-0 bg-white dark:bg-pitch-900 flex items-center justify-end px-4 py-3 border-b border-pitch-100 dark:border-pitch-800 z-10">
+          <button type="button"
+                  data-action="click->drawer#close"
+                  class="p-1.5 rounded-lg text-pitch-400 hover:bg-pitch-100 dark:hover:bg-pitch-700 transition-colors"
+                  aria-label="Fechar">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <turbo-frame id="match_dashboard_frame" data-drawer-target="frame" class="block">
+        </turbo-frame>
+      </div>
+
       <h2 class="font-display font-bold text-lg text-pitch-900 dark:text-white mb-4">
         <%= t("dashboard.upcoming_matches") %>
       </h2>
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-        <% @next_matches.first(8).each do |m| %>
-          <%= link_to match_path(m),
-                class: "card p-4 hover:border-neon-400/40 transition-all group" do %>
-            <div class="flex items-center justify-between gap-2 mb-3">
-              <div class="text-center flex-1">
-                <% ht_img = m.home_team.display_image_url %>
-                <% if ht_img.present? %>
-                  <img src="<%= ht_img %>" class="w-10 h-10 object-contain rounded mx-auto mb-1" alt="" onerror="this.style.display='none'">
-                <% else %>
-                  <div class="w-10 h-10 rounded-lg bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center text-[10px] font-bold text-pitch-500 mx-auto mb-1"><%= m.home_team.initials %></div>
-                <% end %>
-                <p class="text-xs font-semibold text-pitch-700 dark:text-pitch-200 truncate">
-                  <%= m.home_team.short_name || m.home_team.name.split.first(2).join(" ") %>
-                </p>
-              </div>
-              <div class="text-center shrink-0">
-                <span class="text-pitch-400 text-sm font-bold">×</span>
-              </div>
-              <div class="text-center flex-1">
-                <% at_img = m.away_team.display_image_url %>
-                <% if at_img.present? %>
-                  <img src="<%= at_img %>" class="w-10 h-10 object-contain rounded mx-auto mb-1" alt="" onerror="this.style.display='none'">
-                <% else %>
-                  <div class="w-10 h-10 rounded-lg bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center text-[10px] font-bold text-pitch-500 mx-auto mb-1"><%= m.away_team.initials %></div>
-                <% end %>
-                <p class="text-xs font-semibold text-pitch-700 dark:text-pitch-200 truncate">
-                  <%= m.away_team.short_name || m.away_team.name.split.first(2).join(" ") %>
-                </p>
-              </div>
-            </div>
-            <p class="text-[10px] text-pitch-400 text-center font-mono">
-              <%= m.scheduled_at ? m.scheduled_at.in_time_zone("America/Sao_Paulo").strftime("%d/%m %H:%M") : "?" %>
-            </p>
-            <% if m.tournament %>
-              <p class="text-[10px] text-pitch-400 text-center truncate mt-0.5"><%= m.tournament.name %></p>
-            <% end %>
-          <% end %>
-        <% end %>
-      </div>
+      <%= render "pools/matches_list", matches: @next_matches, view_mode: "calendar",
+            row_drawer_action: true %>
     </section>
   <% end %>
 
   </div><%# /max-w-6xl %>
-</div><%# /drawer controller %>
+</div><%# /pool drawer controller %>

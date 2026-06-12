@@ -15,9 +15,9 @@ class Team < ApplicationRecord
 
   scope :search_by_name, ->(q) { where("name ILIKE ?", "%#{q}%") }
 
-  # Best available image URL for display (prefers logo over flag)
+  # Best available image URL: flag first (national teams), logo as fallback (club teams)
   def display_image_url
-    logo_url.presence || flag_url.presence
+    flag_url.presence || logo_url.presence
   end
 
   def initials
