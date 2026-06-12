@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: bolao_production
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bolao"]
+      test: ["CMD-SHELL", "pg_isready -U bolao -d bolao_production"]
       interval: 5s
       timeout: 5s
       retries: 5
