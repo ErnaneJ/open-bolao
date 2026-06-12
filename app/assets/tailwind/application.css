@@ -136,13 +136,9 @@
     margin: 0;
   }
 
-  /* ── Details/summary — force block to remove native triangle ── */
-  details > summary {
-    display: block;
+  /* ── Details/summary — remove native triangle marker ── */
+  summary {
     list-style: none;
-  }
-  details > summary::-webkit-details-marker {
-    display: none;
   }
 
   /* ── Badges ── */
