@@ -37,8 +37,7 @@ class MatchesController < ApplicationController
       tip = current_user.tips.find_or_initialize_by(pool: pool, match: @match)
       tip.home_score_tip = home_score
       tip.away_score_tip = away_score
-      tip.save
-      saved += 1
+      saved += 1 if tip.save
     end
 
     @user_pools = user_pools_for_match

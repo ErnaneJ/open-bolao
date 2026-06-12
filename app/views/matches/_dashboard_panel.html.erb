@@ -85,8 +85,8 @@
         <p class="text-[10px] text-amber-500 mt-1">🔒 Palpites fechados</p>
       </div>
     <% else %>
-      <%= form_with url: bulk_tip_match_path(@match), method: :post,
-            data: { controller: "tip", tip_target: "form", turbo_stream: true } do |f| %>
+      <%= form_with url: bulk_tip_match_path(@match), method: :post, scope: :tip,
+            data: { controller: "tip", tip_target: "form" } do |f| %>
         <p class="text-[10px] uppercase tracking-widest font-bold text-pitch-400 mb-3">
           Seu palpite — todos os bolões
         </p>
