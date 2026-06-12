@@ -111,6 +111,7 @@ module Sync
         short_name:    td.short_name,
         country_code:  td.country_code,
         logo_url:      td.logo_url.presence    || team.logo_url,
+        flag_url:      td.flag_url.presence    || team.flag_url,
         banner_url:    td.banner_url.presence  || team.banner_url,
         fanart_url:    td.fanart_url.presence  || team.fanart_url,
         primary_color: td.primary_color.presence || team.primary_color,
