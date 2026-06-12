@@ -7,7 +7,7 @@
     <p class="text-[10px] uppercase tracking-widest font-bold text-pitch-400 mb-5">
       <%= @match.stage&.name&.sub(/\ARodada /, "Grupo ") || "Jogo" %>
       <% if @match.round_number.present? %>
-        · Rodada <%= @match.round_number %>
+        · Grupo <%= @match.round_number %>
       <% end %>
     </p>
 
