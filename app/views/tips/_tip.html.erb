@@ -23,7 +23,7 @@
         <% ht_img = match.home_team.display_image_url %>
         <% if ht_img.present? %>
           <img src="<%= ht_img %>"
-               class="w-14 h-14 object-cover rounded-xl transition-transform group-hover:scale-105"
+               class="w-14 h-14 team-img rounded-xl transition-transform group-hover:scale-105"
                alt="<%= match.home_team.name %>"
                onerror="this.style.display='none'">
         <% else %>
@@ -103,7 +103,7 @@
         <% at_img = match.away_team.display_image_url %>
         <% if at_img.present? %>
           <img src="<%= at_img %>"
-               class="w-14 h-14 object-cover rounded-xl transition-transform group-hover:scale-105"
+               class="w-14 h-14 team-img rounded-xl transition-transform group-hover:scale-105"
                alt="<%= match.away_team.name %>"
                onerror="this.style.display='none'">
         <% else %>

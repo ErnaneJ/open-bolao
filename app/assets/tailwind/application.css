@@ -78,6 +78,10 @@
   /* ── Cards ── */
   .card {
     @apply bg-white dark:bg-pitch-800 rounded-2xl border border-pitch-100 dark:border-pitch-700;
+    box-shadow: 0 1px 4px rgba(7,14,34,0.07), 0 1px 2px rgba(7,14,34,0.04);
+  }
+  :where(.dark, .dark *) .card {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.35), 0 1px 3px rgba(0,0,0,0.2);
   }
 
   /* ── Buttons — each variant fully self-contained ── */
@@ -85,23 +89,29 @@
     @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer select-none;
   }
   .btn-neon {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 cursor-pointer select-none;
-    @apply bg-neon-400 text-pitch-900 hover:bg-neon-300 active:scale-95;
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer select-none;
+    @apply bg-neon-400 text-pitch-900 hover:bg-neon-300 active:scale-[0.97];
+    transition: background-color 0.15s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    box-shadow: 0 0 0 1px rgba(184,255,60,0.2), 0 2px 8px rgba(184,255,60,0.18);
+  }
+  .btn-neon:hover {
+    box-shadow: 0 0 0 1px rgba(184,255,60,0.35), 0 4px 18px rgba(184,255,60,0.28);
   }
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 cursor-pointer select-none;
-    @apply bg-pitch-900 text-white hover:bg-pitch-700 active:scale-95;
+    @apply bg-pitch-900 text-white hover:bg-pitch-700 active:scale-[0.97];
     @apply dark:bg-pitch-50 dark:text-pitch-900 dark:hover:bg-white;
+    box-shadow: 0 1px 4px rgba(7,14,34,0.2), 0 1px 2px rgba(7,14,34,0.12);
   }
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer select-none;
     @apply border border-pitch-200 dark:border-pitch-600 text-pitch-700 dark:text-pitch-200;
-    @apply hover:bg-pitch-50 dark:hover:bg-pitch-700 active:scale-95;
+    @apply hover:bg-pitch-50 dark:hover:bg-pitch-700/60 active:scale-[0.97];
   }
   .btn-danger {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer select-none;
     @apply bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900;
-    @apply hover:bg-red-500/20 active:scale-95;
+    @apply hover:bg-red-500/20 active:scale-[0.97];
   }
   .btn-sm {
     @apply px-3 py-1.5 text-xs rounded-lg;
@@ -112,19 +122,23 @@
 
   /* ── Forms ── */
   .form-input {
-    @apply w-full px-4 py-2.5 rounded-xl text-sm outline-none transition-all;
+    @apply w-full px-4 py-2.5 rounded-xl text-sm outline-none;
     @apply border border-pitch-200 dark:border-pitch-600;
-    @apply bg-white dark:bg-pitch-800;
+    @apply bg-white dark:bg-pitch-800/80;
     @apply text-pitch-900 dark:text-white placeholder-pitch-300 dark:placeholder-pitch-500;
     @apply focus:border-neon-400 dark:focus:border-neon-400 focus:ring-2 focus:ring-neon-400/20;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .form-input:focus {
+    box-shadow: 0 0 0 3px rgba(184,255,60,0.12), 0 1px 3px rgba(7,14,34,0.08);
   }
   .form-label {
-    @apply block text-xs font-semibold uppercase tracking-widest text-pitch-400 dark:text-pitch-300 mb-1.5;
+    @apply block text-xs font-semibold uppercase tracking-widest text-pitch-500 dark:text-pitch-400 mb-1.5;
   }
 
   /* Score input — hide native number spinners for symmetric alignment */
   .score-input {
-    @apply text-center rounded-xl font-bold text-lg outline-none transition-all;
+    @apply text-center rounded-xl font-bold text-lg outline-none;
     @apply bg-transparent border-0 text-pitch-900 dark:text-white;
     @apply focus:ring-0;
     font-family: var(--font-mono);
@@ -139,6 +153,15 @@
     margin: 0;
   }
 
+  /* ── Team image — consistent across all contexts ── */
+  .team-img {
+    @apply object-contain;
+    background: rgba(238,240,247,0.6);
+  }
+  :where(.dark, .dark *) .team-img {
+    background: rgba(18,29,58,0.6);
+  }
+
   /* ── Badges ── */
   .badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
@@ -150,9 +173,9 @@
   .badge-draft    { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-pitch-100 text-pitch-400 dark:bg-pitch-700 dark:text-pitch-300; }
 
   /* ── Rank medals ── */
-  .rank-1 { @apply inline-flex w-7 h-7 items-center justify-center rounded-full bg-amber-400 text-pitch-900 text-xs font-bold; font-family: var(--font-display); }
-  .rank-2 { @apply inline-flex w-7 h-7 items-center justify-center rounded-full bg-pitch-200 text-pitch-700 text-xs font-bold; font-family: var(--font-display); }
-  .rank-3 { @apply inline-flex w-7 h-7 items-center justify-center rounded-full text-white text-xs font-bold; background: rgba(180,83,9,0.6); font-family: var(--font-display); }
+  .rank-1 { @apply inline-flex w-7 h-7 items-center justify-center rounded-full text-pitch-900 text-xs font-bold; font-family: var(--font-display); background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); box-shadow: 0 2px 6px rgba(251,191,36,0.45); }
+  .rank-2 { @apply inline-flex w-7 h-7 items-center justify-center rounded-full text-pitch-700 text-xs font-bold; font-family: var(--font-display); background: linear-gradient(135deg, #c0ccdf 0%, #8ea0c8 100%); }
+  .rank-3 { @apply inline-flex w-7 h-7 items-center justify-center rounded-full text-white text-xs font-bold; font-family: var(--font-display); background: linear-gradient(135deg, #d97706 0%, #b45309 100%); }
   .rank-n { @apply inline-flex w-7 h-7 items-center justify-center rounded-full bg-pitch-100 dark:bg-pitch-700 text-pitch-500 dark:text-pitch-300 text-xs font-bold; font-family: var(--font-display); }
 
   /* ── Stat cards ── */
@@ -269,6 +292,10 @@
   .stagger-2 { animation-delay: 0.10s; }
   .stagger-3 { animation-delay: 0.15s; }
   .stagger-4 { animation-delay: 0.20s; }
+  .stagger-5 { animation-delay: 0.25s; }
+  .stagger-6 { animation-delay: 0.30s; }
+  .stagger-7 { animation-delay: 0.35s; }
+  .stagger-8 { animation-delay: 0.40s; }
 }
 
 /* ── Modal/Dialog ── */

@@ -20,18 +20,18 @@
       <%= link_to "Editar perfil", edit_profile_path, class: "btn btn-ghost btn-sm shrink-0" %>
     </div>
 
-    <div class="grid grid-cols-3 gap-4 pt-4 border-t border-pitch-100 dark:border-pitch-700/50">
-      <div class="text-center">
+    <div class="grid grid-cols-3 gap-3 pt-4 border-t border-pitch-100 dark:border-pitch-700/50">
+      <div class="text-center px-2 py-3 rounded-2xl bg-pitch-50 dark:bg-pitch-700/40">
         <p class="stat-value text-2xl"><%= @user.pool_participants.active.count %></p>
-        <p class="stat-label">bolões</p>
+        <p class="stat-label text-[10px]">bolões</p>
       </div>
-      <div class="text-center">
-        <p class="stat-value text-2xl"><%= @user.pool_participants.active.sum(:total_points) %></p>
-        <p class="stat-label">pontos totais</p>
+      <div class="text-center px-2 py-3 rounded-2xl bg-neon-400/8 dark:bg-neon-400/6 border border-neon-400/20">
+        <p class="stat-value text-2xl text-neon-600 dark:text-neon-300"><%= @user.pool_participants.active.sum(:total_points) %></p>
+        <p class="stat-label text-[10px]">pontos totais</p>
       </div>
-      <div class="text-center">
+      <div class="text-center px-2 py-3 rounded-2xl bg-pitch-50 dark:bg-pitch-700/40">
         <p class="stat-value text-2xl"><%= @user.tips.count %></p>
-        <p class="stat-label">palpites</p>
+        <p class="stat-label text-[10px]">palpites</p>
       </div>
     </div>
   </div>

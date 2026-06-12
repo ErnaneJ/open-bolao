@@ -37,9 +37,9 @@
           <div class="flex-1 flex flex-col items-center gap-1">
             <% ht_img = m.home_team.flag_url.presence || m.home_team.logo_url.presence %>
             <% if ht_img.present? %>
-              <img src="<%= ht_img %>" class="w-10 h-7 object-cover rounded-md mx-auto shadow-sm" alt="" onerror="this.style.display='none'">
+              <img src="<%= ht_img %>" class="w-10 h-10 team-img rounded-lg mx-auto" alt="" onerror="this.style.display='none'">
             <% else %>
-              <div class="w-10 h-7 rounded-md bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center mx-auto">
+              <div class="w-10 h-10 rounded-lg bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center mx-auto">
                 <span class="text-[8px] font-bold text-pitch-500"><%= m.home_team.initials %></span>
               </div>
             <% end %>
@@ -73,9 +73,9 @@
           <div class="flex-1 flex flex-col items-center gap-1">
             <% at_img = m.away_team.flag_url.presence || m.away_team.logo_url.presence %>
             <% if at_img.present? %>
-              <img src="<%= at_img %>" class="w-10 h-7 object-cover rounded-md mx-auto shadow-sm" alt="" onerror="this.style.display='none'">
+              <img src="<%= at_img %>" class="w-10 h-10 team-img rounded-lg mx-auto" alt="" onerror="this.style.display='none'">
             <% else %>
-              <div class="w-10 h-7 rounded-md bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center mx-auto">
+              <div class="w-10 h-10 rounded-lg bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center mx-auto">
                 <span class="text-[8px] font-bold text-pitch-500"><%= m.away_team.initials %></span>
               </div>
             <% end %>
@@ -128,7 +128,7 @@
               <div class="flex items-center gap-2 flex-1 min-w-0">
                 <% ht_img = m.home_team.display_image_url %>
                 <% if ht_img.present? %>
-                  <img src="<%= ht_img %>" class="w-10 h-10 object-cover rounded-lg shrink-0" alt="" onerror="this.style.display='none'">
+                  <img src="<%= ht_img %>" class="w-10 h-10 team-img rounded-lg shrink-0" alt="" onerror="this.style.display='none'">
                 <% else %>
                   <div class="w-10 h-10 rounded-lg bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center shrink-0">
                     <span class="text-[9px] font-bold text-pitch-500"><%= m.home_team.initials %></span>
@@ -172,7 +172,7 @@
                 </div>
                 <% at_img = m.away_team.display_image_url %>
                 <% if at_img.present? %>
-                  <img src="<%= at_img %>" class="w-10 h-10 object-cover rounded-lg shrink-0" alt="" onerror="this.style.display='none'">
+                  <img src="<%= at_img %>" class="w-10 h-10 team-img rounded-lg shrink-0" alt="" onerror="this.style.display='none'">
                 <% else %>
                   <div class="w-10 h-10 rounded-lg bg-pitch-100 dark:bg-pitch-700 flex items-center justify-center shrink-0">
                     <span class="text-[9px] font-bold text-pitch-500"><%= m.away_team.initials %></span>

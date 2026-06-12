@@ -2,14 +2,14 @@
   <div class="w-full max-w-sm animate-enter">
 
     <div class="text-center mb-8">
-      <div class="inline-flex w-12 h-12 rounded-xl bg-pitch-900 dark:bg-neon-400 items-center justify-center mb-4">
-        <span class="font-display font-bold text-xl text-white dark:text-pitch-900">B</span>
+      <div class="inline-flex w-14 h-14 rounded-2xl bg-pitch-900 dark:bg-neon-400 items-center justify-center mb-4 shadow-lg shadow-pitch-900/25 dark:shadow-neon-400/30">
+        <span class="font-display font-bold text-2xl text-white dark:text-pitch-900">B</span>
       </div>
       <h1 class="font-display font-bold text-2xl text-pitch-900 dark:text-white">Entrar</h1>
-      <p class="text-sm text-pitch-400 dark:text-pitch-400 mt-1">Bem-vindo de volta ao bolão</p>
+      <p class="text-sm text-pitch-400 mt-1">Bem-vindo de volta ao bolão</p>
     </div>
 
-    <div class="card p-6 shadow-sm">
+    <div class="card p-6">
       <%= render "devise/shared/error_messages", resource: resource %>
       <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
         <div class="space-y-4">

@@ -9,7 +9,7 @@
         <% podium_order = [top3[1], top3[0], top3[2]].compact %>
         <% podium_heights = top3[1] ? ["h-24", "h-32", "h-20"] : ["h-32", "h-24"] %>
         <% podium_labels  = top3[1] ? ["2º", "1º", "3º"] : ["1º", "2º"] %>
-        <% podium_colors  = ["bg-pitch-200 dark:bg-pitch-700", "bg-neon-400 dark:bg-neon-500", "bg-amber-100 dark:bg-amber-900/40"] %>
+        <% podium_colors  = ["bg-pitch-200/80 dark:bg-pitch-600/80", "bg-neon-400", "bg-amber-400/70 dark:bg-amber-700/60"] %>
 
         <% podium_order.each_with_index do |pp, idx| %>
           <% center = (top3[1] ? idx == 1 : idx == 0) %>
