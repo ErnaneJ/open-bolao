@@ -178,11 +178,8 @@
             <div class="shrink-0 flex items-center gap-2">
               <% if @is_locked %>
                 <span class="font-mono font-bold text-sm text-pitch-900 dark:text-white">
-                  <%= t.home_score_tip %><span class="text-pitch-300 dark:text-pitch-600 mx-0.5">–</span><%= t.away_score_tip %>
+                  <%= t.home_score_tip %><span class="text-pitch-500 dark:text-pitch-400 mx-0.5">–</span><%= t.away_score_tip %>
                 </span>
-                <% if t.scored? && t.points_earned.to_i > 0 %>
-                  <span class="text-[11px] text-neon-600 dark:text-neon-300 font-bold">+<%= t.points_earned %>pts</span>
-                <% end %>
               <% else %>
                 <span class="font-mono text-sm font-bold text-pitch-900 dark:text-white select-none"
                       style="filter: blur(5px);">

@@ -3,6 +3,7 @@
 <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
   <%= link_to "← Meus bolões", admin_pools_path, class: "text-sm text-pitch-500 hover:text-pitch-700 dark:hover:text-pitch-200" %>
   <div class="flex items-center gap-2 ml-auto">
+    <%= link_to "Lançar palpite", new_admin_pool_tip_path(@pool), class: "btn btn-ghost btn-sm" %>
     <%= link_to "Editar", edit_admin_pool_path(@pool), class: "btn btn-ghost btn-sm" %>
     <%= button_to "Excluir", admin_pool_path(@pool), method: :delete,
           data: { turbo_confirm: "Excluir este bolão?" },

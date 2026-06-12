@@ -47,7 +47,7 @@
            data-action="click->drawer#stop">
         <% if match.status_finished? %>
           <div class="font-mono font-bold text-xl text-pitch-900 dark:text-white leading-none">
-            <%= match.home_score %><span class="text-pitch-300 dark:text-pitch-600 mx-1">–</span><%= match.away_score %>
+            <%= match.home_score %><span class="text-pitch-500 dark:text-pitch-400 mx-1">–</span><%= match.away_score %>
           </div>
           <span class="text-[9px] uppercase tracking-widest text-pitch-400 font-semibold">Encerrado</span>
         <% elsif match.status_live? %>

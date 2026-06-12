@@ -37,6 +37,7 @@ Rails.application.routes.draw do
         patch :transition
       end
       resources :participants, only: [ :index, :update, :destroy ]
+      resources :tips, only: [ :new, :create ], controller: "pool_tips"
       resources :matches, only: [ :index, :edit, :update ] do
         collection { post :sync_from_api }
       end

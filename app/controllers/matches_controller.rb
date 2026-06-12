@@ -48,15 +48,7 @@ class MatchesController < ApplicationController
     @consensus_away = away_score
     @saved_count = saved
 
-    respond_to do |format|
-      format.turbo_stream do
-        render turbo_stream: turbo_stream.replace(
-          "match_dashboard_frame",
-          partial: "matches/dashboard_panel"
-        )
-      end
-      format.html { redirect_to dashboard_path }
-    end
+    render partial: "matches/dashboard_panel"
   end
 
   private

@@ -1,0 +1,69 @@
+<% content_for :title, "Lançar palpite retroativo" %>
+
+<div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+  <%= link_to "← #{@pool.name}", admin_pool_path(@pool), class: "text-sm text-pitch-500 hover:text-pitch-700 dark:hover:text-pitch-200" %>
+</div>
+
+<div class="max-w-xl">
+  <div class="card p-6">
+    <h1 class="font-display font-bold text-xl text-pitch-900 dark:text-white mb-1">Lançar palpite retroativo</h1>
+    <p class="text-sm text-pitch-400 mb-6">Registre ou sobrescreva o palpite de um participante para qualquer jogo do bolão.</p>
+
+    <% if notice.present? %>
+      <div class="mb-4 p-3 rounded-xl bg-neon-400/10 border border-neon-400/30 text-sm text-neon-700 dark:text-neon-300 font-medium">
+        <%= notice %>
+      </div>
+    <% end %>
+
+    <%= form_with model: @tip, url: admin_pool_tips_path(@pool), scope: :tip, class: "space-y-5" do |f| %>
+
+      <div>
+        <%= label_tag :tip_user_id, "Participante", class: "block text-xs font-semibold text-pitch-700 dark:text-pitch-300 uppercase tracking-wider mb-1.5" %>
+        <%= f.select :user_id,
+              @participants.map { |pp| [ pp.user.display_name, pp.user.id ] },
+              { prompt: "Selecione o participante..." },
+              class: "w-full rounded-xl border border-pitch-200 dark:border-pitch-600 bg-white dark:bg-pitch-800 text-pitch-900 dark:text-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-neon-400 focus:border-transparent" %>
+      </div>
+
+      <div>
+        <%= label_tag :tip_match_id, "Jogo", class: "block text-xs font-semibold text-pitch-700 dark:text-pitch-300 uppercase tracking-wider mb-1.5" %>
+        <% grouped = @matches.group_by { |m| m.scheduled_at&.in_time_zone("America/Sao_Paulo")&.to_date } %>
+        <%= f.select :match_id,
+              grouped.sort_by { |d, _| d || Date::Infinity }.flat_map do |date, day_matches|
+                label = date ? I18n.l(date, format: :long) : "Sem data"
+                day_matches.sort_by { |m| m.scheduled_at || Time::INFINITY }.map do |m|
+                  time_str = m.scheduled_at ? m.scheduled_at.in_time_zone("America/Sao_Paulo").strftime("%H:%M") : "--:--"
+                  stage_str = m.stage ? " (#{m.stage.name})" : ""
+                  option_label = "#{label} #{time_str} — #{m.home_team.short_name || m.home_team.name} × #{m.away_team.short_name || m.away_team.name}#{stage_str}"
+                  [ option_label, m.id ]
+                end
+              end,
+              { prompt: "Selecione o jogo..." },
+              class: "w-full rounded-xl border border-pitch-200 dark:border-pitch-600 bg-white dark:bg-pitch-800 text-pitch-900 dark:text-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-neon-400 focus:border-transparent" %>
+      </div>
+
+      <div class="flex items-end gap-4">
+        <div class="flex-1">
+          <%= label_tag :tip_home_score_tip, "Gols Casa", class: "block text-xs font-semibold text-pitch-700 dark:text-pitch-300 uppercase tracking-wider mb-1.5" %>
+          <%= f.text_field :home_score_tip,
+                inputmode: "numeric", pattern: "[0-9]*", autocomplete: "off",
+                placeholder: "0",
+                class: "w-full rounded-xl border border-pitch-200 dark:border-pitch-600 bg-white dark:bg-pitch-800 text-pitch-900 dark:text-white px-3 py-2.5 text-sm font-mono text-center focus:outline-none focus:ring-2 focus:ring-neon-400 focus:border-transparent" %>
+        </div>
+        <div class="pb-2.5 text-pitch-400 font-bold text-lg select-none">×</div>
+        <div class="flex-1">
+          <%= label_tag :tip_away_score_tip, "Gols Visitante", class: "block text-xs font-semibold text-pitch-700 dark:text-pitch-300 uppercase tracking-wider mb-1.5" %>
+          <%= f.text_field :away_score_tip,
+                inputmode: "numeric", pattern: "[0-9]*", autocomplete: "off",
+                placeholder: "0",
+                class: "w-full rounded-xl border border-pitch-200 dark:border-pitch-600 bg-white dark:bg-pitch-800 text-pitch-900 dark:text-white px-3 py-2.5 text-sm font-mono text-center focus:outline-none focus:ring-2 focus:ring-neon-400 focus:border-transparent" %>
+        </div>
+      </div>
+
+      <div class="pt-2">
+        <%= f.submit "Salvar palpite", class: "btn btn-neon w-full" %>
+      </div>
+
+    <% end %>
+  </div>
+</div>
