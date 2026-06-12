@@ -1,5 +1,6 @@
-<% matches_by_stage = matches.group_by(&:stage) %>
 <% _next_match = local_assigns[:next_match] %>
+<% matches_by_date = matches.group_by { |m| m.scheduled_at&.in_time_zone("America/Sao_Paulo")&.to_date } %>
+
 <% if matches.empty? %>
   <div class="card p-12 text-center">
     <div class="text-4xl mb-3">📅</div>
@@ -7,19 +8,31 @@
   </div>
 <% else %>
   <div class="space-y-8">
-    <% matches_by_stage.each do |stage, stage_matches| %>
+    <% matches_by_date.sort_by { |d, _| d || Date::Infinity }.each do |date, day_matches| %>
       <div>
-        <% if stage %>
-          <div class="flex items-center gap-3 mb-4">
-            <span class="text-[10px] font-bold uppercase tracking-widest text-pitch-400 dark:text-pitch-500">
-              <%= stage.name.sub(/\ARodada /, "Grupo ") %>
-            </span>
-            <div class="flex-1 h-px bg-pitch-100 dark:bg-pitch-700/50"></div>
-            <span class="text-[10px] text-pitch-400"><%= stage_matches.size %> jogo<%= stage_matches.size > 1 ? "s" : "" %></span>
+        <%# Date header — same style as dashboard calendar %>
+        <div class="flex items-center gap-4 mb-4">
+          <div class="shrink-0 text-center bg-pitch-900 dark:bg-pitch-700 text-white rounded-2xl w-14 py-2">
+            <div class="text-[9px] uppercase tracking-widest font-bold opacity-60 leading-tight">
+              <%= date ? I18n.l(date, format: "%b") : "?" %>
+            </div>
+            <div class="font-display font-bold text-2xl leading-none">
+              <%= date ? date.day : "?" %>
+            </div>
           </div>
-        <% end %>
+          <div>
+            <p class="font-semibold text-pitch-800 dark:text-pitch-100 text-sm">
+              <%= date ? I18n.l(date, format: :long) : "Sem data" %>
+            </p>
+            <p class="text-[11px] text-pitch-400 mt-0.5">
+              <%= day_matches.size %> jogo<%= day_matches.size > 1 ? "s" : "" %>
+            </p>
+          </div>
+        </div>
+
+        <%# Tip cards grid %>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <% stage_matches.each do |match| %>
+          <% day_matches.sort_by { |m| m.scheduled_at || Time::INFINITY }.each do |match| %>
             <% tip = tips_map[match.id] %>
             <%= turbo_frame_tag "tip_#{match.id}" do %>
               <%= render "tips/tip", match: match, tip: tip, pool: pool,
