@@ -130,6 +130,7 @@
       <%= button_to admin_pool_path(@pool),
             method: :patch,
             params: { pool: { webhook_enabled: !@pool.webhook_enabled } },
+            form: { class: "contents" },
             class: "relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none #{@pool.webhook_enabled? ? 'bg-neon-500' : 'bg-pitch-300 dark:bg-pitch-600'}" do %>
         <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform
                      <%= @pool.webhook_enabled? ? 'translate-x-4' : 'translate-x-1' %>"></span>
