@@ -12,7 +12,7 @@
       <%# A day is open if any match is NOT finished/cancelled %>
       <% day_open = day_matches.any? { |m| !m.status_finished? && !m.status_cancelled? } %>
       <details <%= day_open ? "open" : "" %> class="group/day">
-        <summary class="list-none cursor-pointer [&::-webkit-details-marker]:hidden">
+        <summary class="list-none cursor-pointer [&::-webkit-details-marker]:hidden [&::marker]:hidden">
           <%# Date header — same style as dashboard calendar %>
           <div class="flex items-center gap-4 mb-4">
             <div class="shrink-0 text-center bg-pitch-900 dark:bg-pitch-700 text-white rounded-2xl w-14 py-2">

@@ -134,6 +134,12 @@
     margin: 0;
   }
 
+  /* ── Details/summary — hide native triangle marker ── */
+  details > summary::-webkit-details-marker,
+  details > summary::marker {
+    display: none;
+  }
+
   /* ── Badges ── */
   .badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
