@@ -1,4 +1,7 @@
-<% content_for :title, "Convite — #{@pool.name}" %>
+<% content_for :title, "#{@pool.name} — Você foi convidado!" %>
+<% content_for :meta_description, "#{@pool.admin.display_name} te convidou para participar do bolão \"#{@pool.name}\". #{@pool.pool_participants.active.count} participante#{'s' if @pool.pool_participants.active.count != 1} já entraram. Aceite o convite e faça seus palpites!" %>
+<% content_for :og_image_url, "#{request.base_url}#{og_pool_path(slug: @pool.slug)}" %>
+<% content_for :og_url, join_pool_by_code_url(invite_code: @pool.invite_code) %>
 
 <div class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
   <div class="w-full max-w-md animate-enter">

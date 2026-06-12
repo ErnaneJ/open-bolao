@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<%
+  ht = @match.home_team
+  at = @match.away_team
+  ht_flag = ht.flag_url.presence || ht.logo_url.presence
+  at_flag = at.flag_url.presence || at.logo_url.presence
+  is_live     = @match.status_live?
+  is_finished = @match.status_finished?
+  score_color = is_live ? "#ef4444" : "#ffffff"
+  stage_name  = @match.stage&.name || @match.tournament&.name || "Copa do Mundo 2026"
+  scheduled   = @match.scheduled_at&.in_time_zone("America/Sao_Paulo")
+%>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&amp;family=DM+Sans:wght@400;500;600&amp;family=JetBrains+Mono:wght@700&amp;display=swap');</style>
+    <radialGradient id="glow" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="<%= is_live ? '#ef4444' : '#b8ff3c' %>" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="#04091a" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#ffffff" stroke-width="0.5" stroke-opacity="0.025"/>
+    </pattern>
+    <clipPath id="flagClip">
+      <rect width="160" height="160" rx="20"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#04091a"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <ellipse cx="600" cy="315" rx="500" ry="380" fill="url(#glow)"/>
+
+  <!-- Stage label (top center) -->
+  <text x="600" y="66"
+        font-family="'DM Sans', sans-serif"
+        font-size="13" font-weight="600"
+        fill="#5a74a8"
+        text-anchor="middle"
+        letter-spacing="3.5"><%= h(stage_name.upcase) %></text>
+
+  <!-- ── Home team (left) ── -->
+  <% if ht_flag.present? %>
+    <image href="<%= ht_flag %>" x="110" y="130" width="160" height="160" preserveAspectRatio="xMidYMid meet"/>
+  <% else %>
+    <rect x="110" y="130" width="160" height="160" rx="20" fill="#0c152e" stroke="#1a2848" stroke-width="2"/>
+    <text x="190" y="222" font-family="'Syne', sans-serif" font-size="48" font-weight="800" fill="#3a4f80" text-anchor="middle"><%= h(ht.initials) %></text>
+  <% end %>
+
+  <!-- Home team name -->
+  <% ht_name = ht.short_name || ht.name %>
+  <% ht_fs = ht_name.length <= 6 ? 52 : ht_name.length <= 10 ? 40 : ht_name.length <= 14 ? 32 : 26 %>
+  <text x="190" y="<%= 320 + ht_fs %>"
+        font-family="'Syne', sans-serif"
+        font-size="<%= ht_fs %>" font-weight="800"
+        fill="#ffffff"
+        text-anchor="middle"><%= h(ht_name.upcase) %></text>
+  <% if ht.short_name.present? && ht.name != ht.short_name %>
+    <text x="190" y="<%= 330 + ht_fs + 22 %>"
+          font-family="'DM Sans', sans-serif"
+          font-size="15" fill="#5a74a8" text-anchor="middle"><%= h(ht.name) %></text>
+  <% end %>
+
+  <!-- ── Away team (right) ── -->
+  <% if at_flag.present? %>
+    <image href="<%= at_flag %>" x="930" y="130" width="160" height="160" preserveAspectRatio="xMidYMid meet"/>
+  <% else %>
+    <rect x="930" y="130" width="160" height="160" rx="20" fill="#0c152e" stroke="#1a2848" stroke-width="2"/>
+    <text x="1010" y="222" font-family="'Syne', sans-serif" font-size="48" font-weight="800" fill="#3a4f80" text-anchor="middle"><%= h(at.initials) %></text>
+  <% end %>
+
+  <!-- Away team name -->
+  <% at_name = at.short_name || at.name %>
+  <% at_fs = at_name.length <= 6 ? 52 : at_name.length <= 10 ? 40 : at_name.length <= 14 ? 32 : 26 %>
+  <text x="1010" y="<%= 320 + at_fs %>"
+        font-family="'Syne', sans-serif"
+        font-size="<%= at_fs %>" font-weight="800"
+        fill="#ffffff"
+        text-anchor="middle"><%= h(at_name.upcase) %></text>
+  <% if at.short_name.present? && at.name != at.short_name %>
+    <text x="1010" y="<%= 330 + at_fs + 22 %>"
+          font-family="'DM Sans', sans-serif"
+          font-size="15" fill="#5a74a8" text-anchor="middle"><%= h(at.name) %></text>
+  <% end %>
+
+  <!-- ── Center: score or time ── -->
+  <% if is_finished || is_live %>
+    <!-- Score -->
+    <text x="600" y="290"
+          font-family="'JetBrains Mono', monospace"
+          font-size="110" font-weight="700"
+          fill="<%= score_color %>"
+          text-anchor="middle"
+          letter-spacing="-4"><%= @match.home_score %> &#x2013; <%= @match.away_score %></text>
+
+    <% if is_live %>
+      <!-- Live indicator -->
+      <circle cx="564" cy="320" r="7" fill="#ef4444" opacity="0.9"/>
+      <text x="580" y="326" font-family="'DM Sans', sans-serif" font-size="16" font-weight="600" fill="#ef4444" letter-spacing="2">AO VIVO</text>
+    <% else %>
+      <text x="600" y="336"
+            font-family="'DM Sans', sans-serif"
+            font-size="15" font-weight="500"
+            fill="#5a74a8"
+            text-anchor="middle"
+            letter-spacing="3">ENCERRADO</text>
+    <% end %>
+  <% else %>
+    <!-- Time -->
+    <% if scheduled %>
+      <text x="600" y="275"
+            font-family="'JetBrains Mono', monospace"
+            font-size="72" font-weight="700"
+            fill="#ffffff"
+            text-anchor="middle"><%= scheduled.strftime("%H:%M") %></text>
+      <text x="600" y="320"
+            font-family="'DM Sans', sans-serif"
+            font-size="20" font-weight="500"
+            fill="#5a74a8"
+            text-anchor="middle"><%= I18n.l(scheduled.to_date, format: :long) rescue scheduled.strftime("%d/%m/%Y") %></text>
+    <% else %>
+      <text x="600" y="290"
+            font-family="'Syne', sans-serif"
+            font-size="60" font-weight="800"
+            fill="#3a4f80"
+            text-anchor="middle">–</text>
+    <% end %>
+  <% end %>
+
+  <!-- VS separator lines -->
+  <line x1="390" y1="225" x2="480" y2="225" stroke="#1a2848" stroke-width="2"/>
+  <line x1="720" y1="225" x2="810" y2="225" stroke="#1a2848" stroke-width="2"/>
+
+  <!-- Venue / date info at bottom -->
+  <% venue_info = [ @match.venue, @match.city ].compact.first %>
+  <% if venue_info.present? %>
+    <text x="600" y="512"
+          font-family="'DM Sans', sans-serif"
+          font-size="16" fill="#3a4f80" text-anchor="middle">&#x1F4CD; <%= h(venue_info) %></text>
+  <% end %>
+
+  <!-- Bottom branding -->
+  <rect x="547" y="566" width="106" height="32" rx="16" fill="#b8ff3c"/>
+  <text x="600" y="587"
+        font-family="'Syne', sans-serif"
+        font-size="14" font-weight="800"
+        fill="#04091a"
+        text-anchor="middle">OpenBol&#xE3;o</text>
+</svg>

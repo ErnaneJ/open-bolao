@@ -1,5 +1,8 @@
 <%# Landing page — no pt-16 on main, full bleed %>
-<% content_for :title, "#{t('app.name')} — Bolão de Futebol" %>
+<% content_for :title, "#{t('app.name')} — Bolão de Futebol Copa do Mundo 2026" %>
+<% content_for :meta_description, "Crie bolões de futebol grátis, convide amigos e dispute palpites da Copa do Mundo 2026 em tempo real. Ranking automático, múltiplos bolões e notificações." %>
+<% content_for :og_image_url, "#{request.base_url}#{og_home_path}" %>
+<% content_for :og_url, root_url %>
 
 <%# Hero %>
 <section class="relative min-h-screen flex flex-col overflow-hidden bg-pitch-950">

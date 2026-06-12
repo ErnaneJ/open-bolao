@@ -264,15 +264,22 @@ module Sync
 
     def match_payload(match)
       {
-        "id"           => match.id,
-        "home_team"    => match.home_team.name,
-        "away_team"    => match.away_team.name,
-        "home_score"   => match.home_score,
-        "away_score"   => match.away_score,
-        "status"       => match.status,
-        "scheduled_at" => match.scheduled_at&.in_time_zone(BRT)&.iso8601,
-        "venue"        => match.venue
+        "id"              => match.id,
+        "home_team"       => match.home_team.name,
+        "away_team"       => match.away_team.name,
+        "home_score"      => match.home_score,
+        "away_score"      => match.away_score,
+        "status"          => match.status,
+        "scheduled_at"    => match.scheduled_at&.in_time_zone(BRT)&.iso8601,
+        "venue"           => match.venue,
+        "image_url"       => match_og_image_url(match)
       }
+    end
+
+    def match_og_image_url(match)
+      host = ENV.fetch("APP_HOST", "localhost:3000")
+      scheme = host.match?(/\Alocalhost/) ? "http" : "https"
+      "#{scheme}://#{host}/og/match/#{match.id}.svg"
     end
 
     # ── Helpers ─────────────────────────────────────────────────────────

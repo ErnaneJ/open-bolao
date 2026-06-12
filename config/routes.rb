@@ -3,6 +3,13 @@ require "sidekiq/web"
 Rails.application.routes.draw do
   root to: "home#index"
 
+  # OG / Social preview images (public, no auth)
+  scope "/og" do
+    get "home.svg",        to: "og_images#home",  as: :og_home
+    get "pool/:slug.svg",  to: "og_images#pool",  as: :og_pool
+    get "match/:id.svg",   to: "og_images#match", as: :og_match
+  end
+
   devise_for :users
 
   get "dashboard", to: "dashboard#index", as: :dashboard

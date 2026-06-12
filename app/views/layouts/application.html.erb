@@ -4,20 +4,30 @@
     <title><%= content_for(:title).presence || t("app.name") %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="description" content="<%= content_for(:meta_description).presence || 'Bolão de futebol online — faça seus palpites, convide amigos e dispute o ranking da Copa do Mundo 2026.' %>">
+    <%
+      _title       = content_for(:title).presence || t("app.name")
+      _description = content_for(:meta_description).presence || "Bolão de futebol online — faça seus palpites, convide amigos e dispute o ranking da Copa do Mundo 2026."
+      _og_image    = content_for(:og_image_url).presence || "#{request.base_url}#{og_home_path}"
+      _card_type   = content_for(:twitter_card_type).presence || "summary_large_image"
+      _og_url      = content_for(:og_url).presence || request.url
+    %>
+    <meta name="description" content="<%= _description %>">
     <meta name="theme-color" content="#070e22" media="(prefers-color-scheme: dark)">
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
     <%# Open Graph %>
     <meta property="og:type"        content="website">
     <meta property="og:site_name"   content="<%= t('app.name') %>">
-    <meta property="og:title"       content="<%= content_for(:title).presence || t('app.name') %>">
-    <meta property="og:description" content="<%= content_for(:meta_description).presence || 'Bolão de futebol online — faça seus palpites, convide amigos e dispute o ranking da Copa do Mundo 2026.' %>">
-    <meta property="og:image"       content="<%= "#{request.base_url}/icon.svg" %>">
+    <meta property="og:url"         content="<%= _og_url %>">
+    <meta property="og:title"       content="<%= _title %>">
+    <meta property="og:description" content="<%= _description %>">
+    <meta property="og:image"       content="<%= _og_image %>">
+    <meta property="og:image:width"  content="1200">
+    <meta property="og:image:height" content="630">
     <%# Twitter / X %>
-    <meta name="twitter:card"        content="summary">
-    <meta name="twitter:title"       content="<%= content_for(:title).presence || t('app.name') %>">
-    <meta name="twitter:description" content="<%= content_for(:meta_description).presence || 'Bolão de futebol online — Copa do Mundo 2026.' %>">
-    <meta name="twitter:image"       content="<%= "#{request.base_url}/icon.svg" %>">
+    <meta name="twitter:card"        content="<%= _card_type %>">
+    <meta name="twitter:title"       content="<%= _title %>">
+    <meta name="twitter:description" content="<%= _description %>">
+    <meta name="twitter:image"       content="<%= _og_image %>">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <link rel="preconnect" href="https://fonts.googleapis.com">
