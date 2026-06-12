@@ -185,7 +185,7 @@
 
   /* ── Tabs ── */
   .tab-btn {
-    @apply pb-3 px-1 text-sm font-medium border-b-2 whitespace-nowrap transition-colors;
+    @apply pb-3 px-1 text-sm font-medium border-b-2 whitespace-nowrap transition-colors cursor-pointer;
     @apply border-transparent text-pitch-400 dark:text-pitch-400;
     @apply hover:text-pitch-700 dark:hover:text-pitch-200;
   }
