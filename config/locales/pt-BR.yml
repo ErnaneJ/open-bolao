@@ -171,6 +171,7 @@ pt-BR:
   activerecord:
     errors:
       messages:
+        record_invalid: "A validação falhou: %{errors}"
         tip_locked: "Este palpite está travado e não pode ser alterado."
         same_as_home: "não pode ser igual ao time mandante."
         blank: "não pode ficar em branco"

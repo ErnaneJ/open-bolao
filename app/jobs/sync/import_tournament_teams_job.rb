@@ -40,8 +40,13 @@ module Sync
       all_ids.each do |tid|
         td = @adapter.fetch_team(tid)
         if td
-          team = upsert_team(td)
-          TournamentTeam.find_or_create_by!(tournament: @tournament, team: team)
+          begin
+            team = upsert_team(td)
+            TournamentTeam.find_or_create_by!(tournament: @tournament, team: team)
+          rescue => e
+            failed_ids << tid
+            Rails.logger.warn("ImportTournamentTeams: time #{tid} (#{td.name}) erro ao salvar: #{e.message}")
+          end
         else
           failed_ids << tid
           Rails.logger.warn("ImportTournamentTeams: time #{tid} falhou (1ª tentativa)")
@@ -56,8 +61,12 @@ module Sync
         failed_ids.each do |tid|
           td = @adapter.fetch_team(tid)
           if td
-            team = upsert_team(td)
-            TournamentTeam.find_or_create_by!(tournament: @tournament, team: team)
+            begin
+              team = upsert_team(td)
+              TournamentTeam.find_or_create_by!(tournament: @tournament, team: team)
+            rescue => e
+              Rails.logger.warn("ImportTournamentTeams: time #{tid} (#{td.name}) falhou definitivamente: #{e.message}")
+            end
           else
             Rails.logger.warn("ImportTournamentTeams: time #{tid} falhou definitivamente")
           end
