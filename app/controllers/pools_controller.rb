@@ -84,10 +84,8 @@ class PoolsController < ApplicationController
 
   def recalculate_ranking
     authorize @pool, :manage?
-    @pool.active_matches.where(status: :finished).each do |match|
-      @pool.tips.where(match: match).find_each do |tip|
-        Tips::ScoringService.call(tip: tip, match: match, pool: @pool)
-      end
+    @pool.tips.includes(:match).find_each do |tip|
+      Tips::ScoringService.call(tip: tip, match: tip.match, pool: @pool) if tip.match.status_finished?
     end
     @ranking = Rankings::UpdatePoolRankingService.call(pool: @pool)
     @ranking = @pool.pool_participants.active.includes(:user)

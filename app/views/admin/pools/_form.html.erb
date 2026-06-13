@@ -122,8 +122,8 @@
               <%= I18n.t("scoring.#{key}.description", default: "") %>
             </p>
           </div>
-          <%= f.number_field "scoring_config[#{key}]",
-                value: pool.scoring_config_with_defaults[key],
+          <%= number_field_tag "pool[scoring_config][#{key}]",
+                pool.scoring_config_with_defaults[key],
                 step: key.include?("multiplier") ? 0.5 : 1,
                 min: key.include?("penalty") ? nil : 0,
                 class: "form-input w-24 text-center shrink-0" %>
