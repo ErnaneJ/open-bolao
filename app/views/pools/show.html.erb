@@ -127,17 +127,82 @@
       <%# ── Ranking tab ─────────────────────────────────────────────────────── %>
       <div id="tab-ranking" data-tabs-target="panel" class="hidden">
         <%= turbo_stream_from "ranking_pool_#{@pool.id}" %>
-        <% if current_user == @pool.admin || current_user.role_super_admin? %>
-          <div class="flex justify-end mb-4">
-            <%= button_to recalculate_ranking_pool_path(@pool), method: :post,
-                  class: "btn btn-ghost btn-sm gap-1.5" do %>
+
+        <div data-controller="modal">
+          <div class="flex items-center justify-end gap-2 mb-4">
+            <%# Info de pontuação — visível a todos %>
+            <button type="button" data-action="modal#open"
+                    class="btn btn-ghost btn-sm gap-1.5"
+                    title="Como funciona a pontuação">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/>
               </svg>
-              Atualizar ranking
+              Pontuação
+            </button>
+
+            <%# Recalcular — somente admin %>
+            <% if current_user == @pool.admin || current_user.role_super_admin? %>
+              <%= button_to recalculate_ranking_pool_path(@pool), method: :post,
+                    class: "btn btn-ghost btn-sm gap-1.5" do %>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Atualizar ranking
+              <% end %>
             <% end %>
           </div>
-        <% end %>
+
+          <%# Modal de pontuação %>
+          <dialog data-modal-target="dialog" data-action="click->modal#backdropClick">
+            <div class="p-6">
+              <div class="flex items-start justify-between gap-4 mb-6">
+                <div>
+                  <h2 class="font-display font-bold text-lg text-pitch-900 dark:text-white">Sistema de pontuação</h2>
+                  <p class="text-xs text-pitch-400 mt-0.5">Como os pontos são calculados neste bolão</p>
+                </div>
+                <button type="button" data-action="modal#close" data-modal-close="true"
+                        class="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-pitch-400 hover:text-pitch-700 dark:hover:text-pitch-200 hover:bg-pitch-100 dark:hover:bg-pitch-700 transition-colors">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="space-y-2">
+                <% scoring = @pool.scoring_config_with_defaults %>
+                <% [
+                  { key: "correct_draw_score", icon: "🎯", color: "neon" },
+                  { key: "correct_score",       icon: "✅", color: "grass" },
+                  { key: "correct_draw",        icon: "🤝", color: "amber" },
+                  { key: "correct_winner",      icon: "🏆", color: "pitch" },
+                ].each do |item| %>
+                  <div class="flex items-center gap-3 p-3 rounded-xl bg-pitch-50 dark:bg-pitch-700/50">
+                    <span class="text-xl w-8 text-center shrink-0"><%= item[:icon] %></span>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-semibold text-pitch-800 dark:text-pitch-100 leading-tight">
+                        <%= t("scoring.#{item[:key]}.label") %>
+                      </p>
+                      <p class="text-[11px] text-pitch-400 dark:text-pitch-400 mt-0.5 leading-snug">
+                        <%= t("scoring.#{item[:key]}.description") %>
+                      </p>
+                    </div>
+                    <div class="shrink-0 text-right">
+                      <span class="font-display font-bold text-xl text-pitch-900 dark:text-white">
+                        <%= scoring[item[:key]] %>
+                      </span>
+                      <span class="text-xs text-pitch-400 ml-0.5">pts</span>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+
+              <p class="text-[11px] text-pitch-400 text-center mt-5">
+                Configurações definidas pelo admin do bolão
+              </p>
+            </div>
+          </dialog>
+        </div>
+
         <%= render "pools/ranking", pool: @pool, ranking: @ranking, pagy: @pagy_ranking %>
       </div>
 
