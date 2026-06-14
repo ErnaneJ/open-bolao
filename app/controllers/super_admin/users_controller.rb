@@ -49,6 +49,11 @@ class SuperAdmin::UsersController < SuperAdmin::BaseController
   end
 
   def user_params
-    params.require(:user).permit(:name, :email, :role, :locale)
+    p = params.require(:user).permit(:name, :email, :role, :locale, :password, :password_confirmation)
+    if p[:password].blank?
+      p.delete(:password)
+      p.delete(:password_confirmation)
+    end
+    p
   end
 end
