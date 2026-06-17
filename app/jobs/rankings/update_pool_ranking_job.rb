@@ -35,23 +35,6 @@ module Rankings
         },
         owner_ids: pool.id
       )
-
-      participants.each do |participant|
-        trend_label = case participant.rank_trend
-        when "up" then " ▲"
-        when "down" then " ▼"
-        else ""
-        end
-
-        Notifications::BroadcastJob.perform_later(
-          user_id: participant.user_id,
-          kind: :rank_changed,
-          title: "#{pool.name} — #{participant.total_points} pts",
-          body: "Você está em #{participant.rank}º lugar#{trend_label}",
-          notifiable_type: "Pool",
-          notifiable_id: pool.id
-        )
-      end
     end
   end
 end
