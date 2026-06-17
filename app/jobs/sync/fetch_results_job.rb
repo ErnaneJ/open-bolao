@@ -196,9 +196,21 @@ module Sync
       })
 
       pools_for_match(match).each do |pool|
+        participants = pool.pool_participants.active.includes(:user).order(rank: :asc)
+
         Webhooks::DispatchJob.perform_later(
           event_type: "match.finished",
-          payload: { "match" => match_payload(match) },
+          payload: {
+            "match" => match_payload(match),
+            "ranking" => participants.map { |p|
+              {
+                "user" => p.user.display_name,
+                "rank" => p.rank,
+                "total_points" => p.total_points,
+                "trend" => p.rank_trend
+              }
+            }
+          },
           owner_ids: pool.id
         )
 
