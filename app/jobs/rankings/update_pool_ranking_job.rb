@@ -13,7 +13,9 @@ module Rankings
         pool_id: pool.id
       })
 
-      leader = pool.pool_participants.active.order(rank: :asc).first&.user&.display_name
+      participants = pool.pool_participants.active.includes(:user).order(rank: :asc)
+
+      leader = participants.first&.user&.display_name
       Webhooks::DispatchJob.perform_later(
         event_type: "pool.ranking_updated",
         payload: {
@@ -21,10 +23,35 @@ module Rankings
             "id" => pool.id,
             "name" => pool.name
           },
-          "leader" => leader
+          "leader" => leader,
+          "ranking" => participants.map { |p|
+            {
+              "user" => p.user.display_name,
+              "rank" => p.rank,
+              "total_points" => p.total_points,
+              "trend" => p.rank_trend
+            }
+          }
         },
         owner_ids: pool.id
       )
+
+      participants.each do |participant|
+        trend_label = case participant.rank_trend
+        when "up" then " ▲"
+        when "down" then " ▼"
+        else ""
+        end
+
+        Notifications::BroadcastJob.perform_later(
+          user_id: participant.user_id,
+          kind: :rank_changed,
+          title: "#{pool.name} — #{participant.total_points} pts",
+          body: "Você está em #{participant.rank}º lugar#{trend_label}",
+          notifiable_type: "Pool",
+          notifiable_id: pool.id
+        )
+      end
     end
   end
 end
