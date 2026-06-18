@@ -16,7 +16,7 @@ gem "devise"
 gem "pundit"
 
 # Background jobs & cache
-gem "sidekiq", "~> 7.0"
+gem "sidekiq", "~> 8.0"
 gem "sidekiq-cron"
 gem "redis", "~> 5.0"
 gem "connection_pool", "~> 2.4"
