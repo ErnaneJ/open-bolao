@@ -165,8 +165,17 @@ module ApiProviders
 
     MAX_CONSECUTIVE_EMPTY = 3
 
+    # Knockout-style round numbers used by FIFA WC, Copa América, and similar
+    # tournaments. Group stages use sequential rounds (1, 2, 3…) and the
+    # consecutive-empty break exits the main loop before reaching these values.
+    # Checking them explicitly supplements the sequential scan without harm:
+    # for domestic leagues these rounds are already in seen_ids (sequential scan
+    # covered them), so no duplicates are added.
+    KNOCKOUT_SUPPLEMENT_ROUNDS = [ 32, 16, 8, 4 ].freeze
+
     def fetch_all_matches_by_round(season, league_id = WC_LEAGUE, max_rounds: 60)
       all               = []
+      seen_ids          = {}
       consecutive_empty = 0
       total_rounds      = 0
       error_rounds      = 0
@@ -186,8 +195,29 @@ module ApiProviders
           break if consecutive_empty >= MAX_CONSECUTIVE_EMPTY
         else
           consecutive_empty = 0
-          all.concat(events.map { |e| parse_match(e) }.compact)
+          events.each do |e|
+            next if seen_ids[e["idEvent"]]
+            seen_ids[e["idEvent"]] = true
+            md = parse_match(e)
+            all << md if md
+          end
         end
+      end
+
+      # Supplement: group+knockout tournaments skip from small sequential rounds
+      # (e.g. 1, 2, 3 for group stages) directly to round 32, 16, 8, 4 for
+      # knockouts. The consecutive-empty break above exits before reaching them.
+      KNOCKOUT_SUPPLEMENT_ROUNDS.each do |round|
+        next if round > max_rounds
+        supplement = fetch_round("eventsround.php", id: league_id, r: round.to_s, s: season)
+        next if supplement.nil? || supplement.empty?
+        supplement.each do |e|
+          next if seen_ids[e["idEvent"]]
+          seen_ids[e["idEvent"]] = true
+          md = parse_match(e)
+          all << md if md
+        end
+        Rails.logger.info("TheSportsDB: knockout supplement round #{round} → #{supplement.size} events")
       end
 
       rate_limited = all.empty? && total_rounds > 0 && error_rounds == total_rounds

@@ -44,9 +44,10 @@ module Sync
       end
 
       # ── 4. Import matches ─────────────────────────────────────────────
-      stage_cache = {}
-      imported    = 0
-      skipped     = 0
+      stage_cache      = {}
+      imported         = 0
+      skipped          = 0
+      newly_created    = []
 
       all_matches.each do |md|
         home_team = resolve_team(md.home_team_external_id, md.home_team_name)
@@ -64,6 +65,7 @@ module Sync
           external_tsdb_id:       md.external_tsdb_id,
           external_provider_name: PROVIDER_NAME
         )
+        is_new = match.new_record?
         match.assign_attributes(
           home_team:              home_team,
           away_team:              away_team,
@@ -93,12 +95,16 @@ module Sync
         if match.new_record? || match.changed?
           match.save!
           imported += 1
+          newly_created << match if is_new
         end
       end
 
       Rails.logger.info("ImportTournamentMatches: #{all_matches.size} verificados, #{imported} importados, #{skipped} pulados")
 
-      # ── 5. Ensure SyncSchedule exists ────────────────────────────────
+      # ── 5. Propagate new matches to all tournament pools ──────────────
+      propagate_to_pools(newly_created) if newly_created.any?
+
+      # ── 6. Ensure SyncSchedule exists ────────────────────────────────
       provider = ApiProvider.find_by(provider_type: :thesportsdb, active: true)
       if provider && @tournament.sync_schedule.nil?
         SyncSchedule.create!(
@@ -185,8 +191,32 @@ module Sync
       end
     end
 
+    # Adds newly imported matches to every tournament pool that uses an explicit
+    # match list (pool_matches). Pools without an explicit list already see all
+    # tournament matches via the fallback in Pool#active_matches.
+    def propagate_to_pools(new_matches)
+      @tournament.pools.pool_scope_tournament.find_each do |pool|
+        next unless pool.pool_matches.exists?
+        new_matches.each { |m| pool.pool_matches.find_or_create_by!(match: m) }
+      end
+      Rails.logger.info("ImportTournamentMatches: #{new_matches.size} novos jogos propagados para bolões")
+    end
+
     def stage_label(md)
       return md.group_name if md.group_name.present? && md.group_name.match?(/group|grupo/i)
+
+      # Knockout tournaments (FIFA WC, Copa América, CL) use intRound equal to
+      # the number of remaining teams (32, 16, 8, 4). Detect when group_name is
+      # absent (knockout games have no strGroup) and round_number matches a known
+      # knockout value. Groups always have a non-blank group_name (strGroup letter).
+      if md.group_name.blank? && md.round_number.present?
+        case md.round_number
+        when 32 then return "Rodada de 32"
+        when 16 then return "Oitavas de Final"
+        when 8  then return "Quartas de Final"
+        when 4  then return "Semifinal"
+        end
+      end
 
       round = md.group_name.presence || md.round_number&.to_s
       return "Rodada #{round}" if round.present?
@@ -204,6 +234,7 @@ module Sync
 
     def classify_stage(label)
       case label.downcase
+      when /rodada de 32/            then :round_of_32
       when /rodada|grupo|group|fase/ then :group
       when /oitava/                  then :round_of_16
       when /quarta/                  then :quarterfinal
