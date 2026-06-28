@@ -1,6 +1,6 @@
 class SuperAdmin::TournamentsController < SuperAdmin::BaseController
   include Pagy::Backend
-  before_action :set_tournament, only: [ :show, :edit, :update, :destroy, :sync, :seed_from_api, :import_teams, :import_matches ]
+  before_action :set_tournament, only: [ :show, :edit, :update, :destroy, :sync, :seed_from_api, :import_teams, :import_matches, :dedup_matches ]
 
   def index
     skip_policy_scope
@@ -115,6 +115,33 @@ class SuperAdmin::TournamentsController < SuperAdmin::BaseController
                 notice: "Import de jogos enfileirado. Aguarde alguns minutos."
   rescue => e
     redirect_to super_admin_tournament_path(@tournament), alert: "Erro: #{e.message}"
+  end
+
+  # POST — remove duplicate matches (same external_tsdb_id, keep the one with most tips)
+  def dedup_matches
+    authorize @tournament
+    removed = 0
+
+    @tournament.matches
+               .where.not(external_tsdb_id: [ nil, "" ])
+               .group_by(&:external_tsdb_id)
+               .each do |_ext_id, dupes|
+      next if dupes.size <= 1
+
+      # Keep the record with the most tips; on tie prefer the lowest id (oldest).
+      keeper = dupes.max_by { |m| [ m.tips.count, -m.id ] }
+      (dupes - [ keeper ]).each do |m|
+        # Reassign pool_matches to the keeper before destroying
+        m.pool_matches.update_all(match_id: keeper.id)
+        m.destroy!
+        removed += 1
+      end
+    end
+
+    redirect_to super_admin_tournament_path(@tournament),
+                notice: removed > 0 ? "#{removed} jogo(s) duplicado(s) removido(s)." : "Nenhuma duplicata encontrada."
+  rescue => e
+    redirect_to super_admin_tournament_path(@tournament), alert: "Erro ao remover duplicatas: #{e.message}"
   end
 
   # POST /super_admin/tournaments/import_from_tsdb

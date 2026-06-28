@@ -50,7 +50,7 @@
   <% if @tournament.external_config&.dig("tsdb_league_id").present? %>
     <div class="card p-4 mb-6 border-pitch-200/60 dark:border-pitch-700/60">
       <p class="text-[10px] font-bold uppercase tracking-widest text-pitch-400 mb-3">TheSportsDB — ações por etapa</p>
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
         <%# Step 1: Sync scores %>
         <div class="rounded-xl border border-pitch-200 dark:border-pitch-700 p-3 text-center">
           <p class="text-xs font-semibold text-pitch-900 dark:text-white mb-0.5">1. Placares</p>
@@ -81,9 +81,20 @@
             Importar
           <% end %>
         </div>
-        <%# Step 4: Full re-import %>
+        <%# Step 4: Dedup matches %>
+        <div class="rounded-xl border border-amber-200 dark:border-amber-900/50 p-3 text-center">
+          <p class="text-xs font-semibold text-pitch-900 dark:text-white mb-0.5">4. Deduplicar</p>
+          <p class="text-[10px] text-pitch-400 mb-2">Remove jogos duplicados</p>
+          <%= button_to dedup_matches_super_admin_tournament_path(@tournament), method: :post,
+                data: { turbo_confirm: "Remover jogos duplicados? Serão mantidos os registros com mais palpites." },
+                class: "w-full btn btn-ghost btn-sm" do %>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            Limpar
+          <% end %>
+        </div>
+        <%# Step 5: Full re-import %>
         <div class="rounded-xl border border-red-200 dark:border-red-900/50 p-3 text-center">
-          <p class="text-xs font-semibold text-pitch-900 dark:text-white mb-0.5">4. Re-importar tudo</p>
+          <p class="text-xs font-semibold text-pitch-900 dark:text-white mb-0.5">5. Re-importar tudo</p>
           <p class="text-[10px] text-pitch-400 mb-2">Apaga jogos e recria</p>
           <%= button_to seed_from_api_super_admin_tournament_path(@tournament), method: :post,
                 data: { turbo_confirm: "Re-importar tudo? Os jogos existentes serão apagados e recriados." },

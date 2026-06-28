@@ -83,6 +83,7 @@ Rails.application.routes.draw do
         post :seed_from_api
         post :import_teams
         post :import_matches
+        post :dedup_matches
       end
       resources :teams, only: [ :index, :new, :create, :destroy ], controller: "tournament_teams"
       resources :matches, controller: "tournament_matches"
