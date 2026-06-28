@@ -194,10 +194,19 @@ module Sync
     # Adds newly imported matches to every tournament pool that uses an explicit
     # match list (pool_matches). Pools without an explicit list already see all
     # tournament matches via the fallback in Pool#active_matches.
+    # Also reopens any pool that was prematurely finalized (e.g. all group-stage
+    # matches ended before knockout matches were imported).
     def propagate_to_pools(new_matches)
+      has_upcoming = new_matches.any?(&:status_scheduled?)
       @tournament.pools.pool_scope_tournament.find_each do |pool|
-        next unless pool.pool_matches.exists?
-        new_matches.each { |m| pool.pool_matches.find_or_create_by!(match: m) }
+        new_matches.each { |m| pool.pool_matches.find_or_create_by!(match: m) } if pool.pool_matches.exists?
+
+        # Reopen a pool that was prematurely marked finished because all
+        # previously-known matches were done (e.g. end of group stage).
+        if has_upcoming && pool.status_finished?
+          pool.update!(status: :open)
+          Rails.logger.info("ImportTournamentMatches: pool #{pool.id} (#{pool.name}) reaberto para novos jogos")
+        end
       end
       Rails.logger.info("ImportTournamentMatches: #{new_matches.size} novos jogos propagados para bolões")
     end

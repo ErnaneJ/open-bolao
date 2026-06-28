@@ -237,6 +237,11 @@ module Sync
       return unless all_matches.any?
       return unless all_matches.all? { |m| m.status_finished? || m.status_cancelled? }
 
+      # Only finalize when the tournament itself is marked finished.
+      # Without this guard, importing knockout-stage matches after all group-stage
+      # games ended would have already finalized the pool prematurely.
+      return unless pool.tournament.status_finished?
+
       # All matches done — finalize pool if still open/locked
       return unless pool.status_open? || pool.status_locked?
 
