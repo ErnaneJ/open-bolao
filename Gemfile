@@ -19,7 +19,7 @@ gem "pundit"
 gem "sidekiq", "~> 7.0"
 gem "sidekiq-cron"
 gem "redis", "~> 5.0"
-gem "connection_pool", "~> 2.4"
+gem "connection_pool", "~> 3.0"
 
 # Pagination
 gem "pagy", "~> 9.0"
