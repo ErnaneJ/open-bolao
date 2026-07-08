@@ -8,7 +8,7 @@ gem "importmap-rails"
 gem "turbo-rails"
 gem "stimulus-rails"
 gem "tailwindcss-rails"
-gem "image_processing", "~> 1.2"
+gem "image_processing", "~> 2.0"
 gem "mini_magick"
 
 # Auth & Authorization
