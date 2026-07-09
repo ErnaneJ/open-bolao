@@ -513,7 +513,7 @@ module ApiProviders
     def map_status(str, postponed)
       return :postponed if postponed.to_s.downcase == "yes"
       case str.to_s.upcase
-      when "FT", "AET", "PEN"              then :finished
+      when "FT", "AET", "PEN", "AP"         then :finished
       when "LIVE", "HT", "1H", "2H", "ET" then :live
       when "PPD"                            then :postponed
       when "CANC"                           then :cancelled
